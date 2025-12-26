@@ -21,27 +21,35 @@ CVistarPlanner::CVistarPlanner(QWidget *parent)
     // Setup Scenario Manager dropdown menu
     QMenu *scenarioMenu = new QMenu(this);
     
-    // Style the menu to match the application theme
+    // Style the menu to match the application theme - semi-transparent with rounded edges
     scenarioMenu->setStyleSheet(
         "QMenu {"
-        "    background-color: #1976D2;"
-        "    border: 2px solid #2196F3;"
-        "    border-radius: 6px;"
-        "    padding: 5px;"
+        "    background-color: rgba(25, 118, 210, 0.85);"
+        "    border: 2px solid rgba(33, 150, 243, 0.6);"
+        "    border-radius: 12px;"
+        "    padding: 8px 5px;"
+        "    margin: 2px;"
         "}"
         "QMenu::item {"
         "    background-color: transparent;"
         "    color: white;"
-        "    padding: 8px 30px;"
-        "    border-radius: 4px;"
+        "    padding: 12px 35px;"
+        "    margin: 3px 6px;"
+        "    border-radius: 8px;"
         "    font-weight: bold;"
         "    font-size: 10pt;"
         "}"
         "QMenu::item:selected {"
-        "    background-color: #42A5F5;"
+        "    background-color: rgba(66, 165, 245, 0.7);"
+        "    border: 1px solid rgba(100, 181, 246, 0.5);"
         "}"
         "QMenu::item:pressed {"
-        "    background-color: #1565C0;"
+        "    background-color: rgba(21, 101, 192, 0.8);"
+        "}"
+        "QMenu::separator {"
+        "    height: 2px;"
+        "    background: rgba(255, 255, 255, 0.3);"
+        "    margin: 6px 15px;"
         "}"
     );
     
