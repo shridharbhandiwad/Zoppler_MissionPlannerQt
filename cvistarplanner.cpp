@@ -20,6 +20,9 @@ CVistarPlanner::CVistarPlanner(QWidget *parent)
 
     connect(_m_networkInterface,SIGNAL(signalUpdateObject(QJsonDocument)),ui->mapCanvas,SLOT(slotUpdateObject(QJsonDocument)));
 
+    // Initialize path settings dialog
+    _m_pathSettingsDialog = new CPathSettingsDialog(this);
+
     // Setup Scenario Manager dropdown menu
     QMenu *scenarioMenu = new QMenu(this);
     
@@ -145,7 +148,12 @@ CVistarPlanner::CVistarPlanner(QWidget *parent)
     actionRandom->setToolTip("Random waypoints for unpredictable path");
     actionRandom->setData(PATH_TYPE_RANDOM);
     
+    QAction *actionSettings = new QAction("⚙  Settings", this);
+    actionSettings->setToolTip("Configure path generation parameters");
+    
     // Add actions to menu with separators for grouping
+    pathMenu->addAction(actionSettings);
+    pathMenu->addSeparator();
     pathMenu->addAction(actionStraight);
     pathMenu->addSeparator();
     pathMenu->addAction(actionSCurve);
@@ -191,6 +199,9 @@ CVistarPlanner::CVistarPlanner(QWidget *parent)
         ui->mapCanvas->startPathGeneration(PATH_TYPE_RANDOM);
         ui->statusBar->showMessage("Click to select START point for Random path", 5000);
     });
+    
+    // Connect settings action
+    connect(actionSettings, &QAction::triggered, this, &CVistarPlanner::openPathSettings);
     
     // Connect path generation signals for status updates
     connect(ui->mapCanvas, &CMapCanvas::signalPathGenerationCompleted, this, [this](QString routeId) {
@@ -323,5 +334,18 @@ void CVistarPlanner::on_pushButton_ResetScenario_clicked()
 {
     ui->mapCanvas->resetScenario();
     ui->statusBar->showMessage("Scenario reset - all objects cleared!", 3000);
+}
+
+void CVistarPlanner::openPathSettings()
+{
+    // Load current settings from map canvas
+    _m_pathSettingsDialog->setPathParameters(ui->mapCanvas->getPathParameters());
+    
+    // Show dialog and apply if accepted
+    if (_m_pathSettingsDialog->exec() == QDialog::Accepted) {
+        CPathGenerator::PathParameters params = _m_pathSettingsDialog->getPathParameters();
+        ui->mapCanvas->setPathParameters(params);
+        ui->statusBar->showMessage("Path generation settings updated!", 3000);
+    }
 }
 

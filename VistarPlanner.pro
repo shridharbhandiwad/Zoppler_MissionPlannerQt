@@ -46,6 +46,7 @@ SOURCES += \
     MapDisplay/qgspointxyz.cpp \
     cloadscenariodialog.cpp \
     cnetworkinterface.cpp \
+    cpathsettingsdialog.cpp \
     csavescenariodialog.cpp \
     cscenariomanager.cpp \
     cupdateposition.cpp \
@@ -62,6 +63,7 @@ HEADERS += \
     MapDisplay/qgspointxyz.h \
     cloadscenariodialog.h \
     cnetworkinterface.h \
+    cpathsettingsdialog.h \
     csavescenariodialog.h \
     cscenariomanager.h \
     cupdateposition.h \
@@ -71,6 +73,7 @@ HEADERS += \
 
 FORMS += \
     cloadscenariodialog.ui \
+    cpathsettingsdialog.ui \
     csavescenariodialog.ui \
     cupdateposition.ui \
     cupdateroute.ui \
