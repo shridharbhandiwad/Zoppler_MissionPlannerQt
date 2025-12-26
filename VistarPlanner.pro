@@ -4,13 +4,12 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 CONFIG += c++17
 
+OBJECTS_DIR = build/obj
+MOC_DIR = build/moc
+UI_DIR = build/ui
+RCC_DIR = build/rcc
 
-OBJECTS_DIR = ../obj/OBJ
-MOC_DIR = ../obj/MOC
-UI_DIR = ../obj/UI
-RCC_DIR = ../obj/RCC
-
-TARGET = ../../bin/VistarPlanner
+TARGET = build/VistarPlanner
 TEMPLATE = app
 
 # You can make your code fail to compile if it uses deprecated APIs.
@@ -18,24 +17,45 @@ TEMPLATE = app
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 
-# Change these to your actual paths
-QGIS_PREFIX = C:\Users\Shridhar\AppData\Local\Programs\OSGeo4W
-QGIS_INCLUDE = $$QGIS_PREFIX/apps/qgis-ltr-dev/include
-#QGIS_LIB = $$QGIS_PREFIX/
+# QGIS paths - Linux configuration
+unix {
+    # Try to detect QGIS installation
+    exists(/usr/include/qgis) {
+        QGIS_INCLUDE = /usr/include/qgis
+    } else:exists(/usr/local/include/qgis) {
+        QGIS_INCLUDE = /usr/local/include/qgis
+    }
+    
+    INCLUDEPATH += $$QGIS_INCLUDE
+    DEPENDPATH += $$QGIS_INCLUDE
+    
+    LIBS += -lqgis_core \
+            -lqgis_gui \
+            -lqgis_analysis \
+            -lgeos_c \
+            -lproj \
+            -lspatialite
+}
 
-DEFINES += _USE_MATH_DEFINES
+# Windows configuration
+win32 {
+    QGIS_PREFIX = C:\Users\Shridhar\AppData\Local\Programs\OSGeo4W
+    QGIS_INCLUDE = $$QGIS_PREFIX/apps/qgis-ltr-dev/include
+    
+    DEFINES += _USE_MATH_DEFINES
+    
+    INCLUDEPATH += $$QGIS_INCLUDE
+    DEPENDPATH += $$QGIS_INCLUDE
+    LIBS += -L$$QGIS_PREFIX/apps/qgis-ltr-dev/lib \
+        -lqgis_core \
+         -lqgis_gui \
+         -lqgis_analysis
 
-INCLUDEPATH += $$QGIS_INCLUDE
-DEPENDPATH += $$QGIS_INCLUDE
-LIBS += -L$$QGIS_PREFIX/apps/qgis-ltr-dev/lib \
-    -lqgis_core \
-     -lqgis_gui
-     -lqgis_analysis
-
- LIBS += -L$$QGIS_PREFIX/lib \
-     -lgeos_c \
-     -lproj \
-     -lspatialite
+     LIBS += -L$$QGIS_PREFIX/lib \
+         -lgeos_c \
+         -lproj \
+         -lspatialite
+}
 
 SOURCES += \
     MapDisplay/cmapcanvas.cpp \

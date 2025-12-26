@@ -8,6 +8,7 @@
 #include <QJsonDocument>
 #include <QList>
 #include <QMap>
+#include <QPointF>
 
 // Structure to hold object data
 struct ScenarioObject {
