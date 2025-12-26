@@ -37,6 +37,8 @@ public:
     QPushButton *pushButton_Start;
     QPushButton *pushButton_Stop;
     QPushButton *pushButton_ImportMaps;
+    QPushButton *pushButton_PathGenerator;
+    QPushButton *pushButton_ScenarioManagerMenu;
     QStatusBar *statusBar;
 
     void setupUi(QMainWindow *CVistarPlanner)
@@ -201,6 +203,99 @@ public:
 "    background-color: #6A1B9A;\n"
 "}"));
 
+        pushButton_PathGenerator = new QPushButton(mapCanvas);
+        pushButton_PathGenerator->setObjectName(QString::fromUtf8("pushButton_PathGenerator"));
+        pushButton_PathGenerator->setGeometry(QRect(10, 70, 180, 51));
+        sizePolicy2.setHeightForWidth(pushButton_PathGenerator->sizePolicy().hasHeightForWidth());
+        pushButton_PathGenerator->setSizePolicy(sizePolicy2);
+        QFont font3;
+        font3.setPointSize(9);
+        font3.setBold(true);
+        pushButton_PathGenerator->setFont(font3);
+        pushButton_PathGenerator->setAutoFillBackground(false);
+        pushButton_PathGenerator->setStyleSheet(QString::fromUtf8("QPushButton {\n"
+"    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,\n"
+"                                stop:0 rgba(255, 152, 0, 0.85),\n"
+"                                stop:0.5 rgba(245, 124, 0, 0.85),\n"
+"                                stop:1 rgba(230, 81, 0, 0.85));\n"
+"    border: 2px solid rgba(255, 152, 0, 0.4);\n"
+"    color: white;\n"
+"    padding: 10px 20px;\n"
+"    border-radius: 8px;\n"
+"    font-weight: 600;\n"
+"    letter-spacing: 0.5px;\n"
+"}\n"
+"QPushButton:hover {\n"
+"    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,\n"
+"                                stop:0 rgba(255, 167, 38, 0.9),\n"
+"                                stop:0.5 rgba(255, 152, 0, 0.9),\n"
+"                                stop:1 rgba(245, 124, 0, 0.9));\n"
+"    border: 2px solid rgba(255, 167, 38, 0.6);\n"
+"}\n"
+"QPushButton:pressed {\n"
+"    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,\n"
+"                                stop:0 rgba(230, 81, 0, 0.9),\n"
+"                                stop:1 rgba(191, 54, 12, 0.9));\n"
+"    border: 2px solid rgba(230, 81, 0, 0.8);\n"
+"    padding: 11px 20px 9px 20px;\n"
+"}\n"
+"QPushButton:disabled {\n"
+"    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,\n"
+"                                stop:0 rgba(189, 189, 189, 0.7),\n"
+"                                stop:1 rgba(158, 158, 158, 0.7));\n"
+"    border: 2px solid rgba(189, 189, 189, 0.3);\n"
+"    color: rgba(255, 255, 255, 0.5);\n"
+"}\n"
+"QPushButton::menu-indicator {\n"
+"    image: none;\n"
+"    width: 0px;\n"
+"}"));
+
+        pushButton_ScenarioManagerMenu = new QPushButton(mapCanvas);
+        pushButton_ScenarioManagerMenu->setObjectName(QString::fromUtf8("pushButton_ScenarioManagerMenu"));
+        pushButton_ScenarioManagerMenu->setGeometry(QRect(10, 10, 180, 51));
+        sizePolicy2.setHeightForWidth(pushButton_ScenarioManagerMenu->sizePolicy().hasHeightForWidth());
+        pushButton_ScenarioManagerMenu->setSizePolicy(sizePolicy2);
+        pushButton_ScenarioManagerMenu->setFont(font3);
+        pushButton_ScenarioManagerMenu->setAutoFillBackground(false);
+        pushButton_ScenarioManagerMenu->setStyleSheet(QString::fromUtf8("QPushButton {\n"
+"    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,\n"
+"                                stop:0 rgba(33, 150, 243, 0.7),\n"
+"                                stop:0.5 rgba(30, 136, 229, 0.7),\n"
+"                                stop:1 rgba(25, 118, 210, 0.7));\n"
+"    border: 2px solid rgba(33, 150, 243, 0.3);\n"
+"    color: white;\n"
+"    padding: 10px 20px;\n"
+"    border-radius: 8px;\n"
+"    font-weight: 600;\n"
+"    letter-spacing: 0.5px;\n"
+"}\n"
+"QPushButton:hover {\n"
+"    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,\n"
+"                                stop:0 rgba(66, 165, 245, 0.7),\n"
+"                                stop:0.5 rgba(33, 150, 243, 0.7),\n"
+"                                stop:1 rgba(30, 136, 229, 0.7));\n"
+"    border: 2px solid rgba(33, 150, 243, 0.5);\n"
+"}\n"
+"QPushButton:pressed {\n"
+"    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,\n"
+"                                stop:0 rgba(21, 101, 192, 0.7),\n"
+"                                stop:1 rgba(13, 71, 161, 0.7));\n"
+"    border: 2px solid rgba(13, 71, 161, 0.8);\n"
+"    padding: 11px 20px 9px 20px;\n"
+"}\n"
+"QPushButton:disabled {\n"
+"    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,\n"
+"                                stop:0 rgba(189, 189, 189, 0.7),\n"
+"                                stop:1 rgba(158, 158, 158, 0.7));\n"
+"    border: 2px solid rgba(189, 189, 189, 0.3);\n"
+"    color: rgba(255, 255, 255, 0.5);\n"
+"}\n"
+"QPushButton::menu-indicator {\n"
+"    image: none;\n"
+"    width: 0px;\n"
+"}"));
+
         gridLayout->addWidget(mapCanvas, 0, 0, 1, 1);
 
         CVistarPlanner->setCentralWidget(centralwidget);
@@ -266,6 +361,8 @@ public:
         pushButton_Start->setText(QCoreApplication::translate("CVistarPlanner", "START", nullptr));
         pushButton_Stop->setText(QCoreApplication::translate("CVistarPlanner", "STOP", nullptr));
         pushButton_ImportMaps->setText(QCoreApplication::translate("CVistarPlanner", "Import Map", nullptr));
+        pushButton_PathGenerator->setText(QCoreApplication::translate("CVistarPlanner", "Path Generator \342\226\274", nullptr));
+        pushButton_ScenarioManagerMenu->setText(QCoreApplication::translate("CVistarPlanner", "Scenario Manager \342\226\274", nullptr));
     } // retranslateUi
 
 };
