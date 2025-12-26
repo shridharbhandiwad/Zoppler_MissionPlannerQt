@@ -58,6 +58,26 @@ public:
     bool isPathGenerationActive() const;
     eVISTAR_PATH_TYPE getCurrentPathType() const;
     CPathGenerator* getPathGenerator();
+    
+    // Path generation configuration parameters
+    void setPathParameters(const CPathGenerator::PathParameters &params);
+    CPathGenerator::PathParameters getPathParameters() const;
+    void setNumWaypoints(int numWaypoints);
+    int getNumWaypoints() const;
+    void setDefaultAltitude(double altitude);
+    double getDefaultAltitude() const;
+    void setCurveFactor(double curveFactor);
+    double getCurveFactor() const;
+    void setSpiralTurns(double spiralTurns);
+    double getSpiralTurns() const;
+    void setZigzagAmplitude(double amplitude);
+    double getZigzagAmplitude() const;
+    void setZigzagFrequency(int frequency);
+    int getZigzagFrequency() const;
+    void setMaxTurnRadius(double radius);
+    double getMaxTurnRadius() const;
+    void setRandomVariance(double variance);
+    double getRandomVariance() const;
 
     QTimer timerUpdate;
 private:
@@ -112,6 +132,7 @@ private:
     bool _m_bPathStartPointSet;
     QGraphicsEllipseItem *_m_pathStartMarker;
     QGraphicsTextItem *_m_pathInstructionText;
+    CPathGenerator::PathParameters _m_pathParams;  // Configurable path generation parameters
 
     void enforceLayerOrder();
     int computeMaxZoom(double rasterRes);

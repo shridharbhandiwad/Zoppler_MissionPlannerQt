@@ -43,6 +43,17 @@ CMapCanvas::CMapCanvas(QWidget *parent) : QgsMapCanvas(parent)
     _m_pathStartMarker = nullptr;
     _m_pathInstructionText = nullptr;
     
+    // Initialize path generation parameters with defaults
+    _m_pathParams = CPathGenerator::PathParameters();
+    _m_pathParams.numWaypoints = 20;         // Number of intermediate waypoints
+    _m_pathParams.defaultAltitude = 1000.0;  // Default altitude in meters
+    _m_pathParams.curveFactor = 0.3;         // Controls curve intensity (0.0-1.0)
+    _m_pathParams.spiralTurns = 2.0;         // Number of spiral rotations
+    _m_pathParams.zigzagAmplitude = 0.2;     // Amplitude of zigzag (fraction of distance)
+    _m_pathParams.zigzagFrequency = 6;       // Number of zigzag oscillations
+    _m_pathParams.maxTurnRadius = 0.05;      // Maximum turn radius in degrees
+    _m_pathParams.randomVariance = 0.15;     // Random path variance factor
+    
     QgsRectangle fixedWorldExtent(-180.0, -90.0, 180.0, 90.0);
      mPreviousCursor = Qt::ArrowCursor;
     // Add padding (e.g., 10% of width/height)
@@ -722,14 +733,13 @@ void CMapCanvas::mouseReleaseEvent(QMouseEvent *event)
                 
                 qDebug() << "Path end point set:" << endPoint.x() << "," << endPoint.y();
                 qDebug() << "Generating" << CPathGenerator::getPathTypeName(_m_currentPathType) << "path...";
+                qDebug() << "Using configuration: waypoints=" << _m_pathParams.numWaypoints 
+                         << ", altitude=" << _m_pathParams.defaultAltitude
+                         << ", curveFactor=" << _m_pathParams.curveFactor;
                 
-                // Generate the path
-                CPathGenerator::PathParameters params;
-                params.numWaypoints = 15;  // Reasonable number of waypoints
-                params.defaultAltitude = 1000.0;
-                
+                // Generate the path using configurable parameters
                 QList<QgsPointXYZ> pathPoints = _m_pathGenerator->generatePath(
-                    _m_pathStartPoint, endPoint, _m_currentPathType, params
+                    _m_pathStartPoint, endPoint, _m_currentPathType, _m_pathParams
                 );
                 
                 // Create the route from generated points
@@ -1702,4 +1712,105 @@ void CMapCanvas::createGeneratedRoute(const QList<QgsPointXYZ> &points)
     refresh();
 }
 
+// ============ Path Generation Configuration Methods ============
+
+void CMapCanvas::setPathParameters(const CPathGenerator::PathParameters &params)
+{
+    _m_pathParams = params;
+    qDebug() << "Path parameters updated - waypoints:" << _m_pathParams.numWaypoints 
+             << ", altitude:" << _m_pathParams.defaultAltitude;
+}
+
+CPathGenerator::PathParameters CMapCanvas::getPathParameters() const
+{
+    return _m_pathParams;
+}
+
+void CMapCanvas::setNumWaypoints(int numWaypoints)
+{
+    _m_pathParams.numWaypoints = qBound(2, numWaypoints, 100);  // Clamp between 2 and 100
+    qDebug() << "Number of waypoints set to:" << _m_pathParams.numWaypoints;
+}
+
+int CMapCanvas::getNumWaypoints() const
+{
+    return _m_pathParams.numWaypoints;
+}
+
+void CMapCanvas::setDefaultAltitude(double altitude)
+{
+    _m_pathParams.defaultAltitude = qMax(0.0, altitude);  // Ensure non-negative
+    qDebug() << "Default altitude set to:" << _m_pathParams.defaultAltitude;
+}
+
+double CMapCanvas::getDefaultAltitude() const
+{
+    return _m_pathParams.defaultAltitude;
+}
+
+void CMapCanvas::setCurveFactor(double curveFactor)
+{
+    _m_pathParams.curveFactor = qBound(0.0, curveFactor, 1.0);  // Clamp between 0 and 1
+    qDebug() << "Curve factor set to:" << _m_pathParams.curveFactor;
+}
+
+double CMapCanvas::getCurveFactor() const
+{
+    return _m_pathParams.curveFactor;
+}
+
+void CMapCanvas::setSpiralTurns(double spiralTurns)
+{
+    _m_pathParams.spiralTurns = qBound(0.5, spiralTurns, 10.0);  // Clamp between 0.5 and 10
+    qDebug() << "Spiral turns set to:" << _m_pathParams.spiralTurns;
+}
+
+double CMapCanvas::getSpiralTurns() const
+{
+    return _m_pathParams.spiralTurns;
+}
+
+void CMapCanvas::setZigzagAmplitude(double amplitude)
+{
+    _m_pathParams.zigzagAmplitude = qBound(0.05, amplitude, 0.5);  // Clamp between 0.05 and 0.5
+    qDebug() << "Zigzag amplitude set to:" << _m_pathParams.zigzagAmplitude;
+}
+
+double CMapCanvas::getZigzagAmplitude() const
+{
+    return _m_pathParams.zigzagAmplitude;
+}
+
+void CMapCanvas::setZigzagFrequency(int frequency)
+{
+    _m_pathParams.zigzagFrequency = qBound(2, frequency, 20);  // Clamp between 2 and 20
+    qDebug() << "Zigzag frequency set to:" << _m_pathParams.zigzagFrequency;
+}
+
+int CMapCanvas::getZigzagFrequency() const
+{
+    return _m_pathParams.zigzagFrequency;
+}
+
+void CMapCanvas::setMaxTurnRadius(double radius)
+{
+    _m_pathParams.maxTurnRadius = qBound(0.01, radius, 0.2);  // Clamp between 0.01 and 0.2
+    qDebug() << "Max turn radius set to:" << _m_pathParams.maxTurnRadius;
+}
+
+double CMapCanvas::getMaxTurnRadius() const
+{
+    return _m_pathParams.maxTurnRadius;
+}
+
+void CMapCanvas::setRandomVariance(double variance)
+{
+    _m_pathParams.randomVariance = qBound(0.05, variance, 0.5);  // Clamp between 0.05 and 0.5
+    qDebug() << "Random variance set to:" << _m_pathParams.randomVariance;
+}
+
+double CMapCanvas::getRandomVariance() const
+{
+    return _m_pathParams.randomVariance;
+}
 
