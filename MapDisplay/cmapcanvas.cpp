@@ -118,7 +118,10 @@ void CMapCanvas::Initialize() {
     _loadVectorMaps();
     //_loadLayers();
     enforceLayerOrder();
-    zoomToFullExtent();
+    
+    // Set India as the default Home view on startup
+    mapHome();
+    
     refresh();
     
     // Auto-load the last saved scenario
@@ -520,8 +523,23 @@ void CMapCanvas::loadShapeFile(const QString &shpPath)
 }
 
 void CMapCanvas::mapHome() {
-
-
+    // India's approximate geographic extent (in degrees)
+    // Latitude: ~8°N to ~37°N
+    // Longitude: ~68°E to ~97°E
+    // Adding some padding for better visualization
+    double indiaMinLon = 65.0;   // West boundary with padding
+    double indiaMaxLon = 100.0;  // East boundary with padding
+    double indiaMinLat = 5.0;    // South boundary with padding
+    double indiaMaxLat = 40.0;   // North boundary with padding
+    
+    QgsRectangle indiaExtent(indiaMinLon, indiaMinLat, indiaMaxLon, indiaMaxLat);
+    
+    setRenderFlag(false);
+    setExtent(indiaExtent);
+    setRenderFlag(true);
+    refresh();
+    
+    qDebug() << "Map set to India Home view";
 }
 
 void CMapCanvas::zoomBy(double factor)
@@ -1002,6 +1020,9 @@ void CMapCanvas::keyPressEvent(QKeyEvent *event)
     double moveX = extent.width() * 0.1; // 10% move
 
     switch (event->key()) {
+    case Qt::Key_Home:
+        mapHome();  // Return to India Home view
+        break;
     case Qt::Key_Left:
         panCanvas(-moveX, 0);
         break;
