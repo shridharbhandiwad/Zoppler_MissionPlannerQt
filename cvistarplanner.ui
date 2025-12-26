@@ -616,6 +616,73 @@ QPushButton:disabled {
         <string>Import Map</string>
        </property>
       </widget>
+      <widget class="QPushButton" name="pushButton_PathGenerator">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>70</y>
+         <width>180</width>
+         <height>51</height>
+        </rect>
+       </property>
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>9</pointsize>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="autoFillBackground">
+        <bool>false</bool>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QPushButton {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 rgba(255, 152, 0, 0.85),
+                                stop:0.5 rgba(245, 124, 0, 0.85),
+                                stop:1 rgba(230, 81, 0, 0.85));
+    border: 2px solid rgba(255, 152, 0, 0.4);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+QPushButton:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 rgba(255, 167, 38, 0.9),
+                                stop:0.5 rgba(255, 152, 0, 0.9),
+                                stop:1 rgba(245, 124, 0, 0.9));
+    border: 2px solid rgba(255, 167, 38, 0.6);
+}
+QPushButton:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 rgba(230, 81, 0, 0.9),
+                                stop:1 rgba(191, 54, 12, 0.9));
+    border: 2px solid rgba(230, 81, 0, 0.8);
+    padding: 11px 20px 9px 20px;
+}
+QPushButton:disabled {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 rgba(189, 189, 189, 0.7),
+                                stop:1 rgba(158, 158, 158, 0.7));
+    border: 2px solid rgba(189, 189, 189, 0.3);
+    color: rgba(255, 255, 255, 0.5);
+}
+QPushButton::menu-indicator {
+    image: none;
+    width: 0px;
+}</string>
+       </property>
+       <property name="text">
+        <string>Path Generator ▼</string>
+       </property>
+      </widget>
       <widget class="QPushButton" name="pushButton_ScenarioManagerMenu">
        <property name="geometry">
         <rect>

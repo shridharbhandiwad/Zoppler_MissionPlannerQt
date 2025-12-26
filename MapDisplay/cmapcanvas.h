@@ -10,6 +10,7 @@
 #include <QProgressDialog>
 #include "cvistarobject.h"
 #include "cvistarroute.h"
+#include "cpathgenerator.h"
 #include <QTimer>
 #include "../cupdateposition.h"
 #include "../cupdateroute.h"
@@ -50,6 +51,13 @@ public:
     void resetScenario();
     QString getClassNameFromEnum(int nClass);
     int getEnumFromClassName(const QString &className);
+
+    // Path generation
+    void startPathGeneration(eVISTAR_PATH_TYPE pathType);
+    void cancelPathGeneration();
+    bool isPathGenerationActive() const;
+    eVISTAR_PATH_TYPE getCurrentPathType() const;
+    CPathGenerator* getPathGenerator();
 
     QTimer timerUpdate;
 private:
@@ -96,11 +104,26 @@ private:
 
     CScenarioManager *_m_scenarioManager;
 
+    // Path generation members
+    CPathGenerator *_m_pathGenerator;
+    eVISTAR_PATH_TYPE _m_currentPathType;
+    bool _m_bPathGenerationMode;
+    QgsPointXY _m_pathStartPoint;
+    bool _m_bPathStartPointSet;
+    QGraphicsEllipseItem *_m_pathStartMarker;
+    QGraphicsTextItem *_m_pathInstructionText;
+
     void enforceLayerOrder();
     int computeMaxZoom(double rasterRes);
+    void showPathGenerationInstruction(const QString &text);
+    void clearPathGenerationMarkers();
+    void createGeneratedRoute(const QList<QgsPointXYZ> &points);
 signals:
     void signalMouseRead(QString);
     void signalClearObjectSelection();
+    void signalPathGenerationStarted(eVISTAR_PATH_TYPE pathType);
+    void signalPathGenerationCompleted(QString routeId);
+    void signalPathGenerationCancelled();
 public slots:
     void slotUpdateObject(QJsonDocument doc);
     void slotUpdatePosition(QString, double dLat, double dLon, double dAlt);

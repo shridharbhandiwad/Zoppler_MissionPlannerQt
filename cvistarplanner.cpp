@@ -1,8 +1,10 @@
 #include "cvistarplanner.h"
 #include "ui_cvistarplanner.h"
 #include "globalConstants.h"
+#include "MapDisplay/cpathgenerator.h"
 #include <QFileDialog>
 #include <QMenu>
+#include <QWidgetAction>
 
 CVistarPlanner::CVistarPlanner(QWidget *parent)
     : QMainWindow(parent)
@@ -71,6 +73,135 @@ CVistarPlanner::CVistarPlanner(QWidget *parent)
     
     // Set the menu to the button
     ui->pushButton_ScenarioManagerMenu->setMenu(scenarioMenu);
+
+    // Setup Path Generator dropdown menu
+    QMenu *pathMenu = new QMenu(this);
+    
+    // Style the menu with a vibrant orange/amber theme matching the button
+    pathMenu->setStyleSheet(
+        "QMenu {"
+        "    background-color: rgba(230, 81, 0, 0.92);"
+        "    border: 2px solid rgba(255, 152, 0, 0.6);"
+        "    border-radius: 12px;"
+        "    padding: 10px 5px;"
+        "    margin: 2px;"
+        "}"
+        "QMenu::item {"
+        "    background-color: transparent;"
+        "    color: white;"
+        "    padding: 14px 40px;"
+        "    margin: 4px 8px;"
+        "    border-radius: 8px;"
+        "    font-weight: bold;"
+        "    font-size: 10pt;"
+        "}"
+        "QMenu::item:selected {"
+        "    background-color: rgba(255, 167, 38, 0.75);"
+        "    border: 1px solid rgba(255, 193, 7, 0.5);"
+        "}"
+        "QMenu::item:pressed {"
+        "    background-color: rgba(191, 54, 12, 0.85);"
+        "}"
+        "QMenu::separator {"
+        "    height: 2px;"
+        "    background: rgba(255, 255, 255, 0.35);"
+        "    margin: 8px 15px;"
+        "}"
+        "QMenu::icon {"
+        "    padding-left: 15px;"
+        "}"
+    );
+    
+    // Create path type actions with icons and descriptions
+    QAction *actionStraight = new QAction("➤  Straight Line", this);
+    actionStraight->setToolTip("Direct path between two points");
+    actionStraight->setData(PATH_TYPE_STRAIGHT);
+    
+    QAction *actionSCurve = new QAction("〰  S-Curve", this);
+    actionSCurve->setToolTip("Smooth S-shaped trajectory using sigmoid function");
+    actionSCurve->setData(PATH_TYPE_S_CURVE);
+    
+    QAction *actionLCurve = new QAction("⌐  L-Curve", this);
+    actionLCurve->setToolTip("L-shaped path with rounded corner");
+    actionLCurve->setData(PATH_TYPE_L_CURVE);
+    
+    QAction *actionFigure8 = new QAction("∞  Figure-8", this);
+    actionFigure8->setToolTip("Figure-8 looping trajectory for surveillance");
+    actionFigure8->setData(PATH_TYPE_FIGURE_8);
+    
+    QAction *actionSpiral = new QAction("🌀  Spiral", this);
+    actionSpiral->setToolTip("Spiral path expanding outward for area coverage");
+    actionSpiral->setData(PATH_TYPE_SPIRAL);
+    
+    QAction *actionZigzag = new QAction("⚡  Zigzag", this);
+    actionZigzag->setToolTip("Zigzag evasive maneuver pattern");
+    actionZigzag->setData(PATH_TYPE_ZIGZAG);
+    
+    QAction *actionBezier = new QAction("⌒  Bezier Curve", this);
+    actionBezier->setToolTip("Smooth Bezier curve trajectory");
+    actionBezier->setData(PATH_TYPE_BEZIER);
+    
+    QAction *actionRandom = new QAction("🎲  Random", this);
+    actionRandom->setToolTip("Random waypoints for unpredictable path");
+    actionRandom->setData(PATH_TYPE_RANDOM);
+    
+    // Add actions to menu with separators for grouping
+    pathMenu->addAction(actionStraight);
+    pathMenu->addSeparator();
+    pathMenu->addAction(actionSCurve);
+    pathMenu->addAction(actionLCurve);
+    pathMenu->addAction(actionBezier);
+    pathMenu->addSeparator();
+    pathMenu->addAction(actionFigure8);
+    pathMenu->addAction(actionSpiral);
+    pathMenu->addSeparator();
+    pathMenu->addAction(actionZigzag);
+    pathMenu->addAction(actionRandom);
+    
+    // Connect all path actions to a single slot using lambda
+    connect(actionStraight, &QAction::triggered, this, [this]() { 
+        ui->mapCanvas->startPathGeneration(PATH_TYPE_STRAIGHT);
+        ui->statusBar->showMessage("Click to select START point for Straight path", 5000);
+    });
+    connect(actionSCurve, &QAction::triggered, this, [this]() { 
+        ui->mapCanvas->startPathGeneration(PATH_TYPE_S_CURVE);
+        ui->statusBar->showMessage("Click to select START point for S-Curve path", 5000);
+    });
+    connect(actionLCurve, &QAction::triggered, this, [this]() { 
+        ui->mapCanvas->startPathGeneration(PATH_TYPE_L_CURVE);
+        ui->statusBar->showMessage("Click to select START point for L-Curve path", 5000);
+    });
+    connect(actionFigure8, &QAction::triggered, this, [this]() { 
+        ui->mapCanvas->startPathGeneration(PATH_TYPE_FIGURE_8);
+        ui->statusBar->showMessage("Click to select START point for Figure-8 path", 5000);
+    });
+    connect(actionSpiral, &QAction::triggered, this, [this]() { 
+        ui->mapCanvas->startPathGeneration(PATH_TYPE_SPIRAL);
+        ui->statusBar->showMessage("Click to select START point for Spiral path", 5000);
+    });
+    connect(actionZigzag, &QAction::triggered, this, [this]() { 
+        ui->mapCanvas->startPathGeneration(PATH_TYPE_ZIGZAG);
+        ui->statusBar->showMessage("Click to select START point for Zigzag path", 5000);
+    });
+    connect(actionBezier, &QAction::triggered, this, [this]() { 
+        ui->mapCanvas->startPathGeneration(PATH_TYPE_BEZIER);
+        ui->statusBar->showMessage("Click to select START point for Bezier Curve path", 5000);
+    });
+    connect(actionRandom, &QAction::triggered, this, [this]() { 
+        ui->mapCanvas->startPathGeneration(PATH_TYPE_RANDOM);
+        ui->statusBar->showMessage("Click to select START point for Random path", 5000);
+    });
+    
+    // Connect path generation signals for status updates
+    connect(ui->mapCanvas, &CMapCanvas::signalPathGenerationCompleted, this, [this](QString routeId) {
+        ui->statusBar->showMessage("Path generated successfully: " + routeId, 3000);
+    });
+    connect(ui->mapCanvas, &CMapCanvas::signalPathGenerationCancelled, this, [this]() {
+        ui->statusBar->showMessage("Path generation cancelled", 3000);
+    });
+    
+    // Set the menu to the button
+    ui->pushButton_PathGenerator->setMenu(pathMenu);
 }
 
 CVistarPlanner::~CVistarPlanner()

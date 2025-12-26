@@ -23,4 +23,17 @@ enum eVISTAR_CLASS {
     VISTAR_CLASS_ROUTE
 };
 
+// Path/Trajectory generation types
+enum eVISTAR_PATH_TYPE {
+    PATH_TYPE_NONE = 0,
+    PATH_TYPE_STRAIGHT,      // Direct line between two points
+    PATH_TYPE_S_CURVE,       // Smooth S-shaped curve (sigmoid)
+    PATH_TYPE_L_CURVE,       // L-shaped path with rounded corner
+    PATH_TYPE_FIGURE_8,      // Figure-8 trajectory
+    PATH_TYPE_SPIRAL,        // Spiral path between points
+    PATH_TYPE_ZIGZAG,        // Zigzag evasive maneuver
+    PATH_TYPE_BEZIER,        // Smooth Bezier curve
+    PATH_TYPE_RANDOM         // Random waypoints between points
+};
+
 #endif // GLOBALCONSTANTS_H
