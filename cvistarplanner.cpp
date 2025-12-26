@@ -23,14 +23,14 @@ CVistarPlanner::CVistarPlanner(QWidget *parent)
     // Initialize path settings dialog
     _m_pathSettingsDialog = new CPathSettingsDialog(this);
 
-    // Setup consolidated Tools dropdown menu
-    QMenu *toolsMenu = new QMenu(this);
+    // Setup Scenario Manager dropdown menu
+    QMenu *scenarioMenu = new QMenu(this);
     
-    // Style the main Tools menu with a neutral blue-grey theme
-    QString menuStyle = 
+    // Style the menu to match the application theme - semi-transparent with rounded edges
+    scenarioMenu->setStyleSheet(
         "QMenu {"
-        "    background-color: rgba(69, 90, 100, 0.92);"
-        "    border: 2px solid rgba(96, 125, 139, 0.6);"
+        "    background-color: rgba(25, 118, 210, 0.85);"
+        "    border: 2px solid rgba(33, 150, 243, 0.6);"
         "    border-radius: 12px;"
         "    padding: 8px 5px;"
         "    margin: 2px;"
@@ -45,44 +45,77 @@ CVistarPlanner::CVistarPlanner(QWidget *parent)
         "    font-size: 10pt;"
         "}"
         "QMenu::item:selected {"
-        "    background-color: rgba(120, 144, 156, 0.7);"
-        "    border: 1px solid rgba(144, 164, 174, 0.5);"
+        "    background-color: rgba(66, 165, 245, 0.7);"
+        "    border: 1px solid rgba(100, 181, 246, 0.5);"
         "}"
         "QMenu::item:pressed {"
-        "    background-color: rgba(55, 71, 79, 0.8);"
+        "    background-color: rgba(21, 101, 192, 0.8);"
         "}"
         "QMenu::separator {"
         "    height: 2px;"
         "    background: rgba(255, 255, 255, 0.3);"
         "    margin: 6px 15px;"
-        "}";
+        "}"
+    );
     
-    toolsMenu->setStyleSheet(menuStyle);
-    
-    // === Scenario Manager Submenu ===
-    QMenu *scenarioMenu = new QMenu("📁  Scenario Manager", this);
-    scenarioMenu->setStyleSheet(menuStyle);
-    
+    // Create menu actions
     QAction *actionLoadScenario = new QAction("Load Scenario", this);
     QAction *actionSaveScenario = new QAction("Save Scenario", this);
     QAction *actionResetScenario = new QAction("Reset Scenario", this);
     
+    // Connect actions to existing slots
     connect(actionLoadScenario, &QAction::triggered, this, &CVistarPlanner::on_pushButton_LoadScenario_clicked);
     connect(actionSaveScenario, &QAction::triggered, this, &CVistarPlanner::on_pushButton_SaveScenario_clicked);
     connect(actionResetScenario, &QAction::triggered, this, &CVistarPlanner::on_pushButton_ResetScenario_clicked);
     
+    // Add actions to menu
     scenarioMenu->addAction(actionLoadScenario);
     scenarioMenu->addAction(actionSaveScenario);
     scenarioMenu->addSeparator();
     scenarioMenu->addAction(actionResetScenario);
     
-    // === Path Generator Submenu ===
-    QMenu *pathMenu = new QMenu("🛤  Path Generator", this);
-    pathMenu->setStyleSheet(menuStyle);
+    // Set the menu to the button
+    ui->pushButton_ScenarioManagerMenu->setMenu(scenarioMenu);
+
+    // Setup Path Generator dropdown menu
+    QMenu *pathMenu = new QMenu(this);
     
-    QAction *actionSettings = new QAction("⚙  Settings", this);
-    actionSettings->setToolTip("Configure path generation parameters");
+    // Style the menu with a vibrant orange/amber theme matching the button
+    pathMenu->setStyleSheet(
+        "QMenu {"
+        "    background-color: rgba(230, 81, 0, 0.92);"
+        "    border: 2px solid rgba(255, 152, 0, 0.6);"
+        "    border-radius: 12px;"
+        "    padding: 10px 5px;"
+        "    margin: 2px;"
+        "}"
+        "QMenu::item {"
+        "    background-color: transparent;"
+        "    color: white;"
+        "    padding: 14px 40px;"
+        "    margin: 4px 8px;"
+        "    border-radius: 8px;"
+        "    font-weight: bold;"
+        "    font-size: 10pt;"
+        "}"
+        "QMenu::item:selected {"
+        "    background-color: rgba(255, 167, 38, 0.75);"
+        "    border: 1px solid rgba(255, 193, 7, 0.5);"
+        "}"
+        "QMenu::item:pressed {"
+        "    background-color: rgba(191, 54, 12, 0.85);"
+        "}"
+        "QMenu::separator {"
+        "    height: 2px;"
+        "    background: rgba(255, 255, 255, 0.35);"
+        "    margin: 8px 15px;"
+        "}"
+        "QMenu::icon {"
+        "    padding-left: 15px;"
+        "}"
+    );
     
+    // Create path type actions with icons and descriptions
     QAction *actionStraight = new QAction("➤  Straight Line", this);
     actionStraight->setToolTip("Direct path between two points");
     actionStraight->setData(PATH_TYPE_STRAIGHT);
@@ -115,6 +148,10 @@ CVistarPlanner::CVistarPlanner(QWidget *parent)
     actionRandom->setToolTip("Random waypoints for unpredictable path");
     actionRandom->setData(PATH_TYPE_RANDOM);
     
+    QAction *actionSettings = new QAction("⚙  Settings", this);
+    actionSettings->setToolTip("Configure path generation parameters");
+    
+    // Add actions to menu with separators for grouping
     pathMenu->addAction(actionSettings);
     pathMenu->addSeparator();
     pathMenu->addAction(actionStraight);
@@ -129,7 +166,7 @@ CVistarPlanner::CVistarPlanner(QWidget *parent)
     pathMenu->addAction(actionZigzag);
     pathMenu->addAction(actionRandom);
     
-    // Connect path actions
+    // Connect all path actions to a single slot using lambda
     connect(actionStraight, &QAction::triggered, this, [this]() { 
         ui->mapCanvas->startPathGeneration(PATH_TYPE_STRAIGHT);
         ui->statusBar->showMessage("Click to select START point for Straight path", 5000);
@@ -162,17 +199,9 @@ CVistarPlanner::CVistarPlanner(QWidget *parent)
         ui->mapCanvas->startPathGeneration(PATH_TYPE_RANDOM);
         ui->statusBar->showMessage("Click to select START point for Random path", 5000);
     });
+    
+    // Connect settings action
     connect(actionSettings, &QAction::triggered, this, &CVistarPlanner::openPathSettings);
-    
-    // === Import Map Action ===
-    QAction *actionImportMap = new QAction("🗺  Import Map", this);
-    connect(actionImportMap, &QAction::triggered, this, &CVistarPlanner::on_pushButton_ImportMaps_clicked);
-    
-    // Add all items to the Tools menu
-    toolsMenu->addMenu(scenarioMenu);
-    toolsMenu->addMenu(pathMenu);
-    toolsMenu->addSeparator();
-    toolsMenu->addAction(actionImportMap);
     
     // Connect path generation signals for status updates
     connect(ui->mapCanvas, &CMapCanvas::signalPathGenerationCompleted, this, [this](QString routeId) {
@@ -182,8 +211,8 @@ CVistarPlanner::CVistarPlanner(QWidget *parent)
         ui->statusBar->showMessage("Path generation cancelled", 3000);
     });
     
-    // Set the menu to the Tools button
-    ui->pushButton_Tools->setMenu(toolsMenu);
+    // Set the menu to the button
+    ui->pushButton_PathGenerator->setMenu(pathMenu);
 }
 
 CVistarPlanner::~CVistarPlanner()
