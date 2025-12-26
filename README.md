@@ -4,6 +4,21 @@ Mission Planner
 ## Overview
 VistarPlanner is a Qt-based mission planning application for drone and tactical object visualization. It uses QGIS for map rendering and UDP networking for real-time data updates.
 
+## ✅ FIXED: Map Loading Issue (Dec 2024)
+
+The map loading functionality has been completely implemented! You can now:
+- ✅ Load GeoTIFF and TIFF map files via "Import Map" button
+- ✅ View maps with full QGIS rendering capabilities
+- ✅ Pan and zoom with mouse controls
+- ✅ See real-time coordinates in status bar
+- ✅ Place objects on the map
+- ✅ Visualize routes and waypoints
+
+**Quick Start**: Click the purple "Import Map" button, select a GeoTIFF file, and start planning!
+
+📖 **See [MAP_LOADING_FIX.md](MAP_LOADING_FIX.md) for technical details**
+📖 **See [MAP_USAGE_GUIDE.md](MAP_USAGE_GUIDE.md) for user guide**
+
 ## NEW: Scenario Management Feature 🎯
 
 The application now includes a comprehensive **Scenario Management System** that allows you to save and load complete mission scenarios including objects, routes, and configurations.

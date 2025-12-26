@@ -100,13 +100,13 @@ void CVistarPlanner::on_pushButton_ImportMaps_clicked()
         this,
         "Select Raster (TIFF)",
         "",
-        "TIFF Files (*.tif *.tiff)"
+        "TIFF Files (*.tif *.tiff);;All Files (*.*)"
         );
 
     if(filePath.isEmpty())
         return;
 
-    //ui->mapCanvas->importRasterMap(filePath);
+    ui->mapCanvas->importRasterMap(filePath);
 }
 
 void CVistarPlanner::setupScenarioMenu()
