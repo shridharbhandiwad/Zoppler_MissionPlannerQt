@@ -78,6 +78,8 @@ public:
     double getMaxTurnRadius() const;
     void setRandomVariance(double variance);
     double getRandomVariance() const;
+    void setSpreadRadiusKm(double radiusKm);
+    double getSpreadRadiusKm() const;
 
     QTimer timerUpdate;
 private:
