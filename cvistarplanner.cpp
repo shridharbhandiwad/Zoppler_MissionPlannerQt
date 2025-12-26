@@ -133,3 +133,9 @@ void CVistarPlanner::on_pushButton_LoadScenario_clicked()
     }
 }
 
+void CVistarPlanner::on_pushButton_ResetScenario_clicked()
+{
+    ui->mapCanvas->resetScenario();
+    ui->statusBar->showMessage("Scenario reset - all objects cleared!", 3000);
+}
+

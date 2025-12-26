@@ -47,6 +47,7 @@ public:
     bool autoLoadScenario();
     Scenario createScenarioFromCurrentState();
     void loadScenarioToCanvas(const Scenario &scenario);
+    void resetScenario();
     QString getClassNameFromEnum(int nClass);
     int getEnumFromClassName(const QString &className);
 
