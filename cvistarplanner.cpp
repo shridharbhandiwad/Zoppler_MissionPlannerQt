@@ -268,7 +268,7 @@ void CVistarPlanner::loadScenarioToCanvas(const Scenario &scenario)
         
         QJsonDocument doc(jsonRoute);
         // Assuming mapCanvas has a slot to load routes
-        // ui->mapCanvas->slotLoadRoute(doc);
+        ui->mapCanvas->slotLoadRoute(doc);
     }
     
     ui->statusBar->showMessage("Scenario loaded: " + scenario.name + " - " + 
