@@ -1,0 +1,130 @@
+{
+    "name": "Multi-Target Engagement",
+    "description": "Complex scenario with multiple threats and defense assets",
+    "createdDate": "2025-12-26T10:00:00",
+    "objects": [
+        {
+            "id": "RADAR_002",
+            "type": "RADAR",
+            "latitude": 28.5,
+            "longitude": 77.2,
+            "altitude": 100.0,
+            "additionalData": {
+                "type": "long-range"
+            }
+        },
+        {
+            "id": "RADAR_003",
+            "type": "RADAR",
+            "latitude": 28.6,
+            "longitude": 77.3,
+            "altitude": 100.0,
+            "additionalData": {
+                "type": "medium-range"
+            }
+        },
+        {
+            "id": "LAUNCHER_002",
+            "type": "LAUNCHER",
+            "latitude": 28.51,
+            "longitude": 77.21,
+            "altitude": 50.0,
+            "additionalData": {
+                "missileCount": 12
+            }
+        },
+        {
+            "id": "LAUNCHER_003",
+            "type": "LAUNCHER",
+            "latitude": 28.61,
+            "longitude": 77.31,
+            "altitude": 50.0,
+            "additionalData": {
+                "missileCount": 10
+            }
+        },
+        {
+            "id": "FIGHTER_002",
+            "type": "FIGHTER",
+            "latitude": 28.48,
+            "longitude": 77.18,
+            "altitude": 8000.0,
+            "additionalData": {
+                "callsign": "VIPER-1"
+            }
+        },
+        {
+            "id": "FIGHTER_003",
+            "type": "FIGHTER",
+            "latitude": 28.49,
+            "longitude": 77.19,
+            "altitude": 8000.0,
+            "additionalData": {
+                "callsign": "VIPER-2"
+            }
+        }
+    ],
+    "routes": [
+        {
+            "id": "ROUTE_004",
+            "name": "Intercept Vector",
+            "waypoints": [
+                {
+                    "latitude": 28.48,
+                    "longitude": 77.18,
+                    "altitude": 8000.0
+                },
+                {
+                    "latitude": 28.55,
+                    "longitude": 77.25,
+                    "altitude": 10000.0
+                },
+                {
+                    "latitude": 28.65,
+                    "longitude": 77.35,
+                    "altitude": 12000.0
+                }
+            ],
+            "additionalData": {
+                "type": "intercept",
+                "speed": 800
+            }
+        },
+        {
+            "id": "ROUTE_005",
+            "name": "CAP Station Bravo",
+            "waypoints": [
+                {
+                    "latitude": 28.5,
+                    "longitude": 77.2,
+                    "altitude": 9000.0
+                },
+                {
+                    "latitude": 28.6,
+                    "longitude": 77.2,
+                    "altitude": 9000.0
+                },
+                {
+                    "latitude": 28.6,
+                    "longitude": 77.3,
+                    "altitude": 9000.0
+                },
+                {
+                    "latitude": 28.5,
+                    "longitude": 77.3,
+                    "altitude": 9000.0
+                }
+            ],
+            "additionalData": {
+                "type": "CAP"
+            }
+        }
+    ],
+    "metadata": {
+        "author": "System",
+        "version": "1.0",
+        "difficulty": "hard",
+        "missionType": "defense",
+        "threatLevel": "high"
+    }
+}

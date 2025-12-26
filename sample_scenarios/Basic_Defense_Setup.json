@@ -1,0 +1,76 @@
+{
+    "name": "Basic Defense Setup",
+    "description": "A basic air defense scenario with radar, launcher, and patrol route",
+    "createdDate": "2025-12-26T10:00:00",
+    "objects": [
+        {
+            "id": "RADAR_001",
+            "type": "RADAR",
+            "latitude": 28.5,
+            "longitude": 77.2,
+            "altitude": 100.0,
+            "additionalData": {
+                "range": 50000,
+                "status": "active"
+            }
+        },
+        {
+            "id": "LAUNCHER_001",
+            "type": "LAUNCHER",
+            "latitude": 28.51,
+            "longitude": 77.21,
+            "altitude": 50.0,
+            "additionalData": {
+                "missileCount": 8,
+                "status": "ready"
+            }
+        },
+        {
+            "id": "FIGHTER_001",
+            "type": "FIGHTER",
+            "latitude": 28.48,
+            "longitude": 77.18,
+            "altitude": 5000.0,
+            "additionalData": {
+                "callsign": "ALPHA-1",
+                "fuel": 75
+            }
+        }
+    ],
+    "routes": [
+        {
+            "id": "ROUTE_001",
+            "name": "CAP Route Alpha",
+            "waypoints": [
+                {
+                    "latitude": 28.45,
+                    "longitude": 77.15,
+                    "altitude": 5000.0
+                },
+                {
+                    "latitude": 28.55,
+                    "longitude": 77.15,
+                    "altitude": 5000.0
+                },
+                {
+                    "latitude": 28.55,
+                    "longitude": 77.25,
+                    "altitude": 5000.0
+                },
+                {
+                    "latitude": 28.45,
+                    "longitude": 77.25,
+                    "altitude": 5000.0
+                }
+            ],
+            "additionalData": {
+                "type": "patrol"
+            }
+        }
+    ],
+    "metadata": {
+        "author": "System",
+        "version": "1.0",
+        "difficulty": "easy"
+    }
+}

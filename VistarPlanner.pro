@@ -46,6 +46,9 @@ SOURCES += \
     cnetworkinterface.cpp \
     cupdateposition.cpp \
     cupdateroute.cpp \
+    cscenariomanager.cpp \
+    cloadscenariodialog.cpp \
+    csavescenariodialog.cpp \
     main.cpp \
     cvistarplanner.cpp
 
@@ -58,12 +61,17 @@ HEADERS += \
     cnetworkinterface.h \
     cupdateposition.h \
     cupdateroute.h \
+    cscenariomanager.h \
+    cloadscenariodialog.h \
+    csavescenariodialog.h \
     cvistarplanner.h \
     globalConstants.h
 
 FORMS += \
     cupdateposition.ui \
     cupdateroute.ui \
+    cloadscenariodialog.ui \
+    csavescenariodialog.ui \
     cvistarplanner.ui
 
 # Default rules for deployment.

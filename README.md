@@ -4,6 +4,23 @@ Mission Planner
 ## Overview
 VistarPlanner is a Qt-based mission planning application for drone and tactical object visualization. It uses QGIS for map rendering and UDP networking for real-time data updates.
 
+## NEW: Scenario Management Feature 🎯
+
+The application now includes a comprehensive **Scenario Management System** that allows you to save and load complete mission scenarios including objects, routes, and configurations.
+
+### Quick Start
+1. Click the **"Scenario"** button (orange button next to Import Map)
+2. Choose **"Load Scenario"** to load pre-made scenarios or your saved scenarios
+3. Choose **"Save Scenario"** to save your current setup
+
+### Features
+- ✅ Load and save complete scenarios (objects + routes)
+- ✅ Three pre-configured sample scenarios included
+- ✅ JSON-based scenario format
+- ✅ Easy scenario sharing and reuse
+
+📖 **See [SCENARIO_FEATURE_README.md](SCENARIO_FEATURE_README.md) for detailed documentation**
+
 ## Recent Fix: Drone Data Display Issue
 
 **Problem**: Drone data was being received from the backend but not displayed on the map.
@@ -79,6 +96,14 @@ Example drone update:
 ├── cvistarplanner.h/cpp       # Main window
 ├── cnetworkinterface.h/cpp    # UDP networking
 ├── globalConstants.h           # Constants and enums
+├── Scenario Management/        # NEW: Scenario system
+│   ├── cscenariomanager.h/cpp          # Scenario manager
+│   ├── cloadscenariodialog.h/cpp/ui    # Load dialog
+│   └── csavescenariodialog.h/cpp/ui    # Save dialog
+├── sample_scenarios/           # NEW: Sample scenario templates
+│   ├── Basic_Defense_Setup.json
+│   ├── Air_Patrol_Mission.json
+│   └── Multi_Target_Engagement.json
 ├── MapDisplay/                 # Display components
 │   ├── cmapcanvas.h/cpp       # Main map canvas
 │   ├── cvistarobject.h/cpp    # Object visualization
