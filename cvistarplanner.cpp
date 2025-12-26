@@ -243,8 +243,8 @@ void CVistarPlanner::loadScenarioToCanvas(const Scenario &scenario)
         }
         
         QJsonDocument doc(jsonObj);
-        // Assuming mapCanvas has a slot to load objects
-        // ui->mapCanvas->slotUpdateObject(doc);
+        // Load objects to the map canvas
+        ui->mapCanvas->slotUpdateObject(doc);
     }
     
     // Load routes
