@@ -40,6 +40,7 @@ LIBS += -L$$QGIS_PREFIX/apps/qgis-ltr-dev/lib \
 SOURCES += \
     MapDisplay/cmapcanvas.cpp \
     MapDisplay/cmaptoolselectobjects.cpp \
+    MapDisplay/cpathgenerator.cpp \
     MapDisplay/cvistarobject.cpp \
     MapDisplay/cvistarroute.cpp \
     MapDisplay/qgspointxyz.cpp \
@@ -55,6 +56,7 @@ SOURCES += \
 HEADERS += \
     MapDisplay/cmapcanvas.h \
     MapDisplay/cmaptoolselectobjects.h \
+    MapDisplay/cpathgenerator.h \
     MapDisplay/cvistarobject.h \
     MapDisplay/cvistarroute.h \
     MapDisplay/qgspointxyz.h \

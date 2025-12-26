@@ -26,11 +26,22 @@
 #include <qgsproviderregistry.h>
 #include <QOpenGLWidget>
 #include <QThread>
+#include <QGraphicsEllipseItem>
+#include <QGraphicsTextItem>
+#include <QGraphicsRectItem>
 
 CMapCanvas::CMapCanvas(QWidget *parent) : QgsMapCanvas(parent)
 {
     _m_nCurrentObjectClassForLoading = VISTAR_CLASS_NONE;
     _m_scenarioManager = new CScenarioManager(this);
+    
+    // Initialize path generation
+    _m_pathGenerator = new CPathGenerator();
+    _m_currentPathType = PATH_TYPE_NONE;
+    _m_bPathGenerationMode = false;
+    _m_bPathStartPointSet = false;
+    _m_pathStartMarker = nullptr;
+    _m_pathInstructionText = nullptr;
     
     QgsRectangle fixedWorldExtent(-180.0, -90.0, 180.0, 90.0);
      mPreviousCursor = Qt::ArrowCursor;
@@ -628,7 +639,9 @@ void CMapCanvas::wheelEvent(QWheelEvent *event)
 
 void CMapCanvas::mousePressEvent(QMouseEvent *event)
 {
-    if (event->button() == Qt::LeftButton && _m_nCurrentObjectClassForLoading == VISTAR_CLASS_NONE ) {
+    if (event->button() == Qt::LeftButton && 
+        _m_nCurrentObjectClassForLoading == VISTAR_CLASS_NONE &&
+        !_m_bPathGenerationMode) {
         mLastMousePos = event->pos();
         mPanning = true;
         setCursor(Qt::ClosedHandCursor);
@@ -680,6 +693,64 @@ void CMapCanvas::mouseReleaseEvent(QMouseEvent *event)
         // Convert to geographic (lat/lon) using the destination CRS (assumed WGS84)
         QgsCoordinateTransform transform(mapSettings().destinationCrs(), _m_crs, QgsProject::instance());
         QgsPointXY geoPoint = transform.transform(mapPoint);
+
+        // Handle path generation mode
+        if (_m_bPathGenerationMode) {
+            if (!_m_bPathStartPointSet) {
+                // First click - set start point
+                _m_pathStartPoint = geoPoint;
+                _m_bPathStartPointSet = true;
+                
+                // Add visual marker for start point
+                QgsPointXY screenStartPt = mapSettings().mapToPixel().transform(geoPoint);
+                _m_pathStartMarker = scene()->addEllipse(
+                    screenStartPt.x() - 8, screenStartPt.y() - 8, 16, 16,
+                    QPen(Qt::green, 3),
+                    QBrush(QColor(0, 255, 0, 100))
+                );
+                _m_pathStartMarker->setZValue(1000);
+                
+                // Update instruction
+                QString pathName = CPathGenerator::getPathTypeName(_m_currentPathType);
+                showPathGenerationInstruction("Select END point for " + pathName + " path");
+                
+                qDebug() << "Path start point set:" << geoPoint.x() << "," << geoPoint.y();
+            }
+            else {
+                // Second click - set end point and generate path
+                QgsPointXY endPoint = geoPoint;
+                
+                qDebug() << "Path end point set:" << endPoint.x() << "," << endPoint.y();
+                qDebug() << "Generating" << CPathGenerator::getPathTypeName(_m_currentPathType) << "path...";
+                
+                // Generate the path
+                CPathGenerator::PathParameters params;
+                params.numWaypoints = 15;  // Reasonable number of waypoints
+                params.defaultAltitude = 1000.0;
+                
+                QList<QgsPointXYZ> pathPoints = _m_pathGenerator->generatePath(
+                    _m_pathStartPoint, endPoint, _m_currentPathType, params
+                );
+                
+                // Create the route from generated points
+                createGeneratedRoute(pathPoints);
+                
+                // Clear path generation mode
+                _m_currentPathType = PATH_TYPE_NONE;
+                _m_bPathGenerationMode = false;
+                _m_bPathStartPointSet = false;
+                
+                // Reset cursor
+                mPreviousCursor = Qt::ArrowCursor;
+                setCursor(Qt::ArrowCursor);
+                
+                // Clear markers
+                clearPathGenerationMarkers();
+                
+                emit signalClearObjectSelection();
+            }
+            return;
+        }
 
         if ( _m_nCurrentObjectClassForLoading == VISTAR_CLASS_ROUTE ) {
             if ( _m_sCurrentRoute.isEmpty() ) {
@@ -900,6 +971,22 @@ void CMapCanvas::mouseDoubleClickEvent( QMouseEvent *e ) {
 
 void CMapCanvas::keyPressEvent(QKeyEvent *event)
 {
+    // Handle Escape to cancel path generation
+    if (event->key() == Qt::Key_Escape) {
+        if (_m_bPathGenerationMode) {
+            cancelPathGeneration();
+            return;
+        }
+        if (_m_nCurrentObjectClassForLoading != VISTAR_CLASS_NONE) {
+            _m_nCurrentObjectClassForLoading = VISTAR_CLASS_NONE;
+            mPreviousCursor = Qt::ArrowCursor;
+            _m_sCurrentRoute = "";
+            setCursor(mPreviousCursor);
+            emit signalClearObjectSelection();
+            return;
+        }
+    }
+    
     QgsRectangle extent = this->extent();
     double moveX = extent.width() * 0.1; // 10% move
 
@@ -919,7 +1006,8 @@ void CMapCanvas::keyPressEvent(QKeyEvent *event)
     case Qt::Key_Plus:
     case Qt::Key_Equal:  // Shift + '=' is usually '+'
         zoomBy(1 / 1.1);  // Zoom in
-        break;    case Qt::Key_Underscore:
+        break;
+    case Qt::Key_Underscore:
     case Qt::Key_Minus:
         zoomBy(1.1);      // Zoom out
         break;
@@ -1452,6 +1540,166 @@ bool CMapCanvas::autoLoadScenario() {
     
     qDebug() << "Auto-loading scenario from:" << autoSavePath;
     return loadScenario(autoSavePath);
+}
+
+// ============ Path Generation Methods ============
+
+void CMapCanvas::startPathGeneration(eVISTAR_PATH_TYPE pathType)
+{
+    if (pathType == PATH_TYPE_NONE) {
+        return;
+    }
+    
+    // Cancel any existing mode
+    if (_m_nCurrentObjectClassForLoading != VISTAR_CLASS_NONE) {
+        _m_nCurrentObjectClassForLoading = VISTAR_CLASS_NONE;
+        emit signalClearObjectSelection();
+    }
+    
+    _m_currentPathType = pathType;
+    _m_bPathGenerationMode = true;
+    _m_bPathStartPointSet = false;
+    
+    // Set custom cursor for path generation
+    QPixmap cursorPixmap(":/icons/cursor/route.png");
+    QPixmap scaledPix = cursorPixmap.scaled(40, 40, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    QCursor customCursor(scaledPix, -1, -10);
+    mPreviousCursor = customCursor;
+    setCursor(customCursor);
+    
+    // Show instruction message
+    QString pathName = CPathGenerator::getPathTypeName(pathType);
+    showPathGenerationInstruction("Select START point for " + pathName + " path");
+    
+    emit signalPathGenerationStarted(pathType);
+    
+    qDebug() << "Path generation started for:" << pathName;
+}
+
+void CMapCanvas::cancelPathGeneration()
+{
+    if (!_m_bPathGenerationMode) {
+        return;
+    }
+    
+    _m_currentPathType = PATH_TYPE_NONE;
+    _m_bPathGenerationMode = false;
+    _m_bPathStartPointSet = false;
+    
+    // Reset cursor
+    mPreviousCursor = Qt::ArrowCursor;
+    setCursor(Qt::ArrowCursor);
+    
+    // Clear markers
+    clearPathGenerationMarkers();
+    
+    emit signalPathGenerationCancelled();
+    
+    qDebug() << "Path generation cancelled";
+}
+
+bool CMapCanvas::isPathGenerationActive() const
+{
+    return _m_bPathGenerationMode;
+}
+
+eVISTAR_PATH_TYPE CMapCanvas::getCurrentPathType() const
+{
+    return _m_currentPathType;
+}
+
+CPathGenerator* CMapCanvas::getPathGenerator()
+{
+    return _m_pathGenerator;
+}
+
+void CMapCanvas::showPathGenerationInstruction(const QString &text)
+{
+    // Remove existing instruction text
+    if (_m_pathInstructionText) {
+        scene()->removeItem(_m_pathInstructionText);
+        delete _m_pathInstructionText;
+        _m_pathInstructionText = nullptr;
+    }
+    
+    // Create new instruction text
+    _m_pathInstructionText = scene()->addText(text);
+    _m_pathInstructionText->setDefaultTextColor(Qt::white);
+    _m_pathInstructionText->setFont(QFont("Arial", 14, QFont::Bold));
+    _m_pathInstructionText->setZValue(1000);
+    
+    // Position at top center of canvas
+    QRectF sceneRect = scene()->sceneRect();
+    double textWidth = _m_pathInstructionText->boundingRect().width();
+    _m_pathInstructionText->setPos((sceneRect.width() - textWidth) / 2, 80);
+    
+    // Add background rectangle for better visibility
+    QGraphicsRectItem *bgRect = scene()->addRect(
+        _m_pathInstructionText->boundingRect().adjusted(-10, -5, 10, 5),
+        QPen(Qt::transparent),
+        QBrush(QColor(0, 100, 200, 180))
+    );
+    bgRect->setPos(_m_pathInstructionText->pos() + QPointF(-10, -5));
+    bgRect->setZValue(999);
+    
+    refresh();
+}
+
+void CMapCanvas::clearPathGenerationMarkers()
+{
+    // Remove start marker
+    if (_m_pathStartMarker) {
+        scene()->removeItem(_m_pathStartMarker);
+        delete _m_pathStartMarker;
+        _m_pathStartMarker = nullptr;
+    }
+    
+    // Remove instruction text
+    if (_m_pathInstructionText) {
+        scene()->removeItem(_m_pathInstructionText);
+        delete _m_pathInstructionText;
+        _m_pathInstructionText = nullptr;
+    }
+    
+    refresh();
+}
+
+void CMapCanvas::createGeneratedRoute(const QList<QgsPointXYZ> &points)
+{
+    if (points.isEmpty()) {
+        qDebug() << "No points to create route";
+        return;
+    }
+    
+    // Generate a new route ID
+    QString sObjectId = GenerateObjectIdFromClass(VISTAR_CLASS_ROUTE);
+    
+    if (sObjectId.isEmpty()) {
+        qDebug() << "Failed to generate route ID";
+        return;
+    }
+    
+    // Create the route with first point
+    QgsPointXYZ firstPt = points.first();
+    CVistarRoute *vistarRoute = new CVistarRoute(this, sObjectId, firstPt.x(), firstPt.y());
+    
+    // Add remaining points
+    for (int i = 1; i < points.size(); i++) {
+        vistarRoute->addPoint(QgsPointXY(points[i].x(), points[i].y()));
+    }
+    
+    _m_listVistarRoutes.insert(sObjectId, vistarRoute);
+    
+    // Auto-save the scenario
+    QTimer::singleShot(100, this, [this]() {
+        autoSaveScenario();
+    });
+    
+    emit signalPathGenerationCompleted(sObjectId);
+    
+    qDebug() << "Generated route:" << sObjectId << "with" << points.size() << "waypoints";
+    
+    refresh();
 }
 
 
