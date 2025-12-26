@@ -10,6 +10,6 @@ QgsPointXYZ::QgsPointXYZ(double x, double y, double z) :
     _m_z = z;
 }
 
-double QgsPointXYZ::z() {
+double QgsPointXYZ::z() const {
     return _m_z;
 }

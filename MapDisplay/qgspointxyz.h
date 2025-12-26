@@ -11,7 +11,7 @@ public:
     QgsPointXYZ(double x, double y, double z);
 
 
-    double z();
+    double z() const;
 private :
     double _m_z;
 };
