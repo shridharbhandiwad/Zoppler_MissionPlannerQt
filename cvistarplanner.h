@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include "cnetworkinterface.h"
+#include "cscenariomanager.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -23,7 +24,11 @@ private:
     void selectForMarking( int nClass );
 
     CNetworkInterface *_m_networkInterface;
+    CScenarioManager *_m_scenarioManager;
 
+    // Helper methods for scenario management
+    void loadScenarioToMap(const Scenario &scenario);
+    Scenario getCurrentScenarioFromMap();
 
 private slots :
     void slotMouseRead( QString mouseRead );
@@ -33,5 +38,6 @@ private slots :
     void on_pushButton_Start_clicked();
     void on_pushButton_Stop_clicked();
     void on_pushButton_ImportMaps_clicked();
+    void on_pushButton_ScenarioMenu_clicked();
 };
 #endif // CVISTARPLANNER_H

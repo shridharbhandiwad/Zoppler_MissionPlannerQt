@@ -43,7 +43,10 @@ SOURCES += \
     MapDisplay/cvistarobject.cpp \
     MapDisplay/cvistarroute.cpp \
     MapDisplay/qgspointxyz.cpp \
+    cloadscenariodialog.cpp \
     cnetworkinterface.cpp \
+    csavescenariodialog.cpp \
+    cscenariomanager.cpp \
     cupdateposition.cpp \
     cupdateroute.cpp \
     main.cpp \
@@ -55,13 +58,18 @@ HEADERS += \
     MapDisplay/cvistarobject.h \
     MapDisplay/cvistarroute.h \
     MapDisplay/qgspointxyz.h \
+    cloadscenariodialog.h \
     cnetworkinterface.h \
+    csavescenariodialog.h \
+    cscenariomanager.h \
     cupdateposition.h \
     cupdateroute.h \
     cvistarplanner.h \
     globalConstants.h
 
 FORMS += \
+    cloadscenariodialog.ui \
+    csavescenariodialog.ui \
     cupdateposition.ui \
     cupdateroute.ui \
     cvistarplanner.ui

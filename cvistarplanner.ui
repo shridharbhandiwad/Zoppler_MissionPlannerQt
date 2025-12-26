@@ -437,7 +437,7 @@
         <rect>
          <x>10</x>
          <y>10</y>
-         <width>191</width>
+         <width>141</width>
          <height>51</height>
         </rect>
        </property>
@@ -479,6 +479,55 @@ QPushButton:pressed {
        </property>
        <property name="text">
         <string>Import Map</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pushButton_ScenarioMenu">
+       <property name="geometry">
+        <rect>
+         <x>160</x>
+         <y>10</y>
+         <width>141</width>
+         <height>51</height>
+        </rect>
+       </property>
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>14</pointsize>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="autoFillBackground">
+        <bool>false</bool>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QPushButton {
+    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                      stop:0 #FF9800,
+                                      stop:1 #F57C00);
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+}
+
+QPushButton:hover {
+    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                      stop:0 #FFB74D,
+                                      stop:1 #FB8C00);
+}
+
+QPushButton:pressed {
+    background-color: #E65100;
+}</string>
+       </property>
+       <property name="text">
+        <string>Scenario ▼</string>
        </property>
       </widget>
      </widget>
