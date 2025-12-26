@@ -13,6 +13,66 @@
   <property name="windowTitle">
    <string>Load Scenario</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true">QDialog {
+    background-color: rgba(30, 30, 40, 0.95);
+    border-radius: 15px;
+}
+QLabel {
+    color: #E0E0E0;
+}
+QTabWidget::pane {
+    background-color: rgba(50, 50, 65, 0.7);
+    border: 2px solid rgba(100, 100, 120, 0.5);
+    border-radius: 10px;
+    padding: 10px;
+}
+QTabBar::tab {
+    background-color: rgba(60, 60, 80, 0.6);
+    border: 2px solid rgba(100, 100, 120, 0.4);
+    border-bottom: none;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    padding: 10px 20px;
+    margin-right: 3px;
+    color: #B0B0B0;
+    font-weight: bold;
+}
+QTabBar::tab:selected {
+    background-color: rgba(33, 150, 243, 0.7);
+    color: white;
+    border: 2px solid rgba(33, 150, 243, 0.6);
+    border-bottom: none;
+}
+QTabBar::tab:hover:!selected {
+    background-color: rgba(80, 80, 100, 0.7);
+    color: #E0E0E0;
+}
+QListWidget {
+    background-color: rgba(45, 45, 60, 0.8);
+    border: 2px solid rgba(100, 100, 120, 0.5);
+    border-radius: 10px;
+    padding: 5px;
+    color: white;
+    outline: none;
+}
+QListWidget::item {
+    background-color: transparent;
+    border-radius: 6px;
+    padding: 10px 12px;
+    margin: 2px 4px;
+}
+QListWidget::item:selected {
+    background-color: rgba(33, 150, 243, 0.6);
+    border: 1px solid rgba(66, 165, 245, 0.5);
+}
+QListWidget::item:hover:!selected {
+    background-color: rgba(80, 80, 100, 0.5);
+}
+QListWidget::item:alternate {
+    background-color: rgba(55, 55, 70, 0.4);
+}</string>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QLabel" name="label_Title">
@@ -59,36 +119,36 @@
          <property name="styleSheet">
           <string notr="true">QPushButton {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                stop:0 rgba(33, 150, 243, 0.7),
-                                stop:0.5 rgba(30, 136, 229, 0.7),
-                                stop:1 rgba(25, 118, 210, 0.7));
-    border: 2px solid rgba(33, 150, 243, 0.3);
+                                stop:0 rgba(33, 150, 243, 0.75),
+                                stop:0.5 rgba(30, 136, 229, 0.75),
+                                stop:1 rgba(25, 118, 210, 0.75));
+    border: 2px solid rgba(33, 150, 243, 0.4);
     color: white;
-    padding: 8px 16px;
-    border-radius: 8px;
+    padding: 10px 20px;
+    border-radius: 12px;
     font-weight: 600;
     letter-spacing: 0.5px;
 }
 QPushButton:hover {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                stop:0 rgba(66, 165, 245, 0.7),
-                                stop:0.5 rgba(33, 150, 243, 0.7),
-                                stop:1 rgba(30, 136, 229, 0.7));
-    border: 2px solid rgba(33, 150, 243, 0.5);
+                                stop:0 rgba(66, 165, 245, 0.8),
+                                stop:0.5 rgba(33, 150, 243, 0.8),
+                                stop:1 rgba(30, 136, 229, 0.8));
+    border: 2px solid rgba(66, 165, 245, 0.6);
 }
 QPushButton:pressed {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                stop:0 rgba(21, 101, 192, 0.7),
-                                stop:1 rgba(13, 71, 161, 0.7));
-    border: 2px solid rgba(13, 71, 161, 0.8);
-    padding: 9px 16px 7px 16px;
+                                stop:0 rgba(21, 101, 192, 0.8),
+                                stop:1 rgba(13, 71, 161, 0.8));
+    border: 2px solid rgba(21, 101, 192, 0.8);
+    padding: 11px 20px 9px 20px;
 }
 QPushButton:disabled {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                stop:0 rgba(189, 189, 189, 0.7),
-                                stop:1 rgba(158, 158, 158, 0.7));
+                                stop:0 rgba(189, 189, 189, 0.6),
+                                stop:1 rgba(158, 158, 158, 0.6));
     border: 2px solid rgba(189, 189, 189, 0.3);
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(255, 255, 255, 0.4);
 }</string>
          </property>
          <property name="text">
@@ -163,36 +223,36 @@ QPushButton:disabled {
        <property name="styleSheet">
         <string notr="true">QPushButton {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                stop:0 rgba(76, 175, 80, 0.7),
-                                stop:0.5 rgba(56, 142, 60, 0.7),
-                                stop:1 rgba(46, 125, 50, 0.7));
-    border: 2px solid rgba(76, 175, 80, 0.3);
+                                stop:0 rgba(76, 175, 80, 0.8),
+                                stop:0.5 rgba(56, 142, 60, 0.8),
+                                stop:1 rgba(46, 125, 50, 0.8));
+    border: 2px solid rgba(76, 175, 80, 0.4);
     color: white;
-    padding: 8px 16px;
-    border-radius: 8px;
+    padding: 10px 24px;
+    border-radius: 12px;
     font-weight: 600;
     letter-spacing: 0.5px;
 }
 QPushButton:hover {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                stop:0 rgba(102, 187, 106, 0.7),
-                                stop:0.5 rgba(76, 175, 80, 0.7),
-                                stop:1 rgba(56, 142, 60, 0.7));
-    border: 2px solid rgba(76, 175, 80, 0.5);
+                                stop:0 rgba(102, 187, 106, 0.85),
+                                stop:0.5 rgba(76, 175, 80, 0.85),
+                                stop:1 rgba(56, 142, 60, 0.85));
+    border: 2px solid rgba(102, 187, 106, 0.6);
 }
 QPushButton:pressed {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                stop:0 rgba(27, 94, 32, 0.7),
-                                stop:1 rgba(13, 63, 20, 0.7));
+                                stop:0 rgba(27, 94, 32, 0.85),
+                                stop:1 rgba(13, 63, 20, 0.85));
     border: 2px solid rgba(27, 94, 32, 0.8);
-    padding: 9px 16px 7px 16px;
+    padding: 11px 24px 9px 24px;
 }
 QPushButton:disabled {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                stop:0 rgba(189, 189, 189, 0.7),
-                                stop:1 rgba(158, 158, 158, 0.7));
+                                stop:0 rgba(189, 189, 189, 0.6),
+                                stop:1 rgba(158, 158, 158, 0.6));
     border: 2px solid rgba(189, 189, 189, 0.3);
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(255, 255, 255, 0.4);
 }</string>
        </property>
        <property name="text">
@@ -217,29 +277,29 @@ QPushButton:disabled {
        <property name="styleSheet">
         <string notr="true">QPushButton {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                stop:0 rgba(158, 158, 158, 0.7),
-                                stop:0.5 rgba(141, 141, 141, 0.7),
-                                stop:1 rgba(117, 117, 117, 0.7));
-    border: 2px solid rgba(158, 158, 158, 0.3);
+                                stop:0 rgba(158, 158, 158, 0.75),
+                                stop:0.5 rgba(141, 141, 141, 0.75),
+                                stop:1 rgba(117, 117, 117, 0.75));
+    border: 2px solid rgba(158, 158, 158, 0.4);
     color: white;
-    padding: 8px 16px;
-    border-radius: 8px;
+    padding: 10px 24px;
+    border-radius: 12px;
     font-weight: 600;
     letter-spacing: 0.5px;
 }
 QPushButton:hover {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                stop:0 rgba(189, 189, 189, 0.7),
-                                stop:0.5 rgba(168, 168, 168, 0.7),
-                                stop:1 rgba(158, 158, 158, 0.7));
-    border: 2px solid rgba(158, 158, 158, 0.5);
+                                stop:0 rgba(189, 189, 189, 0.8),
+                                stop:0.5 rgba(168, 168, 168, 0.8),
+                                stop:1 rgba(158, 158, 158, 0.8));
+    border: 2px solid rgba(189, 189, 189, 0.6);
 }
 QPushButton:pressed {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                stop:0 rgba(97, 97, 97, 0.7),
-                                stop:1 rgba(66, 66, 66, 0.7));
+                                stop:0 rgba(97, 97, 97, 0.8),
+                                stop:1 rgba(66, 66, 66, 0.8));
     border: 2px solid rgba(97, 97, 97, 0.8);
-    padding: 9px 16px 7px 16px;
+    padding: 11px 24px 9px 24px;
 }</string>
        </property>
        <property name="text">
