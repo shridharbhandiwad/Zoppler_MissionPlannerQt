@@ -89,6 +89,10 @@ int CVistarObject::getChildId() {
     return _m_nChildId;
 }
 
+QString CVistarObject::getAttachedRoute() {
+    return _m_sAttachedRoute;
+}
+
 QRectF CVistarObject::boundingRect() const
 {
     // Each map canvas item must define a bounding rect in MAP COORDINATES

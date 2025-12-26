@@ -93,3 +93,43 @@ void CVistarPlanner::on_pushButton_ImportMaps_clicked()
     //ui->mapCanvas->importRasterMap(filePath);
 }
 
+void CVistarPlanner::on_pushButton_SaveScenario_clicked()
+{
+    QString filePath = QFileDialog::getSaveFileName(
+        this,
+        "Save Scenario",
+        "",
+        "JSON Files (*.json)"
+        );
+
+    if(filePath.isEmpty())
+        return;
+
+    bool success = ui->mapCanvas->saveCurrentScenario(filePath);
+    if (success) {
+        ui->statusBar->showMessage("Scenario saved successfully!", 3000);
+    } else {
+        ui->statusBar->showMessage("Failed to save scenario!", 3000);
+    }
+}
+
+void CVistarPlanner::on_pushButton_LoadScenario_clicked()
+{
+    QString filePath = QFileDialog::getOpenFileName(
+        this,
+        "Load Scenario",
+        "",
+        "JSON Files (*.json)"
+        );
+
+    if(filePath.isEmpty())
+        return;
+
+    bool success = ui->mapCanvas->loadScenario(filePath);
+    if (success) {
+        ui->statusBar->showMessage("Scenario loaded successfully!", 3000);
+    } else {
+        ui->statusBar->showMessage("Failed to load scenario!", 3000);
+    }
+}
+

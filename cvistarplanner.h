@@ -33,5 +33,7 @@ private slots :
     void on_pushButton_Start_clicked();
     void on_pushButton_Stop_clicked();
     void on_pushButton_ImportMaps_clicked();
+    void on_pushButton_SaveScenario_clicked();
+    void on_pushButton_LoadScenario_clicked();
 };
 #endif // CVISTARPLANNER_H
