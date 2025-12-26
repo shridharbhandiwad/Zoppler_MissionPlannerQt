@@ -116,8 +116,11 @@ QList<QgsPointXYZ> CPathGenerator::generateSCurve(const QgsPointXY &start,
     double perpX = -dy / length;
     double perpY = dx / length;
     
-    // Maximum lateral offset for the S-curve
-    double maxOffset = length * params.curveFactor;
+    // Convert spread radius from km to degrees (approx 111km per degree)
+    double spreadRadiusDeg = params.spreadRadiusKm / 111.0;
+    
+    // Maximum lateral offset for the S-curve (use spread radius if set, else calculate from curve factor)
+    double maxOffset = std::min(length * params.curveFactor, spreadRadiusDeg);
     
     for (int i = 0; i <= params.numWaypoints; i++) {
         double t = static_cast<double>(i) / params.numWaypoints;
@@ -200,8 +203,11 @@ QList<QgsPointXYZ> CPathGenerator::generateFigure8(const QgsPointXY &start,
     double distance = std::sqrt(dx * dx + dy * dy);
     double angle = std::atan2(dy, dx);
     
-    // Radius of each loop (fraction of distance)
-    double loopRadius = distance * params.curveFactor * 0.4;
+    // Convert spread radius from km to degrees (approx 111km per degree)
+    double spreadRadiusDeg = params.spreadRadiusKm / 111.0;
+    
+    // Radius of each loop (use spread radius as limit)
+    double loopRadius = std::min(distance * params.curveFactor * 0.4, spreadRadiusDeg);
     
     // Number of complete figure-8 loops
     int numLoops = 2;
@@ -249,8 +255,11 @@ QList<QgsPointXYZ> CPathGenerator::generateSpiral(const QgsPointXY &start,
     double distance = std::sqrt(dx * dx + dy * dy);
     double angle = std::atan2(dy, dx);
     
-    // Maximum spiral radius
-    double maxRadius = distance * params.curveFactor * 0.3;
+    // Convert spread radius from km to degrees (approx 111km per degree)
+    double spreadRadiusDeg = params.spreadRadiusKm / 111.0;
+    
+    // Maximum spiral radius (use spread radius as limit)
+    double maxRadius = std::min(distance * params.curveFactor * 0.3, spreadRadiusDeg);
     
     // Number of spiral turns
     double turns = params.spiralTurns;
@@ -300,8 +309,11 @@ QList<QgsPointXYZ> CPathGenerator::generateZigzag(const QgsPointXY &start,
     double perpX = -dy / distance;
     double perpY = dx / distance;
     
-    // Zigzag amplitude
-    double amplitude = distance * params.zigzagAmplitude;
+    // Convert spread radius from km to degrees (approx 111km per degree)
+    double spreadRadiusDeg = params.spreadRadiusKm / 111.0;
+    
+    // Zigzag amplitude (use spread radius as limit)
+    double amplitude = std::min(distance * params.zigzagAmplitude, spreadRadiusDeg);
     int frequency = params.zigzagFrequency;
     
     for (int i = 0; i <= params.numWaypoints; i++) {
@@ -335,8 +347,11 @@ QList<QgsPointXYZ> CPathGenerator::generateBezier(const QgsPointXY &start,
     double dy = end.y() - start.y();
     double distance = std::sqrt(dx * dx + dy * dy);
     
-    // Control point offset
-    double cpOffset = distance * params.curveFactor;
+    // Convert spread radius from km to degrees (approx 111km per degree)
+    double spreadRadiusDeg = params.spreadRadiusKm / 111.0;
+    
+    // Control point offset (use spread radius as limit)
+    double cpOffset = std::min(distance * params.curveFactor, spreadRadiusDeg);
     
     // Perpendicular direction
     double perpX = -dy / distance;
@@ -373,8 +388,11 @@ QList<QgsPointXYZ> CPathGenerator::generateRandom(const QgsPointXY &start,
     double dy = end.y() - start.y();
     double distance = std::sqrt(dx * dx + dy * dy);
     
-    // Maximum random offset
-    double maxOffset = distance * params.randomVariance;
+    // Convert spread radius from km to degrees (approx 111km per degree)
+    double spreadRadiusDeg = params.spreadRadiusKm / 111.0;
+    
+    // Maximum random offset (use spread radius as limit)
+    double maxOffset = std::min(distance * params.randomVariance, spreadRadiusDeg);
     
     // Start point
     path.append(QgsPointXYZ(start.x(), start.y(), params.defaultAltitude));

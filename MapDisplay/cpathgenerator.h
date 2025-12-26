@@ -28,6 +28,7 @@ public:
         int zigzagFrequency = 6;              // Number of zigzag oscillations
         double maxTurnRadius = 0.05;          // Maximum turn radius in degrees
         double randomVariance = 0.15;         // Random path variance factor
+        double spreadRadiusKm = 5.0;          // Maximum trajectory spread radius in kilometers
         
         PathParameters() = default;
     };

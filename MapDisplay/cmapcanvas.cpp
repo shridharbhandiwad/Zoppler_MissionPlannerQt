@@ -53,6 +53,7 @@ CMapCanvas::CMapCanvas(QWidget *parent) : QgsMapCanvas(parent)
     _m_pathParams.zigzagFrequency = 6;       // Number of zigzag oscillations
     _m_pathParams.maxTurnRadius = 0.05;      // Maximum turn radius in degrees
     _m_pathParams.randomVariance = 0.15;     // Random path variance factor
+    _m_pathParams.spreadRadiusKm = 5.0;      // Maximum trajectory spread radius in kilometers
     
     QgsRectangle fixedWorldExtent(-180.0, -90.0, 180.0, 90.0);
      mPreviousCursor = Qt::ArrowCursor;
@@ -1812,5 +1813,16 @@ void CMapCanvas::setRandomVariance(double variance)
 double CMapCanvas::getRandomVariance() const
 {
     return _m_pathParams.randomVariance;
+}
+
+void CMapCanvas::setSpreadRadiusKm(double radiusKm)
+{
+    _m_pathParams.spreadRadiusKm = qBound(0.5, radiusKm, 100.0);  // Clamp between 0.5 and 100 km
+    qDebug() << "Spread radius set to:" << _m_pathParams.spreadRadiusKm << "km";
+}
+
+double CMapCanvas::getSpreadRadiusKm() const
+{
+    return _m_pathParams.spreadRadiusKm;
 }
 

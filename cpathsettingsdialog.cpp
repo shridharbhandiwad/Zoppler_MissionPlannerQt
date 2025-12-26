@@ -44,6 +44,7 @@ void CPathSettingsDialog::loadParametersToUI(const CPathGenerator::PathParameter
     ui->spinBox_ZigzagFrequency->setValue(params.zigzagFrequency);
     ui->doubleSpinBox_MaxTurnRadius->setValue(params.maxTurnRadius);
     ui->doubleSpinBox_RandomVariance->setValue(params.randomVariance);
+    ui->doubleSpinBox_SpreadRadius->setValue(params.spreadRadiusKm);
 }
 
 CPathGenerator::PathParameters CPathSettingsDialog::getParametersFromUI() const
@@ -58,6 +59,7 @@ CPathGenerator::PathParameters CPathSettingsDialog::getParametersFromUI() const
     params.zigzagFrequency = ui->spinBox_ZigzagFrequency->value();
     params.maxTurnRadius = ui->doubleSpinBox_MaxTurnRadius->value();
     params.randomVariance = ui->doubleSpinBox_RandomVariance->value();
+    params.spreadRadiusKm = ui->doubleSpinBox_SpreadRadius->value();
     
     return params;
 }

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>450</width>
-    <height>520</height>
+    <height>570</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -305,6 +305,38 @@ QPushButton#pushButton_Cancel:hover {
         </property>
         <property name="suffix">
          <string>°</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_SpreadRadius">
+        <property name="text">
+         <string>Spread Radius (km):</string>
+        </property>
+        <property name="toolTip">
+         <string>Maximum lateral spread of the trajectory from the main path in kilometers</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QDoubleSpinBox" name="doubleSpinBox_SpreadRadius">
+        <property name="decimals">
+         <number>1</number>
+        </property>
+        <property name="minimum">
+         <double>0.500000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>100.000000000000000</double>
+        </property>
+        <property name="singleStep">
+         <double>1.000000000000000</double>
+        </property>
+        <property name="value">
+         <double>5.000000000000000</double>
+        </property>
+        <property name="suffix">
+         <string> km</string>
         </property>
        </widget>
       </item>
