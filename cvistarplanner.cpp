@@ -243,8 +243,8 @@ void CVistarPlanner::loadScenarioToCanvas(const Scenario &scenario)
         }
         
         QJsonDocument doc(jsonObj);
-        // Assuming mapCanvas has a slot to load objects
-        // ui->mapCanvas->slotUpdateObject(doc);
+        // Load objects onto the map canvas
+        ui->mapCanvas->slotUpdateObject(doc);
     }
     
     // Load routes
@@ -267,8 +267,8 @@ void CVistarPlanner::loadScenarioToCanvas(const Scenario &scenario)
         jsonRoute["WAYPOINTS"] = waypointsArray;
         
         QJsonDocument doc(jsonRoute);
-        // Assuming mapCanvas has a slot to load routes
-        // ui->mapCanvas->slotLoadRoute(doc);
+        // Load routes onto the map canvas
+        ui->mapCanvas->slotLoadRoute(doc);
     }
     
     ui->statusBar->showMessage("Scenario loaded: " + scenario.name + " - " + 
