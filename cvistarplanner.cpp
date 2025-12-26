@@ -2,6 +2,7 @@
 #include "ui_cvistarplanner.h"
 #include "globalConstants.h"
 #include <QFileDialog>
+#include <QMenu>
 
 CVistarPlanner::CVistarPlanner(QWidget *parent)
     : QMainWindow(parent)
@@ -16,6 +17,52 @@ CVistarPlanner::CVistarPlanner(QWidget *parent)
     _m_networkInterface->startListening(8888);
 
     connect(_m_networkInterface,SIGNAL(signalUpdateObject(QJsonDocument)),ui->mapCanvas,SLOT(slotUpdateObject(QJsonDocument)));
+
+    // Setup Scenario Manager dropdown menu
+    QMenu *scenarioMenu = new QMenu(this);
+    
+    // Style the menu to match the application theme
+    scenarioMenu->setStyleSheet(
+        "QMenu {"
+        "    background-color: #1976D2;"
+        "    border: 2px solid #2196F3;"
+        "    border-radius: 6px;"
+        "    padding: 5px;"
+        "}"
+        "QMenu::item {"
+        "    background-color: transparent;"
+        "    color: white;"
+        "    padding: 8px 30px;"
+        "    border-radius: 4px;"
+        "    font-weight: bold;"
+        "    font-size: 10pt;"
+        "}"
+        "QMenu::item:selected {"
+        "    background-color: #42A5F5;"
+        "}"
+        "QMenu::item:pressed {"
+        "    background-color: #1565C0;"
+        "}"
+    );
+    
+    // Create menu actions
+    QAction *actionLoadScenario = new QAction("Load Scenario", this);
+    QAction *actionSaveScenario = new QAction("Save Scenario", this);
+    QAction *actionResetScenario = new QAction("Reset Scenario", this);
+    
+    // Connect actions to existing slots
+    connect(actionLoadScenario, &QAction::triggered, this, &CVistarPlanner::on_pushButton_LoadScenario_clicked);
+    connect(actionSaveScenario, &QAction::triggered, this, &CVistarPlanner::on_pushButton_SaveScenario_clicked);
+    connect(actionResetScenario, &QAction::triggered, this, &CVistarPlanner::on_pushButton_ResetScenario_clicked);
+    
+    // Add actions to menu
+    scenarioMenu->addAction(actionLoadScenario);
+    scenarioMenu->addAction(actionSaveScenario);
+    scenarioMenu->addSeparator();
+    scenarioMenu->addAction(actionResetScenario);
+    
+    // Set the menu to the button
+    ui->pushButton_ScenarioManagerMenu->setMenu(scenarioMenu);
 }
 
 CVistarPlanner::~CVistarPlanner()
