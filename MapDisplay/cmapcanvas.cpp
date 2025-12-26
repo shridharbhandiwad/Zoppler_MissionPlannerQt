@@ -1273,6 +1273,28 @@ Scenario CMapCanvas::createScenarioFromCurrentState() {
     return scenario;
 }
 
+void CMapCanvas::resetScenario() {
+    qDebug() << "Resetting scenario - clearing all objects and routes";
+    
+    // Clear existing routes
+    for (CVistarRoute *route : _m_listVistarRoutes) {
+        delete route;
+    }
+    _m_listVistarRoutes.clear();
+    
+    // Clear existing objects
+    for (CVistarObject *obj : _m_listVistarObjects) {
+        delete obj;
+    }
+    _m_listVistarObjects.clear();
+    _m_listVistarObjectIds.clear();
+    
+    // Refresh the canvas to show the cleared state
+    refresh();
+    
+    qDebug() << "Scenario reset complete";
+}
+
 void CMapCanvas::loadScenarioToCanvas(const Scenario &scenario) {
     // Clear existing objects and routes
     qDebug() << "Loading scenario:" << scenario.name;

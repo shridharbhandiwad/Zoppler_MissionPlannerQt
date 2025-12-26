@@ -435,7 +435,7 @@
       <widget class="QPushButton" name="pushButton_ImportMaps">
        <property name="geometry">
         <rect>
-         <x>10</x>
+         <x>200</x>
          <y>10</y>
          <width>161</width>
          <height>51</height>
@@ -481,88 +481,79 @@ QPushButton:pressed {
         <string>Import Map</string>
        </property>
       </widget>
-      <widget class="QPushButton" name="pushButton_SaveScenario">
-       <property name="geometry">
-        <rect>
-         <x>180</x>
-         <y>10</y>
-         <width>161</width>
-         <height>51</height>
-        </rect>
-       </property>
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>12</pointsize>
-         <bold>true</bold>
-        </font>
-       </property>
-       <property name="autoFillBackground">
-        <bool>false</bool>
-       </property>
-       <property name="styleSheet">
-        <string notr="true">QPushButton {
-    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                      stop:0 #FF9800,
-                                      stop:1 #F57C00);
-    border: none;
-    color: white;
-    padding: 10px 20px;
-    border-radius: 8px;
-}
-
-QPushButton:hover {
-    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                      stop:0 #FFB74D,
-                                      stop:1 #FB8C00);
-}
-
-QPushButton:pressed {
-    background-color: #E65100;
-}</string>
-       </property>
-       <property name="text">
-        <string>Save Scenario</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="pushButton_LoadScenario">
+      <widget class="QTabWidget" name="tabWidget_ScenarioManager">
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>70</y>
-         <width>161</width>
-         <height>51</height>
+         <y>10</y>
+         <width>180</width>
+         <height>200</height>
         </rect>
-       </property>
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
        </property>
        <property name="font">
         <font>
-         <pointsize>12</pointsize>
+         <pointsize>10</pointsize>
          <bold>true</bold>
         </font>
        </property>
-       <property name="autoFillBackground">
-        <bool>false</bool>
-       </property>
        <property name="styleSheet">
-        <string notr="true">QPushButton {
+        <string notr="true">QTabWidget::pane {
+    border: 2px solid #2196F3;
+    border-radius: 8px;
+    background-color: rgba(33, 150, 243, 0.1);
+}
+
+QTabBar::tab {
+    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                      stop:0 #2196F3,
+                                      stop:1 #1976D2);
+    color: white;
+    padding: 8px 15px;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    margin-right: 2px;
+}
+
+QTabBar::tab:selected {
+    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                      stop:0 #42A5F5,
+                                      stop:1 #1E88E5);
+}
+
+QTabBar::tab:hover {
+    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                      stop:0 #64B5F6,
+                                      stop:1 #2196F3);
+}</string>
+       </property>
+       <widget class="QWidget" name="tab_ScenarioManager">
+        <attribute name="title">
+         <string>Scenario Manager</string>
+        </attribute>
+        <widget class="QPushButton" name="pushButton_LoadScenario">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>10</y>
+           <width>150</width>
+           <height>40</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QPushButton {
     background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,
                                       stop:0 #00BCD4,
                                       stop:1 #0097A7);
     border: none;
     color: white;
-    padding: 10px 20px;
-    border-radius: 8px;
+    padding: 8px 16px;
+    border-radius: 6px;
 }
 
 QPushButton:hover {
@@ -574,10 +565,92 @@ QPushButton:hover {
 QPushButton:pressed {
     background-color: #00838F;
 }</string>
-       </property>
-       <property name="text">
-        <string>Load Scenario</string>
-       </property>
+         </property>
+         <property name="text">
+          <string>Load Scenario</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="pushButton_SaveScenario">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>60</y>
+           <width>150</width>
+           <height>40</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QPushButton {
+    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                      stop:0 #FF9800,
+                                      stop:1 #F57C00);
+    border: none;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 6px;
+}
+
+QPushButton:hover {
+    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                      stop:0 #FFB74D,
+                                      stop:1 #FB8C00);
+}
+
+QPushButton:pressed {
+    background-color: #E65100;
+}</string>
+         </property>
+         <property name="text">
+          <string>Save Scenario</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="pushButton_ResetScenario">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>110</y>
+           <width>150</width>
+           <height>40</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QPushButton {
+    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                      stop:0 #F44336,
+                                      stop:1 #D32F2F);
+    border: none;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 6px;
+}
+
+QPushButton:hover {
+    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                      stop:0 #EF5350,
+                                      stop:1 #E53935);
+}
+
+QPushButton:pressed {
+    background-color: #C62828;
+}</string>
+         </property>
+         <property name="text">
+          <string>Reset Scenario</string>
+         </property>
+        </widget>
+       </widget>
       </widget>
      </widget>
     </item>
