@@ -27,6 +27,7 @@ public:
     void UpdateLocation(double dLat, double dLon, double dAlt);
     QString getParent();
     int getChildId();
+    QString getAttachedRoute();
 private :
     QgsMapCanvas *_m_canvas;
     QString _m_sObjectID;

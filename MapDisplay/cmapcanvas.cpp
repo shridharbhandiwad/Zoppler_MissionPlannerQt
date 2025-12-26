@@ -4,6 +4,7 @@
 #include <QKeyEvent>
 #include <qgsrectangle.h>
 #include <QDir>
+#include <QDateTime>
 #include <QFileInfoList>
 #include <qgscoordinatetransformcontext.h>
 #include <qgsfillsymbol.h>
@@ -29,6 +30,8 @@
 CMapCanvas::CMapCanvas(QWidget *parent) : QgsMapCanvas(parent)
 {
     _m_nCurrentObjectClassForLoading = VISTAR_CLASS_NONE;
+    _m_scenarioManager = new CScenarioManager(this);
+    
     QgsRectangle fixedWorldExtent(-180.0, -90.0, 180.0, 90.0);
      mPreviousCursor = Qt::ArrowCursor;
     // Add padding (e.g., 10% of width/height)
@@ -94,6 +97,11 @@ void CMapCanvas::Initialize() {
     enforceLayerOrder();
     zoomToFullExtent();
     refresh();
+    
+    // Auto-load the last saved scenario
+    QTimer::singleShot(500, this, [this]() {
+        autoLoadScenario();
+    });
 }
 
 void CMapCanvas::importRasterMap(QString inputPath) {
@@ -695,6 +703,11 @@ void CMapCanvas::mouseReleaseEvent(QMouseEvent *event)
                         _m_sCurrentRoute = "";
                         setCursor(mPreviousCursor);
                         signalClearObjectSelection();
+                        
+                        // Auto-save after completing route
+                        QTimer::singleShot(100, this, [this]() {
+                            autoSaveScenario();
+                        });
                     }
                 }
             }
@@ -740,6 +753,11 @@ void CMapCanvas::mouseReleaseEvent(QMouseEvent *event)
             _m_sCurrentRoute = "";
             setCursor(mPreviousCursor);
             signalClearObjectSelection();
+            
+            // Auto-save after adding new object
+            QTimer::singleShot(100, this, [this]() {
+                autoSaveScenario();
+            });
         }
         else {
 
@@ -836,6 +854,11 @@ void CMapCanvas::mouseDoubleClickEvent( QMouseEvent *e ) {
             _m_sCurrentRoute = "";
             setCursor(mPreviousCursor);
             signalClearObjectSelection();
+            
+            // Auto-save after finishing route
+            QTimer::singleShot(100, this, [this]() {
+                autoSaveScenario();
+            });
         }
         else if (_m_nCurrentObjectClassForLoading == VISTAR_CLASS_NONE) {
             for (CVistarObject* item : _m_listVistarObjects)
@@ -1102,6 +1125,11 @@ void CMapCanvas::showContextMenu(QPoint pos) {
                         }
                     }
                     delete object;
+                    
+                    // Auto-save after deleting object
+                    QTimer::singleShot(100, this, [this]() {
+                        autoSaveScenario();
+                    });
                 }
                 else if (selected->text() == "Attach Route") {
                     object->attachRoute(selected->text());
@@ -1120,6 +1148,11 @@ void CMapCanvas::showContextMenu(QPoint pos) {
                     else if ( selected->text() == "Delete") {
                         _m_listVistarRoutes.remove(selected->objectName());
                         delete route;
+                        
+                        // Auto-save after deleting route
+                        QTimer::singleShot(100, this, [this]() {
+                            autoSaveScenario();
+                        });
                     }
                 }
             }
@@ -1135,6 +1168,11 @@ void CMapCanvas::slotUpdatePosition(QString sObjectId,double dLat,double dLon,do
     CVistarObject *vistarObject = getVistarObjectById(sObjectId);
     if (vistarObject) {
         vistarObject->UpdateLocation(dLat,dLon,dAlt);
+        
+        // Auto-save after updating position
+        QTimer::singleShot(100, this, [this]() {
+            autoSaveScenario();
+        });
     }
 }
 
@@ -1142,7 +1180,256 @@ void CMapCanvas::slotUpdatePoints(QString sObjectId,QList<QgsPointXYZ> listPoint
     CVistarRoute *vistarRoute = getVistarRouteById(sObjectId);
     if (vistarRoute) {
         vistarRoute->UpdatePoints(listPoints);
+        
+        // Auto-save after updating route points
+        QTimer::singleShot(100, this, [this]() {
+            autoSaveScenario();
+        });
     }
+}
+
+// ============ Scenario Management Methods ============
+
+QString CMapCanvas::getClassNameFromEnum(int nClass) {
+    switch (nClass) {
+        case VISTAR_CLASS_DRONE: return "DRONE";
+        case VISTAR_CLASS_DRONE_SWARM: return "DRONE_SWARM";
+        case VISTAR_CLASS_FIGHTER: return "FIGHTER";
+        case VISTAR_CLASS_UAV: return "UAV";
+        case VISTAR_CLASS_RADAR: return "RADAR";
+        case VISTAR_CLASS_LAUNCHER: return "LAUNCHER";
+        case VISTAR_CLASS_MISSILE: return "MISSILE";
+        case VISTAR_CLASS_ROUTE: return "ROUTE";
+        default: return "UNKNOWN";
+    }
+}
+
+int CMapCanvas::getEnumFromClassName(const QString &className) {
+    if (className == "DRONE") return VISTAR_CLASS_DRONE;
+    if (className == "DRONE_SWARM") return VISTAR_CLASS_DRONE_SWARM;
+    if (className == "FIGHTER") return VISTAR_CLASS_FIGHTER;
+    if (className == "UAV") return VISTAR_CLASS_UAV;
+    if (className == "RADAR") return VISTAR_CLASS_RADAR;
+    if (className == "LAUNCHER") return VISTAR_CLASS_LAUNCHER;
+    if (className == "MISSILE") return VISTAR_CLASS_MISSILE;
+    if (className == "ROUTE") return VISTAR_CLASS_ROUTE;
+    return VISTAR_CLASS_NONE;
+}
+
+Scenario CMapCanvas::createScenarioFromCurrentState() {
+    Scenario scenario;
+    scenario.name = "Auto-saved Scenario";
+    scenario.description = "Automatically saved vistar routes and objects";
+    scenario.createdDate = QDateTime::currentDateTime().toString(Qt::ISODate);
+    
+    // Save all routes
+    for (CVistarRoute *vistarRoute : _m_listVistarRoutes) {
+        if (!vistarRoute) continue;
+        
+        ScenarioRoute route;
+        route.id = vistarRoute->getObjectId();
+        route.name = vistarRoute->getObjectId();
+        
+        QList<QgsPointXYZ> points = vistarRoute->getPoints();
+        for (const QgsPointXYZ &pt : points) {
+            route.waypoints.append(QPointF(pt.y(), pt.x())); // lat, lon
+            route.altitudes.append(pt.z());
+        }
+        
+        scenario.routes.append(route);
+    }
+    
+    // Save all objects (only parent objects, not child missiles)
+    for (const QString &objectId : _m_listVistarObjectIds) {
+        CVistarObject *vistarObject = _m_listVistarObjects.value(objectId);
+        if (!vistarObject) continue;
+        
+        // Skip child objects (missiles attached to launchers/UAVs)
+        if (vistarObject->getChildId() != 0) continue;
+        
+        ScenarioObject obj;
+        obj.id = vistarObject->getObjectId();
+        
+        QgsPointXYZ pt = vistarObject->getPointXYZ();
+        obj.latitude = pt.y();
+        obj.longitude = pt.x();
+        obj.altitude = pt.z();
+        
+        // Get object type from ID prefix
+        QString idPrefix = objectId.split("_").first();
+        obj.type = idPrefix;
+        
+        // Store additional data
+        obj.additionalData["parent"] = vistarObject->getParent();
+        obj.additionalData["childId"] = vistarObject->getChildId();
+        obj.additionalData["attachedRoute"] = vistarObject->getAttachedRoute();
+        
+        scenario.objects.append(obj);
+    }
+    
+    scenario.metadata["version"] = "1.0";
+    scenario.metadata["autoSaved"] = true;
+    
+    return scenario;
+}
+
+void CMapCanvas::loadScenarioToCanvas(const Scenario &scenario) {
+    // Clear existing objects and routes
+    qDebug() << "Loading scenario:" << scenario.name;
+    
+    // Clear existing routes
+    for (CVistarRoute *route : _m_listVistarRoutes) {
+        delete route;
+    }
+    _m_listVistarRoutes.clear();
+    
+    // Clear existing objects
+    for (CVistarObject *obj : _m_listVistarObjects) {
+        delete obj;
+    }
+    _m_listVistarObjects.clear();
+    _m_listVistarObjectIds.clear();
+    
+    // Load routes first
+    for (const ScenarioRoute &route : scenario.routes) {
+        if (route.waypoints.isEmpty()) continue;
+        
+        // Create the route with first waypoint
+        QPointF firstPt = route.waypoints.first();
+        CVistarRoute *vistarRoute = new CVistarRoute(this, route.id, firstPt.y(), firstPt.x());
+        
+        // Add remaining waypoints
+        for (int i = 1; i < route.waypoints.size(); i++) {
+            QPointF pt = route.waypoints[i];
+            double alt = (i < route.altitudes.size()) ? route.altitudes[i] : 1000.0;
+            vistarRoute->addPoint(QgsPointXY(pt.y(), pt.x()));
+        }
+        
+        _m_listVistarRoutes.insert(route.id, vistarRoute);
+        qDebug() << "Loaded route:" << route.id << "with" << route.waypoints.size() << "waypoints";
+    }
+    
+    // Load objects
+    QHash<QString, int> childCounts; // Track how many children each parent should have
+    
+    for (const ScenarioObject &obj : scenario.objects) {
+        int nClass = getEnumFromClassName(obj.type);
+        if (nClass == VISTAR_CLASS_NONE) continue;
+        
+        CVistarObject *vistarObject = new CVistarObject(
+            this, obj.id, nClass, obj.longitude, obj.latitude
+        );
+        
+        // Update altitude
+        vistarObject->UpdateLocation(obj.latitude, obj.longitude, obj.altitude);
+        
+        // Restore attached route if any
+        if (obj.additionalData.contains("attachedRoute")) {
+            QString attachedRoute = obj.additionalData["attachedRoute"].toString();
+            if (!attachedRoute.isEmpty()) {
+                vistarObject->attachRoute(attachedRoute);
+            }
+        }
+        
+        _m_listVistarObjects.insert(obj.id, vistarObject);
+        _m_listVistarObjectIds.append(obj.id);
+        
+        qDebug() << "Loaded object:" << obj.id << "at" << obj.latitude << "," << obj.longitude;
+        
+        // Create child missiles if this is a launcher, fighter, or UAV
+        if (nClass == VISTAR_CLASS_LAUNCHER || 
+            nClass == VISTAR_CLASS_FIGHTER || 
+            nClass == VISTAR_CLASS_UAV) {
+            
+            int nChildMslCount = 0;
+            if (nClass == VISTAR_CLASS_LAUNCHER) {
+                nChildMslCount = 12;
+            } else if (nClass == VISTAR_CLASS_UAV) {
+                nChildMslCount = 4;
+            }
+            
+            for (int i = 1; i <= nChildMslCount; i++) {
+                QString sChildObjectId = GenerateObjectIdFromClass(VISTAR_CLASS_MISSILE);
+                if (!sChildObjectId.isEmpty()) {
+                    CVistarObject *vistarChildObject = new CVistarObject(
+                        this, sChildObjectId, VISTAR_CLASS_MISSILE, 
+                        obj.longitude, obj.latitude
+                    );
+                    vistarChildObject->setParent(obj.id, i);
+                    _m_listVistarObjects.insert(sChildObjectId, vistarChildObject);
+                    _m_listVistarObjectIds.append(sChildObjectId);
+                }
+            }
+        }
+    }
+    
+    refresh();
+    qDebug() << "Scenario loaded successfully with" << scenario.objects.size() << "objects and" << scenario.routes.size() << "routes";
+}
+
+bool CMapCanvas::saveCurrentScenario(const QString &filePath) {
+    Scenario scenario = createScenarioFromCurrentState();
+    
+    QString savePath = filePath;
+    if (savePath.isEmpty()) {
+        savePath = _m_scenarioManager->getDefaultScenariosDirectory() + "/current_scenario.json";
+    }
+    
+    bool success = _m_scenarioManager->saveScenario(scenario, savePath);
+    if (success) {
+        qDebug() << "Scenario saved successfully to:" << savePath;
+    } else {
+        qWarning() << "Failed to save scenario to:" << savePath;
+    }
+    
+    return success;
+}
+
+bool CMapCanvas::loadScenario(const QString &filePath) {
+    QString loadPath = filePath;
+    if (loadPath.isEmpty()) {
+        loadPath = _m_scenarioManager->getDefaultScenariosDirectory() + "/current_scenario.json";
+    }
+    
+    QFileInfo fileInfo(loadPath);
+    if (!fileInfo.exists()) {
+        qDebug() << "Scenario file does not exist:" << loadPath;
+        return false;
+    }
+    
+    Scenario scenario;
+    bool success = _m_scenarioManager->loadScenario(loadPath, scenario);
+    if (success) {
+        loadScenarioToCanvas(scenario);
+        qDebug() << "Scenario loaded successfully from:" << loadPath;
+    } else {
+        qWarning() << "Failed to load scenario from:" << loadPath;
+    }
+    
+    return success;
+}
+
+bool CMapCanvas::autoSaveScenario() {
+    // Only auto-save if there are routes or objects to save
+    if (_m_listVistarRoutes.isEmpty() && _m_listVistarObjects.isEmpty()) {
+        qDebug() << "No routes or objects to auto-save";
+        return false;
+    }
+    
+    return saveCurrentScenario();
+}
+
+bool CMapCanvas::autoLoadScenario() {
+    QString autoSavePath = _m_scenarioManager->getDefaultScenariosDirectory() + "/current_scenario.json";
+    
+    QFileInfo fileInfo(autoSavePath);
+    if (!fileInfo.exists()) {
+        qDebug() << "No auto-save scenario file found";
+        return false;
+    }
+    
+    qDebug() << "Auto-loading scenario from:" << autoSavePath;
+    return loadScenario(autoSavePath);
 }
 
 

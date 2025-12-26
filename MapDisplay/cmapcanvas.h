@@ -13,6 +13,7 @@
 #include <QTimer>
 #include "../cupdateposition.h"
 #include "../cupdateroute.h"
+#include "../cscenariomanager.h"
 
 class CMapCanvas : public QgsMapCanvas
 {
@@ -38,6 +39,16 @@ public:
     void SetObjectToLoadOnClick(int nClass);
     void InitializeAllObjects();
     void showContextMenu(QPoint pos);
+
+    // Scenario management
+    bool saveCurrentScenario(const QString &filePath = "");
+    bool loadScenario(const QString &filePath = "");
+    bool autoSaveScenario();
+    bool autoLoadScenario();
+    Scenario createScenarioFromCurrentState();
+    void loadScenarioToCanvas(const Scenario &scenario);
+    QString getClassNameFromEnum(int nClass);
+    int getEnumFromClassName(const QString &className);
 
     QTimer timerUpdate;
 private:
@@ -81,6 +92,8 @@ private:
 
     CUpdatePosition _m_objUpdatePosition;
     CUpdateRoute _m_objUpdateRoute;
+
+    CScenarioManager *_m_scenarioManager;
 
     void enforceLayerOrder();
     int computeMaxZoom(double rasterRes);
