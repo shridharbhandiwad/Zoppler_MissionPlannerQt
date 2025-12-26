@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include "cnetworkinterface.h"
+#include "cpathsettingsdialog.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -23,7 +24,7 @@ private:
     void selectForMarking( int nClass );
 
     CNetworkInterface *_m_networkInterface;
-
+    CPathSettingsDialog *_m_pathSettingsDialog;
 
 private slots :
     void slotMouseRead( QString mouseRead );
@@ -36,5 +37,6 @@ private slots :
     void on_pushButton_SaveScenario_clicked();
     void on_pushButton_LoadScenario_clicked();
     void on_pushButton_ResetScenario_clicked();
+    void openPathSettings();
 };
 #endif // CVISTARPLANNER_H
