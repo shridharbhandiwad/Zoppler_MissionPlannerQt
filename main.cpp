@@ -26,6 +26,10 @@ int main(int argc, char *argv[])
     QgsApplication::setAttribute(Qt::AA_UseDesktopOpenGL);
 
     QgsApplication  a(argc, argv,true);
+    
+    // Set application info for QSettings persistence
+    QCoreApplication::setOrganizationName("Vistar");
+    QCoreApplication::setApplicationName("VistarPlanner");
 
     QgsApplication::setPrefixPath("C:/Users/Shridhar/AppData/Local/Programs/OSGeo4W/apps/qgis-ltr-dev", true);
     QgsApplication::initQgis();
