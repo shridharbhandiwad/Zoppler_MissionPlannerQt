@@ -21,14 +21,15 @@ public:
      */
     struct PathParameters {
         double defaultAltitude = 1000.0;      // Default altitude in meters
-        int numWaypoints = 20;                // Number of intermediate waypoints
-        double curveFactor = 0.3;             // Controls curve intensity (0.0-1.0)
-        double spiralTurns = 2.0;             // Number of spiral rotations
-        double zigzagAmplitude = 0.2;         // Amplitude of zigzag (fraction of distance)
-        int zigzagFrequency = 6;              // Number of zigzag oscillations
-        double maxTurnRadius = 0.05;          // Maximum turn radius in degrees
-        double randomVariance = 0.15;         // Random path variance factor
-        double spreadRadiusKm = 5.0;          // Maximum trajectory spread radius in kilometers
+        int numWaypoints = 30;                // Number of intermediate waypoints (increased for more detail)
+        double curveFactor = 0.6;             // Controls curve intensity (0.0-1.0) - increased for wider curves
+        double spiralTurns = 3.5;             // Number of spiral rotations - increased for more coverage
+        double zigzagAmplitude = 0.45;        // Amplitude of zigzag (fraction of distance) - increased
+        int zigzagFrequency = 8;              // Number of zigzag oscillations - increased
+        double maxTurnRadius = 0.1;           // Maximum turn radius in degrees - increased
+        double randomVariance = 0.45;         // Random path variance factor - significantly increased
+        double spreadRadiusKm = 15.0;         // Maximum trajectory spread radius in kilometers - tripled
+        double randomnessLevel = 0.5;         // Global randomness multiplier (0.0-1.0) for all paths
         
         PathParameters() = default;
     };

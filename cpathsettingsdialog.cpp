@@ -13,6 +13,7 @@ static const QString KEY_ZIGZAG_FREQUENCY = "zigzagFrequency";
 static const QString KEY_MAX_TURN_RADIUS = "maxTurnRadius";
 static const QString KEY_RANDOM_VARIANCE = "randomVariance";
 static const QString KEY_SPREAD_RADIUS_KM = "spreadRadiusKm";
+static const QString KEY_RANDOMNESS_LEVEL = "randomnessLevel";
 
 CPathSettingsDialog::CPathSettingsDialog(QWidget *parent) :
     QDialog(parent),
@@ -57,6 +58,7 @@ void CPathSettingsDialog::loadParametersToUI(const CPathGenerator::PathParameter
     ui->doubleSpinBox_MaxTurnRadius->setValue(params.maxTurnRadius);
     ui->doubleSpinBox_RandomVariance->setValue(params.randomVariance);
     ui->doubleSpinBox_SpreadRadius->setValue(params.spreadRadiusKm);
+    ui->doubleSpinBox_RandomnessLevel->setValue(params.randomnessLevel);
 }
 
 CPathGenerator::PathParameters CPathSettingsDialog::getParametersFromUI() const
@@ -72,6 +74,7 @@ CPathGenerator::PathParameters CPathSettingsDialog::getParametersFromUI() const
     params.maxTurnRadius = ui->doubleSpinBox_MaxTurnRadius->value();
     params.randomVariance = ui->doubleSpinBox_RandomVariance->value();
     params.spreadRadiusKm = ui->doubleSpinBox_SpreadRadius->value();
+    params.randomnessLevel = ui->doubleSpinBox_RandomnessLevel->value();
     
     return params;
 }
@@ -116,6 +119,7 @@ void CPathSettingsDialog::saveDefaultParametersToSettings(const CPathGenerator::
     settings.setValue(KEY_MAX_TURN_RADIUS, params.maxTurnRadius);
     settings.setValue(KEY_RANDOM_VARIANCE, params.randomVariance);
     settings.setValue(KEY_SPREAD_RADIUS_KM, params.spreadRadiusKm);
+    settings.setValue(KEY_RANDOMNESS_LEVEL, params.randomnessLevel);
     
     settings.endGroup();
     settings.sync();
@@ -147,6 +151,8 @@ CPathGenerator::PathParameters CPathSettingsDialog::loadDefaultParametersFromSet
         params.randomVariance = settings.value(KEY_RANDOM_VARIANCE).toDouble();
     if (settings.contains(KEY_SPREAD_RADIUS_KM))
         params.spreadRadiusKm = settings.value(KEY_SPREAD_RADIUS_KM).toDouble();
+    if (settings.contains(KEY_RANDOMNESS_LEVEL))
+        params.randomnessLevel = settings.value(KEY_RANDOMNESS_LEVEL).toDouble();
     
     settings.endGroup();
     
@@ -178,6 +184,8 @@ CPathGenerator::PathParameters CPathSettingsDialog::getSavedDefaultParameters()
         params.randomVariance = settings.value(KEY_RANDOM_VARIANCE).toDouble();
     if (settings.contains(KEY_SPREAD_RADIUS_KM))
         params.spreadRadiusKm = settings.value(KEY_SPREAD_RADIUS_KM).toDouble();
+    if (settings.contains(KEY_RANDOMNESS_LEVEL))
+        params.randomnessLevel = settings.value(KEY_RANDOMNESS_LEVEL).toDouble();
     
     settings.endGroup();
     
