@@ -150,7 +150,7 @@ signals:
 public slots:
     void slotUpdateObject(QJsonDocument doc);
     void slotUpdatePosition(QString, double dLat, double dLon, double dAlt);
-    void slotUpdatePoints(QString sObjectId,QList<QgsPointXYZ> listPoints);
+    void slotUpdatePoints(QString sObjectId,QList<QgsPointXYZ> listPoints,QStringList maneuverTypes);
 private slots:
     void startGdalTranslate();
     void startGdalAddo();

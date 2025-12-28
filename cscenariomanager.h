@@ -26,6 +26,7 @@ struct ScenarioRoute {
     QString name;
     QList<QPointF> waypoints; // lat, lon pairs
     QList<double> altitudes;
+    QStringList maneuverTypes; // ManeuverType for each waypoint
     QJsonObject additionalData;
 };
 

@@ -102,8 +102,8 @@ CMapCanvas::CMapCanvas(QWidget *parent) : QgsMapCanvas(parent)
              this,SLOT(slotUpdatePosition(QString,double,double,double)));
 
 
-     connect(&_m_objUpdateRoute,SIGNAL(signalUpdatePoints(QString,QList<QgsPointXYZ>)),
-             this,SLOT(slotUpdatePoints(QString,QList<QgsPointXYZ>)));
+     connect(&_m_objUpdateRoute,SIGNAL(signalUpdatePoints(QString,QList<QgsPointXYZ>,QStringList)),
+             this,SLOT(slotUpdatePoints(QString,QList<QgsPointXYZ>,QStringList)));
 
      connect(&timerUpdate,SIGNAL(timeout()),this,SLOT(update()));
      timerUpdate.start(10);
@@ -1263,6 +1263,7 @@ void CMapCanvas::showContextMenu(QPoint pos) {
                         _m_objUpdateRoute.setObjectId(selected->objectName());
                         QList<QgsPointXYZ> listPoints = route->getPoints();
                         _m_objUpdateRoute.setPoints(listPoints);
+                        _m_objUpdateRoute.setManeuverTypes(route->getManeuverTypes());
                         _m_objUpdateRoute.show();
                     }
                     else if ( selected->text() == "Delete") {
@@ -1296,10 +1297,10 @@ void CMapCanvas::slotUpdatePosition(QString sObjectId,double dLat,double dLon,do
     }
 }
 
-void CMapCanvas::slotUpdatePoints(QString sObjectId,QList<QgsPointXYZ> listPoints) {
+void CMapCanvas::slotUpdatePoints(QString sObjectId,QList<QgsPointXYZ> listPoints,QStringList maneuverTypes) {
     CVistarRoute *vistarRoute = getVistarRouteById(sObjectId);
     if (vistarRoute) {
-        vistarRoute->UpdatePoints(listPoints);
+        vistarRoute->UpdatePoints(listPoints, maneuverTypes);
         
         // Auto-save after updating route points
         QTimer::singleShot(100, this, [this]() {
@@ -1351,9 +1352,16 @@ Scenario CMapCanvas::createScenarioFromCurrentState() {
         route.name = vistarRoute->getObjectId();
         
         QList<QgsPointXYZ> points = vistarRoute->getPoints();
-        for (const QgsPointXYZ &pt : points) {
+        QStringList maneuverTypes = vistarRoute->getManeuverTypes();
+        for (int i = 0; i < points.size(); i++) {
+            const QgsPointXYZ &pt = points.at(i);
             route.waypoints.append(QPointF(pt.y(), pt.x())); // lat, lon
             route.altitudes.append(pt.z());
+            if (i < maneuverTypes.size()) {
+                route.maneuverTypes.append(maneuverTypes.at(i));
+            } else {
+                route.maneuverTypes.append("DIRECT");
+            }
         }
         
         scenario.routes.append(route);
@@ -1445,6 +1453,11 @@ void CMapCanvas::loadScenarioToCanvas(const Scenario &scenario) {
             QPointF pt = route.waypoints[i];
             double alt = (i < route.altitudes.size()) ? route.altitudes[i] : 1000.0;
             vistarRoute->addPoint(QgsPointXY(pt.y(), pt.x()));
+        }
+        
+        // Set maneuver types
+        if (!route.maneuverTypes.isEmpty()) {
+            vistarRoute->setManeuverTypes(route.maneuverTypes);
         }
         
         _m_listVistarRoutes.insert(route.id, vistarRoute);

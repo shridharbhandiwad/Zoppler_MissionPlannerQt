@@ -23,13 +23,43 @@ CVistarRoute::CVistarRoute(QgsMapCanvas *canvas,QString sObjectID,
 
 void CVistarRoute::addPoint(QgsPointXY pt) {
     _m_listPoints << QgsPointXYZ(pt,1000);
+    _m_listManeuverTypes << "DIRECT"; // Default maneuver type
     refresh();
 }
 
 void CVistarRoute::UpdatePoints(QList<QgsPointXYZ> points) {
     _m_listPoints.clear();
+    _m_listManeuverTypes.clear();
     _m_listPoints.append(points);
+    // Fill with default "DIRECT" for all points
+    for (int i = 0; i < points.size(); i++) {
+        _m_listManeuverTypes << "DIRECT";
+    }
     refresh();
+}
+
+void CVistarRoute::UpdatePoints(QList<QgsPointXYZ> points, QStringList maneuverTypes) {
+    _m_listPoints.clear();
+    _m_listManeuverTypes.clear();
+    _m_listPoints.append(points);
+    _m_listManeuverTypes.append(maneuverTypes);
+    // Ensure maneuver types list matches points list size
+    while (_m_listManeuverTypes.size() < _m_listPoints.size()) {
+        _m_listManeuverTypes << "DIRECT";
+    }
+    refresh();
+}
+
+QStringList CVistarRoute::getManeuverTypes() {
+    return _m_listManeuverTypes;
+}
+
+void CVistarRoute::setManeuverTypes(QStringList maneuverTypes) {
+    _m_listManeuverTypes = maneuverTypes;
+    // Ensure maneuver types list matches points list size
+    while (_m_listManeuverTypes.size() < _m_listPoints.size()) {
+        _m_listManeuverTypes << "DIRECT";
+    }
 }
 
 int CVistarRoute::getPointCount() {
@@ -144,6 +174,12 @@ void CVistarRoute::TransmitSelfInfo() {
         jsonLocation["X"] = pt.x();
         jsonLocation["Y"] = pt.y();
         jsonLocation["Z"] = pt.z();
+        // Include ManeuverType for each waypoint
+        if (i < _m_listManeuverTypes.size()) {
+            jsonLocation["ManeuverType"] = _m_listManeuverTypes.at(i);
+        } else {
+            jsonLocation["ManeuverType"] = "DIRECT"; // Default
+        }
         jsonLocationsList.append(jsonLocation);
     }
 

@@ -196,6 +196,11 @@ QJsonObject CScenarioManager::routeToJson(const ScenarioRoute &route)
         if (i < route.altitudes.size()) {
             waypointObj["altitude"] = route.altitudes[i];
         }
+        if (i < route.maneuverTypes.size()) {
+            waypointObj["ManeuverType"] = route.maneuverTypes[i];
+        } else {
+            waypointObj["ManeuverType"] = "DIRECT"; // Default
+        }
         waypointsArray.append(waypointObj);
     }
     json["waypoints"] = waypointsArray;
@@ -215,6 +220,7 @@ ScenarioRoute CScenarioManager::jsonToRoute(const QJsonObject &json)
         QJsonObject wpObj = val.toObject();
         route.waypoints.append(QPointF(wpObj["latitude"].toDouble(), wpObj["longitude"].toDouble()));
         route.altitudes.append(wpObj["altitude"].toDouble(0.0));
+        route.maneuverTypes.append(wpObj["ManeuverType"].toString("DIRECT"));
     }
     
     route.additionalData = json["additionalData"].toObject();
