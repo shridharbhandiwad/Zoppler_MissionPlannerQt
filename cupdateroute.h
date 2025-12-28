@@ -4,6 +4,7 @@
 #include <QWidget>
 #include "MapDisplay/qgspointxyz.h"
 #include <QRegularExpressionValidator>
+#include <QStringList>
 namespace Ui {
 class CUpdateRoute;
 }
@@ -17,8 +18,12 @@ public:
     ~CUpdateRoute();
 
     void setPoints(QList<QgsPointXYZ> listPoints);
+    void setManeuverTypes(QStringList maneuverTypes);
 
     void setObjectId(QString sObjectId);
+    
+    // Maneuver type options
+    static QStringList getManeuverTypeOptions();
 private:
     Ui::CUpdateRoute *ui;
 
@@ -30,7 +35,7 @@ private:
     QRegularExpressionValidator altValidator;
 
 signals :
-    void signalUpdatePoints(QString,QList<QgsPointXYZ>);
+    void signalUpdatePoints(QString,QList<QgsPointXYZ>,QStringList);
 private slots:
     void on_pushButton_update_clicked();
     void on_pushButton_close_clicked();

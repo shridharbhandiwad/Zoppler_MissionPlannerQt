@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>588</width>
+    <width>720</width>
     <height>288</height>
    </rect>
   </property>
@@ -199,6 +199,43 @@ QScrollBar::handle:horizontal:hover {
 QScrollBar::add-line:horizontal,
 QScrollBar::sub-line:horizontal {
     width: 0px;
+}
+
+/* ===============================
+   ComboBox (Dropdown) Styling
+   =============================== */
+QComboBox {
+    background: #ffffff;
+    border: 1px solid #b6bec7;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 12px;
+    color: #2c3e50;
+}
+
+QComboBox:hover {
+    border: 1px solid #3478f6;
+}
+
+QComboBox::drop-down {
+    subcontrol-origin: padding;
+    subcontrol-position: top right;
+    width: 20px;
+    border-left: 1px solid #d0d4d9;
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+}
+
+QComboBox::down-arrow {
+    width: 10px;
+    height: 10px;
+}
+
+QComboBox QAbstractItemView {
+    background: #ffffff;
+    border: 1px solid #b6bec7;
+    selection-background-color: #cfe3ff;
+    selection-color: #000000;
 }</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
@@ -247,7 +284,7 @@ QScrollBar::sub-line:horizontal {
       <bool>false</bool>
      </attribute>
      <attribute name="horizontalHeaderStretchLastSection">
-      <bool>true</bool>
+      <bool>false</bool>
      </attribute>
      <attribute name="verticalHeaderVisible">
       <bool>true</bool>
@@ -303,6 +340,16 @@ QScrollBar::sub-line:horizontal {
      <column>
       <property name="text">
        <string>Alt</string>
+      </property>
+      <property name="font">
+       <font>
+        <bold>true</bold>
+       </font>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>ManeuverType</string>
       </property>
       <property name="font">
        <font>
