@@ -38,6 +38,7 @@ LIBS += -L$$QGIS_PREFIX/apps/qgis-ltr-dev/lib \
      -lspatialite
 
 SOURCES += \
+    MapDisplay/caipathgenerator.cpp \
     MapDisplay/cmapcanvas.cpp \
     MapDisplay/cmaptoolselectobjects.cpp \
     MapDisplay/cpathgenerator.cpp \
@@ -55,6 +56,7 @@ SOURCES += \
     cvistarplanner.cpp
 
 HEADERS += \
+    MapDisplay/caipathgenerator.h \
     MapDisplay/cmapcanvas.h \
     MapDisplay/cmaptoolselectobjects.h \
     MapDisplay/cpathgenerator.h \

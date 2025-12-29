@@ -2,6 +2,7 @@
 #include "ui_cvistarplanner.h"
 #include "globalConstants.h"
 #include "MapDisplay/cpathgenerator.h"
+#include "MapDisplay/caipathgenerator.h"
 #include <QFileDialog>
 #include <QMenu>
 #include <QWidgetAction>
@@ -115,7 +116,104 @@ CVistarPlanner::CVistarPlanner(QWidget *parent)
         "}"
     );
     
-    // Create path type actions with icons and descriptions
+    // Create settings action
+    QAction *actionSettings = new QAction("⚙  Settings", this);
+    actionSettings->setToolTip("Configure path generation parameters (AI/Conventional)");
+    
+    // === AI Path Generation Submenu ===
+    QMenu *aiSubMenu = new QMenu("🤖 AI Path Generation", this);
+    aiSubMenu->setStyleSheet(
+        "QMenu {"
+        "    background-color: rgba(0, 150, 136, 0.92);"
+        "    border: 2px solid rgba(0, 188, 212, 0.6);"
+        "    border-radius: 12px;"
+        "    padding: 10px 5px;"
+        "    margin: 2px;"
+        "}"
+        "QMenu::item {"
+        "    background-color: transparent;"
+        "    color: white;"
+        "    padding: 12px 35px;"
+        "    margin: 3px 6px;"
+        "    border-radius: 8px;"
+        "    font-weight: bold;"
+        "    font-size: 10pt;"
+        "}"
+        "QMenu::item:selected {"
+        "    background-color: rgba(0, 188, 212, 0.7);"
+        "    border: 1px solid rgba(77, 208, 225, 0.5);"
+        "}"
+        "QMenu::item:pressed {"
+        "    background-color: rgba(0, 121, 107, 0.85);"
+        "}"
+    );
+    
+    // AI Mission type actions
+    QAction *actionAIPatrol = new QAction("🔍  Patrol Mission", this);
+    actionAIPatrol->setToolTip("AI-generated patrol pattern for area surveillance");
+    actionAIPatrol->setData(AI_MISSION_PATROL);
+    
+    QAction *actionAIStrike = new QAction("💥  Strike Mission", this);
+    actionAIStrike->setToolTip("AI-optimized strike approach with ingress/egress planning");
+    actionAIStrike->setData(AI_MISSION_STRIKE);
+    
+    QAction *actionAIRecon = new QAction("📡  Recon Mission", this);
+    actionAIRecon->setToolTip("AI reconnaissance path with optimal sensor coverage");
+    actionAIRecon->setData(AI_MISSION_RECON);
+    
+    QAction *actionAIEvasion = new QAction("🛡️  Evasion Mission", this);
+    actionAIEvasion->setToolTip("AI unpredictable path to avoid detection and interception");
+    actionAIEvasion->setData(AI_MISSION_EVASION);
+    
+    QAction *actionAIIntercept = new QAction("🎯  Intercept Mission", this);
+    actionAIIntercept->setToolTip("AI optimal intercept trajectory for fast target approach");
+    actionAIIntercept->setData(AI_MISSION_INTERCEPT);
+    
+    QAction *actionAIEscort = new QAction("✈️  Escort Mission", this);
+    actionAIEscort->setToolTip("AI protective escort pattern for asset defense");
+    actionAIEscort->setData(AI_MISSION_ESCORT);
+    
+    // Add AI mission actions to submenu
+    aiSubMenu->addAction(actionAIPatrol);
+    aiSubMenu->addAction(actionAIRecon);
+    aiSubMenu->addSeparator();
+    aiSubMenu->addAction(actionAIStrike);
+    aiSubMenu->addAction(actionAIIntercept);
+    aiSubMenu->addSeparator();
+    aiSubMenu->addAction(actionAIEvasion);
+    aiSubMenu->addAction(actionAIEscort);
+    
+    // Connect AI mission actions
+    connect(actionAIPatrol, &QAction::triggered, this, [this]() {
+        ui->mapCanvas->startAIPathGeneration(AI_MISSION_PATROL);
+        ui->statusBar->showMessage("🤖 AI Mode: Click to select START point for Patrol mission", 5000);
+    });
+    connect(actionAIStrike, &QAction::triggered, this, [this]() {
+        ui->mapCanvas->startAIPathGeneration(AI_MISSION_STRIKE);
+        ui->statusBar->showMessage("🤖 AI Mode: Click to select START point for Strike mission", 5000);
+    });
+    connect(actionAIRecon, &QAction::triggered, this, [this]() {
+        ui->mapCanvas->startAIPathGeneration(AI_MISSION_RECON);
+        ui->statusBar->showMessage("🤖 AI Mode: Click to select START point for Reconnaissance mission", 5000);
+    });
+    connect(actionAIEvasion, &QAction::triggered, this, [this]() {
+        ui->mapCanvas->startAIPathGeneration(AI_MISSION_EVASION);
+        ui->statusBar->showMessage("🤖 AI Mode: Click to select START point for Evasion mission", 5000);
+    });
+    connect(actionAIIntercept, &QAction::triggered, this, [this]() {
+        ui->mapCanvas->startAIPathGeneration(AI_MISSION_INTERCEPT);
+        ui->statusBar->showMessage("🤖 AI Mode: Click to select START point for Intercept mission", 5000);
+    });
+    connect(actionAIEscort, &QAction::triggered, this, [this]() {
+        ui->mapCanvas->startAIPathGeneration(AI_MISSION_ESCORT);
+        ui->statusBar->showMessage("🤖 AI Mode: Click to select START point for Escort mission", 5000);
+    });
+    
+    // === Conventional Path Generation Submenu ===
+    QMenu *conventionalSubMenu = new QMenu("⚙️ Conventional Paths", this);
+    conventionalSubMenu->setStyleSheet(pathMenu->styleSheet());  // Same style as parent
+    
+    // Create conventional path type actions
     QAction *actionStraight = new QAction("➤  Straight Line", this);
     actionStraight->setToolTip("Direct path between two points");
     actionStraight->setData(PATH_TYPE_STRAIGHT);
@@ -148,23 +246,24 @@ CVistarPlanner::CVistarPlanner(QWidget *parent)
     actionRandom->setToolTip("Random waypoints for unpredictable path");
     actionRandom->setData(PATH_TYPE_RANDOM);
     
-    QAction *actionSettings = new QAction("⚙  Settings", this);
-    actionSettings->setToolTip("Configure path generation parameters");
+    // Add conventional actions to submenu
+    conventionalSubMenu->addAction(actionStraight);
+    conventionalSubMenu->addSeparator();
+    conventionalSubMenu->addAction(actionSCurve);
+    conventionalSubMenu->addAction(actionLCurve);
+    conventionalSubMenu->addAction(actionBezier);
+    conventionalSubMenu->addSeparator();
+    conventionalSubMenu->addAction(actionFigure8);
+    conventionalSubMenu->addAction(actionSpiral);
+    conventionalSubMenu->addSeparator();
+    conventionalSubMenu->addAction(actionZigzag);
+    conventionalSubMenu->addAction(actionRandom);
     
-    // Add actions to menu with separators for grouping
+    // Add all to main path menu
     pathMenu->addAction(actionSettings);
     pathMenu->addSeparator();
-    pathMenu->addAction(actionStraight);
-    pathMenu->addSeparator();
-    pathMenu->addAction(actionSCurve);
-    pathMenu->addAction(actionLCurve);
-    pathMenu->addAction(actionBezier);
-    pathMenu->addSeparator();
-    pathMenu->addAction(actionFigure8);
-    pathMenu->addAction(actionSpiral);
-    pathMenu->addSeparator();
-    pathMenu->addAction(actionZigzag);
-    pathMenu->addAction(actionRandom);
+    pathMenu->addMenu(aiSubMenu);
+    pathMenu->addMenu(conventionalSubMenu);
     
     // Connect all path actions to a single slot using lambda
     connect(actionStraight, &QAction::triggered, this, [this]() { 
@@ -345,7 +444,22 @@ void CVistarPlanner::openPathSettings()
     if (_m_pathSettingsDialog->exec() == QDialog::Accepted) {
         CPathGenerator::PathParameters params = _m_pathSettingsDialog->getPathParameters();
         ui->mapCanvas->setPathParameters(params);
-        ui->statusBar->showMessage("Path generation settings updated!", 3000);
+        
+        // Also update AI path parameters
+        CAIPathGenerator::AIPathParameters aiParams = ui->mapCanvas->getAIPathParameters();
+        aiParams.missionType = params.aiMissionType;
+        aiParams.avoidDetection = params.aiAvoidDetection;
+        aiParams.terrainFollowing = params.aiTerrainFollowing;
+        aiParams.minAltitude = params.aiMinAltitude;
+        aiParams.maxAltitude = params.aiMaxAltitude;
+        aiParams.threatRadius = params.aiThreatRadius;
+        aiParams.optimizeForFuel = params.aiOptimizeForFuel;
+        aiParams.numWaypoints = params.numWaypoints;
+        aiParams.preferredAltitude = params.defaultAltitude;
+        ui->mapCanvas->setAIPathParameters(aiParams);
+        
+        QString modeStr = params.generationMethod == PATH_METHOD_AI ? "AI" : "Conventional";
+        ui->statusBar->showMessage("Path generation settings updated (" + modeStr + " mode)!", 3000);
     }
 }
 

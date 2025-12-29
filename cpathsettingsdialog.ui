@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>450</width>
-    <height>620</height>
+    <width>480</width>
+    <height>820</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -38,7 +38,15 @@ QGroupBox::title {
     padding: 0 8px;
     left: 10px;
 }
-QSpinBox, QDoubleSpinBox {
+QGroupBox#groupBox_GenerationMethod {
+    color: #64B5F6;
+    border: 2px solid rgba(100, 181, 246, 0.5);
+}
+QGroupBox#groupBox_AISettings {
+    color: #81C784;
+    border: 2px solid rgba(129, 199, 132, 0.5);
+}
+QSpinBox, QDoubleSpinBox, QComboBox {
     background-color: rgb(50, 50, 65);
     color: white;
     border: 1px solid rgba(255, 152, 0, 0.5);
@@ -46,8 +54,64 @@ QSpinBox, QDoubleSpinBox {
     padding: 5px;
     font-size: 10pt;
 }
-QSpinBox:focus, QDoubleSpinBox:focus {
+QSpinBox:focus, QDoubleSpinBox:focus, QComboBox:focus {
     border: 2px solid rgba(255, 167, 38, 0.8);
+}
+QComboBox::drop-down {
+    border: none;
+    padding-right: 10px;
+}
+QComboBox::down-arrow {
+    image: none;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 5px solid white;
+    margin-right: 5px;
+}
+QComboBox QAbstractItemView {
+    background-color: rgb(50, 50, 65);
+    color: white;
+    selection-background-color: rgba(255, 152, 0, 0.6);
+}
+QRadioButton {
+    color: white;
+    font-weight: bold;
+    font-size: 10pt;
+    spacing: 8px;
+}
+QRadioButton::indicator {
+    width: 18px;
+    height: 18px;
+}
+QRadioButton::indicator:unchecked {
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    border-radius: 10px;
+    background-color: transparent;
+}
+QRadioButton::indicator:checked {
+    border: 2px solid rgba(100, 181, 246, 0.8);
+    border-radius: 10px;
+    background-color: rgba(100, 181, 246, 0.6);
+}
+QCheckBox {
+    color: white;
+    font-weight: bold;
+    font-size: 10pt;
+    spacing: 8px;
+}
+QCheckBox::indicator {
+    width: 18px;
+    height: 18px;
+}
+QCheckBox::indicator:unchecked {
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    border-radius: 4px;
+    background-color: transparent;
+}
+QCheckBox::indicator:checked {
+    border: 2px solid rgba(129, 199, 132, 0.8);
+    border-radius: 4px;
+    background-color: rgba(129, 199, 132, 0.6);
 }
 QPushButton {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
@@ -113,24 +177,295 @@ QPushButton#pushButton_SaveAsDefaults:pressed {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
                                 stop:0 rgba(56, 142, 60, 0.9),
                                 stop:1 rgba(46, 125, 50, 0.9));
+}
+QScrollArea {
+    border: none;
+    background-color: transparent;
+}
+QScrollArea > QWidget > QWidget {
+    background-color: transparent;
 }</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="spacing">
-    <number>15</number>
+    <number>10</number>
    </property>
    <property name="leftMargin">
-    <number>20</number>
+    <number>15</number>
    </property>
    <property name="topMargin">
-    <number>20</number>
+    <number>15</number>
    </property>
    <property name="rightMargin">
-    <number>20</number>
+    <number>15</number>
    </property>
    <property name="bottomMargin">
-    <number>20</number>
+    <number>15</number>
    </property>
+   <item>
+    <widget class="QGroupBox" name="groupBox_GenerationMethod">
+     <property name="title">
+      <string>🎯 Path Generation Method</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_Method">
+      <property name="spacing">
+       <number>10</number>
+      </property>
+      <property name="leftMargin">
+       <number>15</number>
+      </property>
+      <property name="topMargin">
+       <number>20</number>
+      </property>
+      <property name="rightMargin">
+       <number>15</number>
+      </property>
+      <property name="bottomMargin">
+       <number>15</number>
+      </property>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_Method">
+        <item>
+         <widget class="QRadioButton" name="radioButton_Conventional">
+          <property name="text">
+           <string>⚙️ Conventional (Algorithmic)</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+          <property name="toolTip">
+           <string>Traditional algorithmic path generation using mathematical curves and patterns</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QRadioButton" name="radioButton_AI">
+          <property name="text">
+           <string>🤖 AI-Powered (Intelligent)</string>
+          </property>
+          <property name="toolTip">
+           <string>AI-powered intelligent path generation with mission awareness and threat avoidance</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_MethodDescription">
+        <property name="text">
+         <string>Conventional mode uses mathematical algorithms. AI mode generates intelligent mission-aware paths.</string>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
+        </property>
+        <property name="styleSheet">
+         <string>color: rgba(255, 255, 255, 0.7); font-weight: normal; font-size: 9pt;</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox_AISettings">
+     <property name="title">
+      <string>🧠 AI Path Settings</string>
+     </property>
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_AI">
+      <property name="horizontalSpacing">
+       <number>15</number>
+      </property>
+      <property name="verticalSpacing">
+       <number>10</number>
+      </property>
+      <property name="leftMargin">
+       <number>15</number>
+      </property>
+      <property name="topMargin">
+       <number>20</number>
+      </property>
+      <property name="rightMargin">
+       <number>15</number>
+      </property>
+      <property name="bottomMargin">
+       <number>15</number>
+      </property>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_MissionType">
+        <property name="text">
+         <string>Mission Type:</string>
+        </property>
+        <property name="toolTip">
+         <string>Select the type of mission for AI to optimize the path</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QComboBox" name="comboBox_MissionType">
+        <item>
+         <property name="text">
+          <string>🔍 Patrol (Area Surveillance)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>💥 Strike (Attack Mission)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>📡 Reconnaissance</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>🛡️ Evasion (Avoid Detection)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>🎯 Intercept (Target Pursuit)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>✈️ Escort (Protection)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>⚡ Custom</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_AIMinAlt">
+        <property name="text">
+         <string>Min Altitude (m):</string>
+        </property>
+        <property name="toolTip">
+         <string>Minimum flight altitude for AI-generated paths</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QDoubleSpinBox" name="doubleSpinBox_AIMinAlt">
+        <property name="minimum">
+         <double>0.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>50000.000000000000000</double>
+        </property>
+        <property name="singleStep">
+         <double>100.000000000000000</double>
+        </property>
+        <property name="value">
+         <double>500.000000000000000</double>
+        </property>
+        <property name="suffix">
+         <string> m</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_AIMaxAlt">
+        <property name="text">
+         <string>Max Altitude (m):</string>
+        </property>
+        <property name="toolTip">
+         <string>Maximum flight altitude for AI-generated paths</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QDoubleSpinBox" name="doubleSpinBox_AIMaxAlt">
+        <property name="minimum">
+         <double>100.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>50000.000000000000000</double>
+        </property>
+        <property name="singleStep">
+         <double>500.000000000000000</double>
+        </property>
+        <property name="value">
+         <double>15000.000000000000000</double>
+        </property>
+        <property name="suffix">
+         <string> m</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_ThreatRadius">
+        <property name="text">
+         <string>Threat Radius (km):</string>
+        </property>
+        <property name="toolTip">
+         <string>Assumed threat detection radius for avoidance calculations</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QDoubleSpinBox" name="doubleSpinBox_ThreatRadius">
+        <property name="minimum">
+         <double>1.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>500.000000000000000</double>
+        </property>
+        <property name="singleStep">
+         <double>5.000000000000000</double>
+        </property>
+        <property name="value">
+         <double>50.000000000000000</double>
+        </property>
+        <property name="suffix">
+         <string> km</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0" colspan="2">
+       <layout class="QHBoxLayout" name="horizontalLayout_AIOptions">
+        <item>
+         <widget class="QCheckBox" name="checkBox_AvoidDetection">
+          <property name="text">
+           <string>Avoid Detection</string>
+          </property>
+          <property name="toolTip">
+           <string>Enable threat avoidance in path planning</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="checkBox_TerrainFollowing">
+          <property name="text">
+           <string>Terrain Following</string>
+          </property>
+          <property name="toolTip">
+           <string>Enable low-altitude terrain-following mode</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="5" column="0" colspan="2">
+       <widget class="QCheckBox" name="checkBox_OptimizeFuel">
+        <property name="text">
+         <string>Optimize for Fuel Efficiency</string>
+        </property>
+        <property name="toolTip">
+         <string>Generate more direct paths to conserve fuel</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
    <item>
     <widget class="QGroupBox" name="groupBox_General">
      <property name="title">

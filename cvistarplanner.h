@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include "cnetworkinterface.h"
 #include "cpathsettingsdialog.h"
+#include "MapDisplay/caipathgenerator.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {

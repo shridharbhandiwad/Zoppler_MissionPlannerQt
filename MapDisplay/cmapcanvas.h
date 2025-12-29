@@ -11,6 +11,7 @@
 #include "cvistarobject.h"
 #include "cvistarroute.h"
 #include "cpathgenerator.h"
+#include "caipathgenerator.h"
 #include <QTimer>
 #include "../cupdateposition.h"
 #include "../cupdateroute.h"
@@ -54,14 +55,21 @@ public:
 
     // Path generation
     void startPathGeneration(eVISTAR_PATH_TYPE pathType);
+    void startAIPathGeneration(eVISTAR_AI_MISSION_TYPE missionType = AI_MISSION_PATROL);
     void cancelPathGeneration();
     bool isPathGenerationActive() const;
     eVISTAR_PATH_TYPE getCurrentPathType() const;
     CPathGenerator* getPathGenerator();
+    CAIPathGenerator* getAIPathGenerator();
     
     // Path generation configuration parameters
     void setPathParameters(const CPathGenerator::PathParameters &params);
     CPathGenerator::PathParameters getPathParameters() const;
+    
+    // AI path generation configuration
+    void setAIPathParameters(const CAIPathGenerator::AIPathParameters &params);
+    CAIPathGenerator::AIPathParameters getAIPathParameters() const;
+    bool isAIPathGenerationMode() const;
     void setNumWaypoints(int numWaypoints);
     int getNumWaypoints() const;
     void setDefaultAltitude(double altitude);
@@ -128,13 +136,17 @@ private:
 
     // Path generation members
     CPathGenerator *_m_pathGenerator;
+    CAIPathGenerator *_m_aiPathGenerator;
     eVISTAR_PATH_TYPE _m_currentPathType;
+    eVISTAR_AI_MISSION_TYPE _m_currentAIMissionType;
     bool _m_bPathGenerationMode;
+    bool _m_bAIPathGenerationMode;  // True when using AI generation
     QgsPointXY _m_pathStartPoint;
     bool _m_bPathStartPointSet;
     QGraphicsEllipseItem *_m_pathStartMarker;
     QGraphicsTextItem *_m_pathInstructionText;
     CPathGenerator::PathParameters _m_pathParams;  // Configurable path generation parameters
+    CAIPathGenerator::AIPathParameters _m_aiPathParams;  // AI path generation parameters
 
     void enforceLayerOrder();
     int computeMaxZoom(double rasterRes);
@@ -151,6 +163,8 @@ public slots:
     void slotUpdateObject(QJsonDocument doc);
     void slotUpdatePosition(QString, double dLat, double dLon, double dAlt);
     void slotUpdatePoints(QString sObjectId,QList<QgsPointXYZ> listPoints,QStringList maneuverTypes);
+    void slotAIPathGenerated(QList<QgsPointXYZ> path, bool success, QString errorMessage);
+    void slotAIGenerationProgress(int percentComplete, QString statusMessage);
 private slots:
     void startGdalTranslate();
     void startGdalAddo();
