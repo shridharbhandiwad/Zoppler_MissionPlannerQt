@@ -1,5 +1,6 @@
 #include "cpathsettingsdialog.h"
 #include "ui_cpathsettingsdialog.h"
+#include "MapDisplay/caipathgenerator.h"
 #include <QMessageBox>
 
 // Settings keys for path parameters
@@ -15,6 +16,16 @@ static const QString KEY_RANDOM_VARIANCE = "randomVariance";
 static const QString KEY_SPREAD_RADIUS_KM = "spreadRadiusKm";
 static const QString KEY_RANDOMNESS_LEVEL = "randomnessLevel";
 
+// AI-specific settings keys
+static const QString KEY_GENERATION_METHOD = "generationMethod";
+static const QString KEY_AI_MISSION_TYPE = "aiMissionType";
+static const QString KEY_AI_AVOID_DETECTION = "aiAvoidDetection";
+static const QString KEY_AI_TERRAIN_FOLLOWING = "aiTerrainFollowing";
+static const QString KEY_AI_MIN_ALTITUDE = "aiMinAltitude";
+static const QString KEY_AI_MAX_ALTITUDE = "aiMaxAltitude";
+static const QString KEY_AI_THREAT_RADIUS = "aiThreatRadius";
+static const QString KEY_AI_OPTIMIZE_FUEL = "aiOptimizeFuel";
+
 CPathSettingsDialog::CPathSettingsDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::CPathSettingsDialog)
@@ -26,6 +37,14 @@ CPathSettingsDialog::CPathSettingsDialog(QWidget *parent) :
     
     // Load defaults to UI
     loadParametersToUI(_m_defaultParams);
+    
+    // Connect AI mode toggle
+    connect(ui->radioButton_AI, &QRadioButton::toggled, this, &CPathSettingsDialog::on_radioButton_AI_toggled);
+    connect(ui->comboBox_MissionType, QOverload<int>::of(&QComboBox::currentIndexChanged), 
+            this, &CPathSettingsDialog::on_comboBox_MissionType_currentIndexChanged);
+    
+    // Set initial UI state
+    updateUIState();
     
     // Set window properties
     setWindowTitle("Path Generator Settings");
@@ -49,6 +68,7 @@ CPathGenerator::PathParameters CPathSettingsDialog::getPathParameters() const
 
 void CPathSettingsDialog::loadParametersToUI(const CPathGenerator::PathParameters &params)
 {
+    // Conventional parameters
     ui->spinBox_NumWaypoints->setValue(params.numWaypoints);
     ui->doubleSpinBox_Altitude->setValue(params.defaultAltitude);
     ui->doubleSpinBox_CurveFactor->setValue(params.curveFactor);
@@ -59,12 +79,31 @@ void CPathSettingsDialog::loadParametersToUI(const CPathGenerator::PathParameter
     ui->doubleSpinBox_RandomVariance->setValue(params.randomVariance);
     ui->doubleSpinBox_SpreadRadius->setValue(params.spreadRadiusKm);
     ui->doubleSpinBox_RandomnessLevel->setValue(params.randomnessLevel);
+    
+    // Generation method
+    if (params.generationMethod == PATH_METHOD_AI) {
+        ui->radioButton_AI->setChecked(true);
+    } else {
+        ui->radioButton_Conventional->setChecked(true);
+    }
+    
+    // AI-specific parameters
+    ui->comboBox_MissionType->setCurrentIndex(static_cast<int>(params.aiMissionType));
+    ui->doubleSpinBox_AIMinAlt->setValue(params.aiMinAltitude);
+    ui->doubleSpinBox_AIMaxAlt->setValue(params.aiMaxAltitude);
+    ui->doubleSpinBox_ThreatRadius->setValue(params.aiThreatRadius);
+    ui->checkBox_AvoidDetection->setChecked(params.aiAvoidDetection);
+    ui->checkBox_TerrainFollowing->setChecked(params.aiTerrainFollowing);
+    ui->checkBox_OptimizeFuel->setChecked(params.aiOptimizeForFuel);
+    
+    updateUIState();
 }
 
 CPathGenerator::PathParameters CPathSettingsDialog::getParametersFromUI() const
 {
     CPathGenerator::PathParameters params;
     
+    // Conventional parameters
     params.numWaypoints = ui->spinBox_NumWaypoints->value();
     params.defaultAltitude = ui->doubleSpinBox_Altitude->value();
     params.curveFactor = ui->doubleSpinBox_CurveFactor->value();
@@ -76,7 +115,73 @@ CPathGenerator::PathParameters CPathSettingsDialog::getParametersFromUI() const
     params.spreadRadiusKm = ui->doubleSpinBox_SpreadRadius->value();
     params.randomnessLevel = ui->doubleSpinBox_RandomnessLevel->value();
     
+    // Generation method
+    params.generationMethod = ui->radioButton_AI->isChecked() ? PATH_METHOD_AI : PATH_METHOD_CONVENTIONAL;
+    
+    // AI-specific parameters
+    params.aiMissionType = static_cast<eVISTAR_AI_MISSION_TYPE>(ui->comboBox_MissionType->currentIndex());
+    params.aiMinAltitude = ui->doubleSpinBox_AIMinAlt->value();
+    params.aiMaxAltitude = ui->doubleSpinBox_AIMaxAlt->value();
+    params.aiThreatRadius = ui->doubleSpinBox_ThreatRadius->value();
+    params.aiAvoidDetection = ui->checkBox_AvoidDetection->isChecked();
+    params.aiTerrainFollowing = ui->checkBox_TerrainFollowing->isChecked();
+    params.aiOptimizeForFuel = ui->checkBox_OptimizeFuel->isChecked();
+    
     return params;
+}
+
+bool CPathSettingsDialog::isAIModeSelected() const
+{
+    return ui->radioButton_AI->isChecked();
+}
+
+eVISTAR_AI_MISSION_TYPE CPathSettingsDialog::getSelectedAIMissionType() const
+{
+    return static_cast<eVISTAR_AI_MISSION_TYPE>(ui->comboBox_MissionType->currentIndex());
+}
+
+void CPathSettingsDialog::on_radioButton_AI_toggled(bool checked)
+{
+    Q_UNUSED(checked);
+    updateUIState();
+    updateMissionDescription();
+}
+
+void CPathSettingsDialog::on_comboBox_MissionType_currentIndexChanged(int index)
+{
+    Q_UNUSED(index);
+    updateMissionDescription();
+}
+
+void CPathSettingsDialog::updateUIState()
+{
+    bool isAIMode = ui->radioButton_AI->isChecked();
+    
+    // Enable/disable AI settings group
+    ui->groupBox_AISettings->setEnabled(isAIMode);
+    
+    // Update method description
+    if (isAIMode) {
+        ui->label_MethodDescription->setText(
+            "🤖 AI Mode: Generates intelligent mission-aware paths with threat avoidance, "
+            "terrain following, and mission-specific optimization.");
+    } else {
+        ui->label_MethodDescription->setText(
+            "⚙️ Conventional Mode: Uses mathematical algorithms (curves, spirals, zigzags) "
+            "for predictable, pattern-based path generation.");
+    }
+}
+
+void CPathSettingsDialog::updateMissionDescription()
+{
+    if (!ui->radioButton_AI->isChecked()) {
+        return;
+    }
+    
+    eVISTAR_AI_MISSION_TYPE missionType = getSelectedAIMissionType();
+    QString description = CAIPathGenerator::getMissionTypeDescription(missionType);
+    
+    // Could update a description label here if added to UI
 }
 
 void CPathSettingsDialog::on_pushButton_Apply_clicked()
@@ -110,6 +215,7 @@ void CPathSettingsDialog::saveDefaultParametersToSettings(const CPathGenerator::
     QSettings settings;
     settings.beginGroup(SETTINGS_GROUP);
     
+    // Conventional parameters
     settings.setValue(KEY_NUM_WAYPOINTS, params.numWaypoints);
     settings.setValue(KEY_DEFAULT_ALTITUDE, params.defaultAltitude);
     settings.setValue(KEY_CURVE_FACTOR, params.curveFactor);
@@ -120,6 +226,16 @@ void CPathSettingsDialog::saveDefaultParametersToSettings(const CPathGenerator::
     settings.setValue(KEY_RANDOM_VARIANCE, params.randomVariance);
     settings.setValue(KEY_SPREAD_RADIUS_KM, params.spreadRadiusKm);
     settings.setValue(KEY_RANDOMNESS_LEVEL, params.randomnessLevel);
+    
+    // AI-specific parameters
+    settings.setValue(KEY_GENERATION_METHOD, static_cast<int>(params.generationMethod));
+    settings.setValue(KEY_AI_MISSION_TYPE, static_cast<int>(params.aiMissionType));
+    settings.setValue(KEY_AI_AVOID_DETECTION, params.aiAvoidDetection);
+    settings.setValue(KEY_AI_TERRAIN_FOLLOWING, params.aiTerrainFollowing);
+    settings.setValue(KEY_AI_MIN_ALTITUDE, params.aiMinAltitude);
+    settings.setValue(KEY_AI_MAX_ALTITUDE, params.aiMaxAltitude);
+    settings.setValue(KEY_AI_THREAT_RADIUS, params.aiThreatRadius);
+    settings.setValue(KEY_AI_OPTIMIZE_FUEL, params.aiOptimizeForFuel);
     
     settings.endGroup();
     settings.sync();
@@ -132,7 +248,7 @@ CPathGenerator::PathParameters CPathSettingsDialog::loadDefaultParametersFromSet
     
     settings.beginGroup(SETTINGS_GROUP);
     
-    // Only override if the setting exists (preserves hardcoded defaults otherwise)
+    // Conventional parameters - only override if the setting exists
     if (settings.contains(KEY_NUM_WAYPOINTS))
         params.numWaypoints = settings.value(KEY_NUM_WAYPOINTS).toInt();
     if (settings.contains(KEY_DEFAULT_ALTITUDE))
@@ -153,6 +269,24 @@ CPathGenerator::PathParameters CPathSettingsDialog::loadDefaultParametersFromSet
         params.spreadRadiusKm = settings.value(KEY_SPREAD_RADIUS_KM).toDouble();
     if (settings.contains(KEY_RANDOMNESS_LEVEL))
         params.randomnessLevel = settings.value(KEY_RANDOMNESS_LEVEL).toDouble();
+    
+    // AI-specific parameters
+    if (settings.contains(KEY_GENERATION_METHOD))
+        params.generationMethod = static_cast<eVISTAR_PATH_METHOD>(settings.value(KEY_GENERATION_METHOD).toInt());
+    if (settings.contains(KEY_AI_MISSION_TYPE))
+        params.aiMissionType = static_cast<eVISTAR_AI_MISSION_TYPE>(settings.value(KEY_AI_MISSION_TYPE).toInt());
+    if (settings.contains(KEY_AI_AVOID_DETECTION))
+        params.aiAvoidDetection = settings.value(KEY_AI_AVOID_DETECTION).toBool();
+    if (settings.contains(KEY_AI_TERRAIN_FOLLOWING))
+        params.aiTerrainFollowing = settings.value(KEY_AI_TERRAIN_FOLLOWING).toBool();
+    if (settings.contains(KEY_AI_MIN_ALTITUDE))
+        params.aiMinAltitude = settings.value(KEY_AI_MIN_ALTITUDE).toDouble();
+    if (settings.contains(KEY_AI_MAX_ALTITUDE))
+        params.aiMaxAltitude = settings.value(KEY_AI_MAX_ALTITUDE).toDouble();
+    if (settings.contains(KEY_AI_THREAT_RADIUS))
+        params.aiThreatRadius = settings.value(KEY_AI_THREAT_RADIUS).toDouble();
+    if (settings.contains(KEY_AI_OPTIMIZE_FUEL))
+        params.aiOptimizeForFuel = settings.value(KEY_AI_OPTIMIZE_FUEL).toBool();
     
     settings.endGroup();
     
@@ -166,6 +300,7 @@ CPathGenerator::PathParameters CPathSettingsDialog::getSavedDefaultParameters()
     
     settings.beginGroup(SETTINGS_GROUP);
     
+    // Conventional parameters
     if (settings.contains(KEY_NUM_WAYPOINTS))
         params.numWaypoints = settings.value(KEY_NUM_WAYPOINTS).toInt();
     if (settings.contains(KEY_DEFAULT_ALTITUDE))
@@ -186,6 +321,24 @@ CPathGenerator::PathParameters CPathSettingsDialog::getSavedDefaultParameters()
         params.spreadRadiusKm = settings.value(KEY_SPREAD_RADIUS_KM).toDouble();
     if (settings.contains(KEY_RANDOMNESS_LEVEL))
         params.randomnessLevel = settings.value(KEY_RANDOMNESS_LEVEL).toDouble();
+    
+    // AI-specific parameters
+    if (settings.contains(KEY_GENERATION_METHOD))
+        params.generationMethod = static_cast<eVISTAR_PATH_METHOD>(settings.value(KEY_GENERATION_METHOD).toInt());
+    if (settings.contains(KEY_AI_MISSION_TYPE))
+        params.aiMissionType = static_cast<eVISTAR_AI_MISSION_TYPE>(settings.value(KEY_AI_MISSION_TYPE).toInt());
+    if (settings.contains(KEY_AI_AVOID_DETECTION))
+        params.aiAvoidDetection = settings.value(KEY_AI_AVOID_DETECTION).toBool();
+    if (settings.contains(KEY_AI_TERRAIN_FOLLOWING))
+        params.aiTerrainFollowing = settings.value(KEY_AI_TERRAIN_FOLLOWING).toBool();
+    if (settings.contains(KEY_AI_MIN_ALTITUDE))
+        params.aiMinAltitude = settings.value(KEY_AI_MIN_ALTITUDE).toDouble();
+    if (settings.contains(KEY_AI_MAX_ALTITUDE))
+        params.aiMaxAltitude = settings.value(KEY_AI_MAX_ALTITUDE).toDouble();
+    if (settings.contains(KEY_AI_THREAT_RADIUS))
+        params.aiThreatRadius = settings.value(KEY_AI_THREAT_RADIUS).toDouble();
+    if (settings.contains(KEY_AI_OPTIMIZE_FUEL))
+        params.aiOptimizeForFuel = settings.value(KEY_AI_OPTIMIZE_FUEL).toBool();
     
     settings.endGroup();
     

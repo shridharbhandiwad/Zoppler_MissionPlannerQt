@@ -29,6 +29,7 @@
 #include <QGraphicsEllipseItem>
 #include <QGraphicsTextItem>
 #include <QGraphicsRectItem>
+#include <QImage>
 
 CMapCanvas::CMapCanvas(QWidget *parent) : QgsMapCanvas(parent)
 {
@@ -37,11 +38,20 @@ CMapCanvas::CMapCanvas(QWidget *parent) : QgsMapCanvas(parent)
     
     // Initialize path generation
     _m_pathGenerator = new CPathGenerator();
+    _m_aiPathGenerator = new CAIPathGenerator(this);
     _m_currentPathType = PATH_TYPE_NONE;
+    _m_currentAIMissionType = AI_MISSION_PATROL;
     _m_bPathGenerationMode = false;
+    _m_bAIPathGenerationMode = false;
     _m_bPathStartPointSet = false;
     _m_pathStartMarker = nullptr;
     _m_pathInstructionText = nullptr;
+    
+    // Connect AI path generator signals
+    connect(_m_aiPathGenerator, &CAIPathGenerator::signalAIPathGenerated,
+            this, &CMapCanvas::slotAIPathGenerated);
+    connect(_m_aiPathGenerator, &CAIPathGenerator::signalGenerationProgress,
+            this, &CMapCanvas::slotAIGenerationProgress);
     
     // Initialize path generation parameters with defaults
     _m_pathParams = CPathGenerator::PathParameters();
@@ -54,6 +64,14 @@ CMapCanvas::CMapCanvas(QWidget *parent) : QgsMapCanvas(parent)
     _m_pathParams.maxTurnRadius = 0.05;      // Maximum turn radius in degrees
     _m_pathParams.randomVariance = 0.15;     // Random path variance factor
     _m_pathParams.spreadRadiusKm = 5.0;      // Maximum trajectory spread radius in kilometers
+    
+    // Initialize AI path parameters with defaults
+    _m_aiPathParams = CAIPathGenerator::AIPathParameters();
+    _m_aiPathParams.missionType = AI_MISSION_PATROL;
+    _m_aiPathParams.numWaypoints = 30;
+    _m_aiPathParams.preferredAltitude = 5000.0;
+    _m_aiPathParams.minAltitude = 500.0;
+    _m_aiPathParams.maxAltitude = 15000.0;
     
     QgsRectangle fixedWorldExtent(-180.0, -90.0, 180.0, 90.0);
      mPreviousCursor = Qt::ArrowCursor;
@@ -724,7 +742,7 @@ void CMapCanvas::mouseReleaseEvent(QMouseEvent *event)
         QgsCoordinateTransform transform(mapSettings().destinationCrs(), _m_crs, QgsProject::instance());
         QgsPointXY geoPoint = transform.transform(mapPoint);
 
-        // Handle path generation mode
+        // Handle path generation mode (both conventional and AI)
         if (_m_bPathGenerationMode) {
             if (!_m_bPathStartPointSet) {
                 // First click - set start point
@@ -735,13 +753,18 @@ void CMapCanvas::mouseReleaseEvent(QMouseEvent *event)
                 QgsPointXY screenStartPt = mapSettings().mapToPixel().transform(geoPoint);
                 _m_pathStartMarker = scene()->addEllipse(
                     screenStartPt.x() - 8, screenStartPt.y() - 8, 16, 16,
-                    QPen(Qt::green, 3),
-                    QBrush(QColor(0, 255, 0, 100))
+                    QPen(_m_bAIPathGenerationMode ? Qt::cyan : Qt::green, 3),
+                    QBrush(_m_bAIPathGenerationMode ? QColor(0, 255, 255, 100) : QColor(0, 255, 0, 100))
                 );
                 _m_pathStartMarker->setZValue(1000);
                 
-                // Update instruction
-                QString pathName = CPathGenerator::getPathTypeName(_m_currentPathType);
+                // Update instruction based on mode
+                QString pathName;
+                if (_m_bAIPathGenerationMode) {
+                    pathName = "AI " + CAIPathGenerator::getMissionTypeName(_m_currentAIMissionType);
+                } else {
+                    pathName = CPathGenerator::getPathTypeName(_m_currentPathType);
+                }
                 showPathGenerationInstruction("Select END point for " + pathName + " path");
                 
                 qDebug() << "Path start point set:" << geoPoint.x() << "," << geoPoint.y();
@@ -751,22 +774,44 @@ void CMapCanvas::mouseReleaseEvent(QMouseEvent *event)
                 QgsPointXY endPoint = geoPoint;
                 
                 qDebug() << "Path end point set:" << endPoint.x() << "," << endPoint.y();
-                qDebug() << "Generating" << CPathGenerator::getPathTypeName(_m_currentPathType) << "path...";
-                qDebug() << "Using configuration: waypoints=" << _m_pathParams.numWaypoints 
-                         << ", altitude=" << _m_pathParams.defaultAltitude
-                         << ", curveFactor=" << _m_pathParams.curveFactor;
                 
-                // Generate the path using configurable parameters
-                QList<QgsPointXYZ> pathPoints = _m_pathGenerator->generatePath(
-                    _m_pathStartPoint, endPoint, _m_currentPathType, _m_pathParams
-                );
+                QList<QgsPointXYZ> pathPoints;
+                
+                if (_m_bAIPathGenerationMode) {
+                    // Generate AI path
+                    qDebug() << "Generating AI" << CAIPathGenerator::getMissionTypeName(_m_currentAIMissionType) << "path...";
+                    qDebug() << "AI Mode - Mission type:" << static_cast<int>(_m_currentAIMissionType)
+                             << ", Avoid Detection:" << _m_aiPathParams.avoidDetection
+                             << ", Terrain Following:" << _m_aiPathParams.terrainFollowing;
+                    
+                    // Sync parameters
+                    _m_aiPathParams.missionType = _m_currentAIMissionType;
+                    _m_aiPathParams.numWaypoints = _m_pathParams.numWaypoints;
+                    _m_aiPathParams.preferredAltitude = _m_pathParams.defaultAltitude;
+                    
+                    pathPoints = _m_aiPathGenerator->generateAIPath(
+                        _m_pathStartPoint, endPoint, _m_aiPathParams
+                    );
+                } else {
+                    // Generate conventional path
+                    qDebug() << "Generating" << CPathGenerator::getPathTypeName(_m_currentPathType) << "path...";
+                    qDebug() << "Using configuration: waypoints=" << _m_pathParams.numWaypoints 
+                             << ", altitude=" << _m_pathParams.defaultAltitude
+                             << ", curveFactor=" << _m_pathParams.curveFactor;
+                    
+                    pathPoints = _m_pathGenerator->generatePath(
+                        _m_pathStartPoint, endPoint, _m_currentPathType, _m_pathParams
+                    );
+                }
                 
                 // Create the route from generated points
                 createGeneratedRoute(pathPoints);
                 
                 // Clear path generation mode
                 _m_currentPathType = PATH_TYPE_NONE;
+                _m_currentAIMissionType = AI_MISSION_PATROL;
                 _m_bPathGenerationMode = false;
+                _m_bAIPathGenerationMode = false;
                 _m_bPathStartPointSet = false;
                 
                 // Reset cursor
@@ -1637,7 +1682,9 @@ void CMapCanvas::cancelPathGeneration()
     }
     
     _m_currentPathType = PATH_TYPE_NONE;
+    _m_currentAIMissionType = AI_MISSION_PATROL;
     _m_bPathGenerationMode = false;
+    _m_bAIPathGenerationMode = false;
     _m_bPathStartPointSet = false;
     
     // Reset cursor
@@ -1665,6 +1712,99 @@ eVISTAR_PATH_TYPE CMapCanvas::getCurrentPathType() const
 CPathGenerator* CMapCanvas::getPathGenerator()
 {
     return _m_pathGenerator;
+}
+
+CAIPathGenerator* CMapCanvas::getAIPathGenerator()
+{
+    return _m_aiPathGenerator;
+}
+
+void CMapCanvas::startAIPathGeneration(eVISTAR_AI_MISSION_TYPE missionType)
+{
+    // Cancel any existing mode
+    if (_m_nCurrentObjectClassForLoading != VISTAR_CLASS_NONE) {
+        _m_nCurrentObjectClassForLoading = VISTAR_CLASS_NONE;
+        emit signalClearObjectSelection();
+    }
+    
+    _m_currentAIMissionType = missionType;
+    _m_bPathGenerationMode = true;
+    _m_bAIPathGenerationMode = true;
+    _m_bPathStartPointSet = false;
+    
+    // Set custom cursor for AI path generation (different color)
+    QPixmap cursorPixmap(":/icons/cursor/route.png");
+    QPixmap scaledPix = cursorPixmap.scaled(40, 40, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    
+    // Tint the cursor for AI mode (cyan overlay)
+    QImage img = scaledPix.toImage();
+    for (int y = 0; y < img.height(); y++) {
+        for (int x = 0; x < img.width(); x++) {
+            QColor c = img.pixelColor(x, y);
+            if (c.alpha() > 0) {
+                c.setBlue(qMin(255, c.blue() + 100));
+                c.setGreen(qMin(255, c.green() + 50));
+                img.setPixelColor(x, y, c);
+            }
+        }
+    }
+    scaledPix = QPixmap::fromImage(img);
+    
+    QCursor customCursor(scaledPix, -1, -10);
+    mPreviousCursor = customCursor;
+    setCursor(customCursor);
+    
+    // Show instruction message
+    QString missionName = CAIPathGenerator::getMissionTypeName(missionType);
+    showPathGenerationInstruction("🤖 AI Mode: Select START point for " + missionName + " mission");
+    
+    emit signalPathGenerationStarted(PATH_TYPE_NONE);  // Signal with no conventional type
+    
+    qDebug() << "AI Path generation started for mission:" << missionName;
+}
+
+void CMapCanvas::setAIPathParameters(const CAIPathGenerator::AIPathParameters &params)
+{
+    _m_aiPathParams = params;
+    qDebug() << "AI Path parameters updated - mission type:" << static_cast<int>(_m_aiPathParams.missionType)
+             << ", avoid detection:" << _m_aiPathParams.avoidDetection;
+}
+
+CAIPathGenerator::AIPathParameters CMapCanvas::getAIPathParameters() const
+{
+    return _m_aiPathParams;
+}
+
+bool CMapCanvas::isAIPathGenerationMode() const
+{
+    return _m_bAIPathGenerationMode;
+}
+
+void CMapCanvas::slotAIPathGenerated(QList<QgsPointXYZ> path, bool success, QString errorMessage)
+{
+    if (success && !path.isEmpty()) {
+        createGeneratedRoute(path);
+        qDebug() << "AI path generated successfully with" << path.size() << "waypoints";
+    } else {
+        qWarning() << "AI path generation failed:" << errorMessage;
+    }
+    
+    // Clear generation mode
+    _m_bPathGenerationMode = false;
+    _m_bAIPathGenerationMode = false;
+    _m_bPathStartPointSet = false;
+    
+    // Reset cursor
+    mPreviousCursor = Qt::ArrowCursor;
+    setCursor(Qt::ArrowCursor);
+    
+    clearPathGenerationMarkers();
+}
+
+void CMapCanvas::slotAIGenerationProgress(int percentComplete, QString statusMessage)
+{
+    qDebug() << "AI Generation progress:" << percentComplete << "% -" << statusMessage;
+    // Could update a progress indicator in the UI here
 }
 
 void CMapCanvas::showPathGenerationInstruction(const QString &text)

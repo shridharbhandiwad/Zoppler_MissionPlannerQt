@@ -36,4 +36,21 @@ enum eVISTAR_PATH_TYPE {
     PATH_TYPE_RANDOM         // Random waypoints between points
 };
 
+// Path generation method types (AI vs Conventional)
+enum eVISTAR_PATH_METHOD {
+    PATH_METHOD_CONVENTIONAL = 0,   // Traditional algorithmic path generation
+    PATH_METHOD_AI                  // AI-powered intelligent path generation
+};
+
+// AI Path generation mission types
+enum eVISTAR_AI_MISSION_TYPE {
+    AI_MISSION_PATROL = 0,          // Area patrol/surveillance
+    AI_MISSION_STRIKE,              // Strike/attack mission
+    AI_MISSION_RECON,               // Reconnaissance mission
+    AI_MISSION_EVASION,             // Evasive maneuvers (avoid detection)
+    AI_MISSION_INTERCEPT,           // Intercept target
+    AI_MISSION_ESCORT,              // Escort/protection mission
+    AI_MISSION_CUSTOM               // Custom mission with parameters
+};
+
 #endif // GLOBALCONSTANTS_H

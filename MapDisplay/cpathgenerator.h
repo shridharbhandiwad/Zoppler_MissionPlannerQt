@@ -31,6 +31,18 @@ public:
         double spreadRadiusKm = 15.0;         // Maximum trajectory spread radius in kilometers - tripled
         double randomnessLevel = 0.5;         // Global randomness multiplier (0.0-1.0) for all paths
         
+        // Path generation method (AI vs Conventional)
+        eVISTAR_PATH_METHOD generationMethod = PATH_METHOD_CONVENTIONAL;
+        
+        // AI-specific parameters (used when generationMethod = PATH_METHOD_AI)
+        eVISTAR_AI_MISSION_TYPE aiMissionType = AI_MISSION_PATROL;
+        bool aiAvoidDetection = false;        // Enable threat avoidance in AI mode
+        bool aiTerrainFollowing = false;      // Enable terrain following in AI mode
+        double aiMinAltitude = 500.0;         // Minimum altitude for AI paths
+        double aiMaxAltitude = 15000.0;       // Maximum altitude for AI paths
+        double aiThreatRadius = 50.0;         // Threat detection radius in km
+        bool aiOptimizeForFuel = false;       // Optimize path for fuel efficiency
+        
         PathParameters() = default;
     };
 
