@@ -1251,9 +1251,18 @@ void CMapCanvas::showContextMenu(QPoint pos) {
                         autoSaveScenario();
                     });
                 }
-                else if (selected->text() == "Attach Route") {
-                    object->attachRoute(selected->text());
-                    object->setHighlighted(false);
+                else {
+                    // Check if this is a route attachment (selected->text() is a route ID)
+                    CVistarRoute* route = getVistarRouteById(selected->text());
+                    if (route) {
+                        object->attachRoute(selected->text());
+                        object->setHighlighted(false);
+                        
+                        // Auto-save after attaching route
+                        QTimer::singleShot(100, this, [this]() {
+                            autoSaveScenario();
+                        });
+                    }
                 }
             }
             else {
