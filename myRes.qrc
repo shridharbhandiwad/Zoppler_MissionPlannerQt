@@ -8,5 +8,12 @@
         <file>icons/cursor/route.png</file>
         <file>icons/cursor/uav.png</file>
         <file>icons/cursor/drone_swarm.png</file>
+        <file>icons/toolbar/scenario.svg</file>
+        <file>icons/toolbar/path.svg</file>
+        <file>icons/toolbar/map.svg</file>
+        <file>icons/toolbar/init.svg</file>
+        <file>icons/toolbar/start.svg</file>
+        <file>icons/toolbar/stop.svg</file>
+        <file>icons/toolbar/settings.svg</file>
     </qresource>
 </RCC>
