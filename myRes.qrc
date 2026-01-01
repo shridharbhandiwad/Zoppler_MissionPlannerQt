@@ -15,5 +15,13 @@
         <file>icons/toolbar/start.svg</file>
         <file>icons/toolbar/stop.svg</file>
         <file>icons/toolbar/settings.svg</file>
+        <file>icons/drone.png</file>
+        <file>icons/drone_swarm.png</file>
+        <file>icons/fighter.png</file>
+        <file>icons/uav.png</file>
+        <file>icons/radar.png</file>
+        <file>icons/launcher.png</file>
+        <file>icons/missile.png</file>
+        <file>icons/route.png</file>
     </qresource>
 </RCC>
