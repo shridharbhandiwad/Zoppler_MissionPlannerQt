@@ -16,18 +16,18 @@
      <colorrole role="Base">
       <brush brushstyle="SolidPattern">
        <color alpha="255">
-        <red>20</red>
-        <green>20</green>
-        <blue>25</blue>
+        <red>58</red>
+        <green>58</green>
+        <blue>68</blue>
        </color>
       </brush>
      </colorrole>
      <colorrole role="Window">
       <brush brushstyle="SolidPattern">
        <color alpha="255">
-        <red>30</red>
-        <green>30</green>
-        <blue>35</blue>
+        <red>72</red>
+        <green>72</green>
+        <blue>90</blue>
        </color>
       </brush>
      </colorrole>
@@ -36,18 +36,18 @@
      <colorrole role="Base">
       <brush brushstyle="SolidPattern">
        <color alpha="255">
-        <red>20</red>
-        <green>20</green>
-        <blue>25</blue>
+        <red>58</red>
+        <green>58</green>
+        <blue>68</blue>
        </color>
       </brush>
      </colorrole>
      <colorrole role="Window">
       <brush brushstyle="SolidPattern">
        <color alpha="255">
-        <red>30</red>
-        <green>30</green>
-        <blue>35</blue>
+        <red>72</red>
+        <green>72</green>
+        <blue>90</blue>
        </color>
       </brush>
      </colorrole>
@@ -56,18 +56,18 @@
      <colorrole role="Base">
       <brush brushstyle="SolidPattern">
        <color alpha="255">
-        <red>20</red>
-        <green>20</green>
-        <blue>25</blue>
+        <red>58</red>
+        <green>58</green>
+        <blue>68</blue>
        </color>
       </brush>
      </colorrole>
      <colorrole role="Window">
       <brush brushstyle="SolidPattern">
        <color alpha="255">
-        <red>30</red>
-        <green>30</green>
-        <blue>35</blue>
+        <red>72</red>
+        <green>72</green>
+        <blue>90</blue>
        </color>
       </brush>
      </colorrole>
@@ -80,17 +80,17 @@
   <property name="styleSheet">
    <string notr="true">
 QMainWindow {
-    background-color: #1e1e23;
+    background-color: #3a3a44;
 }
 QToolBar {
-    background-color: #252530;
+    background-color: #48485a;
     border: none;
     padding: 5px;
     spacing: 5px;
 }
 QToolButton {
-    background-color: #3d3d48;
-    border: 1px solid #505060;
+    background-color: #5a5a6a;
+    border: 1px solid #6a6a7a;
     border-radius: 6px;
     padding: 8px;
     color: white;
@@ -109,10 +109,10 @@ QToolButton:checked {
     border: 2px solid #7ab8f5;
 }
 QLabel {
-    color: #e0e0e0;
+    color: #f0f0f0;
 }
 QSlider::groove:horizontal {
-    background: #2d2d35;
+    background: #4a4a58;
     height: 8px;
     border-radius: 4px;
 }
@@ -123,9 +123,9 @@ QSlider::handle:horizontal {
     border-radius: 10px;
 }
 QStatusBar {
-    background-color: #252530;
+    background-color: #48485a;
     color: white;
-    border-top: 1px solid #404050;
+    border-top: 1px solid #5a5a6a;
 }
    </string>
   </property>
@@ -168,7 +168,7 @@ QStatusBar {
        <item>
         <widget class="QFrame" name="mapInfoBar">
          <property name="styleSheet">
-          <string notr="true">background-color: rgba(0,0,0,0.7); border-bottom: 1px solid #404050;</string>
+          <string notr="true">background-color: rgba(58,58,68,0.85); border-bottom: 1px solid #5a5a6a;</string>
          </property>
          <property name="maximumSize">
           <size>

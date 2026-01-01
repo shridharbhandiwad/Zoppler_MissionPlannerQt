@@ -67,7 +67,7 @@ void CVistarPlanner::setupToolbarMenus()
     _m_scenarioMenu = new QMenu(this);
     _m_scenarioMenu->setStyleSheet(
         "QMenu {"
-        "    background-color: rgba(45, 45, 53, 0.95);"
+        "    background-color: rgba(72, 72, 90, 0.95);"
         "    border: 2px solid rgba(74, 144, 217, 0.6);"
         "    border-radius: 8px;"
         "    padding: 8px 5px;"
@@ -107,7 +107,7 @@ void CVistarPlanner::setupToolbarMenus()
     _m_pathMenu = new QMenu(this);
     _m_pathMenu->setStyleSheet(
         "QMenu {"
-        "    background-color: rgba(45, 45, 53, 0.95);"
+        "    background-color: rgba(72, 72, 90, 0.95);"
         "    border: 2px solid rgba(255, 152, 0, 0.6);"
         "    border-radius: 8px;"
         "    padding: 10px 5px;"
@@ -202,7 +202,7 @@ void CVistarPlanner::setupToolbarMenus()
     _m_settingsMenu = new QMenu(this);
     _m_settingsMenu->setStyleSheet(
         "QMenu {"
-        "    background-color: rgba(45, 45, 53, 0.95);"
+        "    background-color: rgba(72, 72, 90, 0.95);"
         "    border: 2px solid rgba(144, 164, 174, 0.6);"
         "    border-radius: 8px;"
         "    padding: 8px 5px;"
@@ -557,7 +557,7 @@ void CVistarPlanner::applyTheme(AppTheme theme)
         ui->label_Prev->setStyleSheet("color: #00ff00; font-family: Consolas; font-size: 11px;");
         ui->label_Home->setStyleSheet("color: #00ff00; font-family: Consolas; font-size: 11px;");
         ui->label_Zoom->setStyleSheet("color: cyan; font-weight: bold;");
-        ui->mapInfoBar->setStyleSheet("background-color: rgba(0,0,0,0.7); border-bottom: 1px solid #404050;");
+        ui->mapInfoBar->setStyleSheet("background-color: rgba(58,58,68,0.85); border-bottom: 1px solid #5a5a6a;");
     } else {
         setStyleSheet(getLightThemeStyleSheet());
         _m_actionLightTheme->setChecked(true);
@@ -575,7 +575,7 @@ void CVistarPlanner::applyTheme(AppTheme theme)
     if (theme == AppTheme::Dark) {
         menuStyle = R"(
             QMenu {
-                background-color: rgba(45, 45, 53, 0.95);
+                background-color: rgba(72, 72, 90, 0.95);
                 border: 2px solid rgba(144, 164, 174, 0.6);
                 border-radius: 8px;
                 padding: 8px 5px;
@@ -650,17 +650,17 @@ QString CVistarPlanner::getDarkThemeStyleSheet()
 {
     return R"(
 QMainWindow {
-    background-color: #1e1e23;
+    background-color: #3a3a44;
 }
 QToolBar {
-    background-color: #252530;
+    background-color: #48485a;
     border: none;
     padding: 5px;
     spacing: 5px;
 }
 QToolButton {
-    background-color: #3d3d48;
-    border: 1px solid #505060;
+    background-color: #5a5a6a;
+    border: 1px solid #6a6a7a;
     border-radius: 6px;
     padding: 8px;
     color: white;
@@ -679,10 +679,10 @@ QToolButton:checked {
     border: 2px solid #7ab8f5;
 }
 QLabel {
-    color: #e0e0e0;
+    color: #f0f0f0;
 }
 QSlider::groove:horizontal {
-    background: #2d2d35;
+    background: #4a4a58;
     height: 8px;
     border-radius: 4px;
 }
@@ -693,16 +693,16 @@ QSlider::handle:horizontal {
     border-radius: 10px;
 }
 QStatusBar {
-    background-color: #252530;
+    background-color: #48485a;
     color: white;
-    border-top: 1px solid #404050;
+    border-top: 1px solid #5a5a6a;
 }
 QFrame#mapInfoBar {
-    background-color: rgba(0, 0, 0, 0.7);
-    border-bottom: 1px solid #404050;
+    background-color: rgba(58, 58, 68, 0.85);
+    border-bottom: 1px solid #5a5a6a;
 }
 QMenu {
-    background-color: rgba(45, 45, 53, 0.95);
+    background-color: rgba(72, 72, 90, 0.95);
     border: 2px solid rgba(74, 144, 217, 0.6);
     border-radius: 8px;
     padding: 8px 5px;
