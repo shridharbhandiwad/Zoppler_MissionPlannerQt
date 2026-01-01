@@ -15,104 +15,186 @@
   </property>
   <property name="styleSheet">
    <string notr="true">QDialog {
-    background-color: rgb(30, 30, 40);
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 rgba(15, 23, 42, 0.98),
+                                stop:0.5 rgba(30, 41, 59, 0.98),
+                                stop:1 rgba(15, 23, 42, 0.98));
+    border-radius: 16px;
+    border: 1px solid rgba(71, 85, 105, 0.3);
     color: white;
 }
 QLabel {
-    color: white;
-    font-weight: bold;
+    color: rgba(226, 232, 240, 0.95);
+    font-weight: 600;
     font-size: 10pt;
 }
 QGroupBox {
-    color: #FFB74D;
-    font-weight: bold;
+    color: rgba(251, 146, 60, 1);
+    font-weight: 700;
     font-size: 11pt;
-    border: 2px solid rgba(255, 152, 0, 0.4);
-    border-radius: 8px;
-    margin-top: 12px;
-    padding-top: 10px;
+    border: 2px solid rgba(234, 88, 12, 0.5);
+    border-radius: 14px;
+    margin-top: 14px;
+    padding: 18px 14px 14px 14px;
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 rgba(30, 41, 59, 0.8),
+                                stop:1 rgba(51, 65, 85, 0.8));
 }
 QGroupBox::title {
     subcontrol-origin: margin;
     subcontrol-position: top left;
-    padding: 0 8px;
-    left: 10px;
+    padding: 2px 12px;
+    left: 14px;
+    color: rgba(253, 186, 116, 1);
 }
 QSpinBox, QDoubleSpinBox {
-    background-color: rgb(50, 50, 65);
-    color: white;
-    border: 1px solid rgba(255, 152, 0, 0.5);
-    border-radius: 4px;
-    padding: 5px;
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 rgba(30, 41, 59, 0.95),
+                                stop:1 rgba(15, 23, 42, 0.95));
+    color: rgba(226, 232, 240, 0.95);
+    border: 2px solid rgba(234, 88, 12, 0.4);
+    border-radius: 8px;
+    padding: 8px 12px;
     font-size: 10pt;
+    font-weight: 500;
+    selection-background-color: rgba(234, 88, 12, 0.5);
 }
 QSpinBox:focus, QDoubleSpinBox:focus {
-    border: 2px solid rgba(255, 167, 38, 0.8);
+    border: 2px solid rgba(251, 146, 60, 0.8);
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 rgba(30, 41, 59, 0.98),
+                                stop:1 rgba(15, 23, 42, 0.98));
+}
+QSpinBox:hover, QDoubleSpinBox:hover {
+    border: 2px solid rgba(249, 115, 22, 0.6);
+}
+QSpinBox::up-button, QDoubleSpinBox::up-button {
+    subcontrol-origin: border;
+    subcontrol-position: top right;
+    width: 22px;
+    border-left: 1px solid rgba(234, 88, 12, 0.3);
+    border-top-right-radius: 6px;
+    background: rgba(234, 88, 12, 0.2);
+}
+QSpinBox::up-button:hover, QDoubleSpinBox::up-button:hover {
+    background: rgba(234, 88, 12, 0.4);
+}
+QSpinBox::down-button, QDoubleSpinBox::down-button {
+    subcontrol-origin: border;
+    subcontrol-position: bottom right;
+    width: 22px;
+    border-left: 1px solid rgba(234, 88, 12, 0.3);
+    border-bottom-right-radius: 6px;
+    background: rgba(234, 88, 12, 0.2);
+}
+QSpinBox::down-button:hover, QDoubleSpinBox::down-button:hover {
+    background: rgba(234, 88, 12, 0.4);
 }
 QPushButton {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                stop:0 rgba(255, 152, 0, 0.85),
-                                stop:0.5 rgba(245, 124, 0, 0.85),
-                                stop:1 rgba(230, 81, 0, 0.85));
-    border: 2px solid rgba(255, 152, 0, 0.4);
+                                stop:0 rgba(249, 115, 22, 0.95),
+                                stop:0.4 rgba(234, 88, 12, 0.95),
+                                stop:1 rgba(194, 65, 12, 0.95));
+    border: 2px solid rgba(251, 146, 60, 0.5);
     color: white;
-    padding: 10px 25px;
-    border-radius: 8px;
-    font-weight: 600;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-weight: 700;
     font-size: 10pt;
+    letter-spacing: 0.3px;
 }
 QPushButton:hover {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                stop:0 rgba(255, 167, 38, 0.9),
-                                stop:0.5 rgba(255, 152, 0, 0.9),
-                                stop:1 rgba(245, 124, 0, 0.9));
-    border: 2px solid rgba(255, 167, 38, 0.6);
+                                stop:0 rgba(251, 146, 60, 0.95),
+                                stop:0.4 rgba(249, 115, 22, 0.95),
+                                stop:1 rgba(234, 88, 12, 0.95));
+    border: 2px solid rgba(253, 186, 116, 0.7);
 }
 QPushButton:pressed {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                stop:0 rgba(230, 81, 0, 0.9),
-                                stop:1 rgba(191, 54, 12, 0.9));
+                                stop:0 rgba(154, 52, 18, 0.95),
+                                stop:1 rgba(124, 45, 18, 0.95));
+    border: 2px solid rgba(194, 65, 12, 0.8);
+    padding: 13px 24px 11px 24px;
 }
 QPushButton#pushButton_ResetDefaults {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                stop:0 rgba(97, 97, 97, 0.85),
-                                stop:1 rgba(66, 66, 66, 0.85));
-    border: 2px solid rgba(150, 150, 150, 0.4);
+                                stop:0 rgba(71, 85, 105, 0.95),
+                                stop:0.4 rgba(51, 65, 85, 0.95),
+                                stop:1 rgba(30, 41, 59, 0.95));
+    border: 2px solid rgba(100, 116, 139, 0.5);
+    color: rgba(226, 232, 240, 0.95);
 }
 QPushButton#pushButton_ResetDefaults:hover {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                stop:0 rgba(117, 117, 117, 0.9),
-                                stop:1 rgba(97, 97, 97, 0.9));
+                                stop:0 rgba(100, 116, 139, 0.95),
+                                stop:0.4 rgba(71, 85, 105, 0.95),
+                                stop:1 rgba(51, 65, 85, 0.95));
+    border: 2px solid rgba(148, 163, 184, 0.6);
+    color: white;
+}
+QPushButton#pushButton_ResetDefaults:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 rgba(30, 41, 59, 0.95),
+                                stop:1 rgba(15, 23, 42, 0.95));
 }
 QPushButton#pushButton_Cancel {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                stop:0 rgba(97, 97, 97, 0.85),
-                                stop:1 rgba(66, 66, 66, 0.85));
-    border: 2px solid rgba(150, 150, 150, 0.4);
+                                stop:0 rgba(71, 85, 105, 0.95),
+                                stop:0.4 rgba(51, 65, 85, 0.95),
+                                stop:1 rgba(30, 41, 59, 0.95));
+    border: 2px solid rgba(100, 116, 139, 0.5);
+    color: rgba(226, 232, 240, 0.95);
 }
 QPushButton#pushButton_Cancel:hover {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                stop:0 rgba(117, 117, 117, 0.9),
-                                stop:1 rgba(97, 97, 97, 0.9));
+                                stop:0 rgba(100, 116, 139, 0.95),
+                                stop:0.4 rgba(71, 85, 105, 0.95),
+                                stop:1 rgba(51, 65, 85, 0.95));
+    border: 2px solid rgba(148, 163, 184, 0.6);
+    color: white;
+}
+QPushButton#pushButton_Cancel:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 rgba(30, 41, 59, 0.95),
+                                stop:1 rgba(15, 23, 42, 0.95));
 }
 QPushButton#pushButton_SaveAsDefaults {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                stop:0 rgba(76, 175, 80, 0.85),
-                                stop:0.5 rgba(67, 160, 71, 0.85),
-                                stop:1 rgba(56, 142, 60, 0.85));
-    border: 2px solid rgba(76, 175, 80, 0.4);
+                                stop:0 rgba(34, 197, 94, 0.95),
+                                stop:0.4 rgba(22, 163, 74, 0.95),
+                                stop:1 rgba(21, 128, 61, 0.95));
+    border: 2px solid rgba(74, 222, 128, 0.5);
 }
 QPushButton#pushButton_SaveAsDefaults:hover {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                stop:0 rgba(102, 187, 106, 0.9),
-                                stop:0.5 rgba(76, 175, 80, 0.9),
-                                stop:1 rgba(67, 160, 71, 0.9));
-    border: 2px solid rgba(102, 187, 106, 0.6);
+                                stop:0 rgba(74, 222, 128, 0.95),
+                                stop:0.4 rgba(34, 197, 94, 0.95),
+                                stop:1 rgba(22, 163, 74, 0.95));
+    border: 2px solid rgba(134, 239, 172, 0.7);
 }
 QPushButton#pushButton_SaveAsDefaults:pressed {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                stop:0 rgba(56, 142, 60, 0.9),
-                                stop:1 rgba(46, 125, 50, 0.9));
+                                stop:0 rgba(20, 83, 45, 0.95),
+                                stop:1 rgba(22, 101, 52, 0.95));
+    border: 2px solid rgba(34, 197, 94, 0.8);
+}
+QScrollBar:vertical {
+    width: 10px;
+    background: rgba(30, 41, 59, 0.5);
+    border-radius: 5px;
+    margin: 2px;
+}
+QScrollBar::handle:vertical {
+    background: rgba(71, 85, 105, 0.8);
+    min-height: 30px;
+    border-radius: 5px;
+}
+QScrollBar::handle:vertical:hover {
+    background: rgba(100, 116, 139, 0.9);
+}
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+    height: 0px;
 }</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
