@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QMenu>
 #include <QActionGroup>
+#include <QSettings>
 #include "cnetworkinterface.h"
 #include "cpathsettingsdialog.h"
 
@@ -12,6 +13,12 @@ namespace Ui {
 class CVistarPlanner;
 }
 QT_END_NAMESPACE
+
+// Theme enumeration
+enum class AppTheme {
+    Dark,
+    Light
+};
 
 class CVistarPlanner : public QMainWindow
 {
@@ -27,6 +34,13 @@ private:
     void setupToolbarMenus();
     void setupConnections();
     void setupObjectActions();
+    
+    // Theme management
+    void applyTheme(AppTheme theme);
+    void loadThemeFromSettings();
+    void saveThemeToSettings(AppTheme theme);
+    QString getDarkThemeStyleSheet();
+    QString getLightThemeStyleSheet();
 
     CNetworkInterface *_m_networkInterface;
     CPathSettingsDialog *_m_pathSettingsDialog;
@@ -34,6 +48,13 @@ private:
     // Menus for toolbar buttons
     QMenu *_m_scenarioMenu;
     QMenu *_m_pathMenu;
+    QMenu *_m_settingsMenu;
+    
+    // Theme actions
+    QAction *_m_actionDarkTheme;
+    QAction *_m_actionLightTheme;
+    QActionGroup *_m_themeActionGroup;
+    AppTheme _m_currentTheme;
     
     // Action group for exclusive object selection
     QActionGroup *_m_objectActionGroup;
@@ -57,6 +78,11 @@ private slots :
     void onStartTriggered();
     void onStopTriggered();
     void onImportMapTriggered();
+    void onSettingsTriggered();
+    
+    // Theme slots
+    void onDarkThemeTriggered();
+    void onLightThemeTriggered();
     
     // Object placement actions
     void onAddObjectTriggered(QAction *action);

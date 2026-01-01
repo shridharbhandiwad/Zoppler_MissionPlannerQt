@@ -320,6 +320,8 @@ QStatusBar {
    <addaction name="action_Initialize"/>
    <addaction name="action_Start"/>
    <addaction name="action_Stop"/>
+   <addaction name="separator"/>
+   <addaction name="action_Settings"/>
   </widget>
   <widget class="QStatusBar" name="statusBar">
    <property name="font">
@@ -519,6 +521,18 @@ QStatusBar {
    </property>
    <property name="toolTip">
     <string>Stop Simulation</string>
+   </property>
+  </action>
+  <action name="action_Settings">
+   <property name="icon">
+    <iconset resource="myRes.qrc">
+     <normaloff>:/icons/toolbar/settings.svg</normaloff>:/icons/toolbar/settings.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Settings</string>
+   </property>
+   <property name="toolTip">
+    <string>Application Settings</string>
    </property>
   </action>
  </widget>
