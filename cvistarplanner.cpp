@@ -276,8 +276,6 @@ void CVistarPlanner::setupConnections()
     connect(ui->action_ImportMap, &QAction::triggered, this, &CVistarPlanner::onImportMapTriggered);
     connect(ui->action_Settings, &QAction::triggered, this, &CVistarPlanner::onSettingsTriggered);
     
-    // Map operations
-    connect(ui->slider_Zoom, &QSlider::valueChanged, this, &CVistarPlanner::onZoomSliderChanged);
 }
 
 CVistarPlanner::~CVistarPlanner()
@@ -551,23 +549,9 @@ void CVistarPlanner::applyTheme(AppTheme theme)
     if (theme == AppTheme::Dark) {
         setStyleSheet(getDarkThemeStyleSheet());
         _m_actionDarkTheme->setChecked(true);
-        
-        // Update info bar labels for dark theme
-        ui->label_Distance->setStyleSheet("color: #00ff00; font-family: Consolas; font-size: 11px;");
-        ui->label_Prev->setStyleSheet("color: #00ff00; font-family: Consolas; font-size: 11px;");
-        ui->label_Home->setStyleSheet("color: #00ff00; font-family: Consolas; font-size: 11px;");
-        ui->label_Zoom->setStyleSheet("color: cyan; font-weight: bold;");
-        ui->mapInfoBar->setStyleSheet("background-color: rgba(58,58,68,0.85); border-bottom: 1px solid #5a5a6a;");
     } else {
         setStyleSheet(getLightThemeStyleSheet());
         _m_actionLightTheme->setChecked(true);
-        
-        // Update info bar labels for light theme
-        ui->label_Distance->setStyleSheet("color: #006600; font-family: Consolas; font-size: 11px; font-weight: bold;");
-        ui->label_Prev->setStyleSheet("color: #006600; font-family: Consolas; font-size: 11px; font-weight: bold;");
-        ui->label_Home->setStyleSheet("color: #006600; font-family: Consolas; font-size: 11px; font-weight: bold;");
-        ui->label_Zoom->setStyleSheet("color: #0066cc; font-weight: bold;");
-        ui->mapInfoBar->setStyleSheet("background-color: rgba(240,240,240,0.95); border-bottom: 1px solid #c0c0c0;");
     }
     
     // Update settings menu stylesheet based on theme
@@ -697,10 +681,6 @@ QStatusBar {
     color: white;
     border-top: 1px solid #5a5a6a;
 }
-QFrame#mapInfoBar {
-    background-color: rgba(58, 58, 68, 0.85);
-    border-bottom: 1px solid #5a5a6a;
-}
 QMenu {
     background-color: rgba(72, 72, 90, 0.95);
     border: 2px solid rgba(74, 144, 217, 0.6);
@@ -778,10 +758,6 @@ QStatusBar {
     color: #333333;
     border-top: 1px solid #c0c0c0;
 }
-QFrame#mapInfoBar {
-    background-color: rgba(240, 240, 240, 0.95);
-    border-bottom: 1px solid #c0c0c0;
-}
 QMenu {
     background-color: rgba(255, 255, 255, 0.98);
     border: 2px solid rgba(74, 144, 217, 0.6);
@@ -807,10 +783,3 @@ QMenu::separator {
 )";
 }
 
-// ========== Map Operations ==========
-
-void CVistarPlanner::onZoomSliderChanged(int value)
-{
-    // Zoom level changed - could be connected to mapCanvas zoom
-    Q_UNUSED(value);
-}

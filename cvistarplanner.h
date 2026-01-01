@@ -86,8 +86,5 @@ private slots :
     
     // Object placement actions
     void onAddObjectTriggered(QAction *action);
-    
-    // Map operations
-    void onZoomSliderChanged(int value);
 };
 #endif // CVISTARPLANNER_H
