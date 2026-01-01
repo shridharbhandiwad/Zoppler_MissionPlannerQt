@@ -3,7 +3,7 @@
 
 #include <QMainWindow>
 #include <QMenu>
-#include <QTableWidgetItem>
+#include <QActionGroup>
 #include "cnetworkinterface.h"
 #include "cpathsettingsdialog.h"
 
@@ -26,10 +26,7 @@ private:
     void selectForMarking( int nClass );
     void setupToolbarMenus();
     void setupConnections();
-    void updateCoordinateDisplay(double lat, double lon);
-    void updateWaypointsTable();
-    void addWaypointRow(int row, const QString &command, double lat, double lon, double alt, double dist, double az);
-    void clearWaypointsTable();
+    void setupObjectActions();
 
     CNetworkInterface *_m_networkInterface;
     CPathSettingsDialog *_m_pathSettingsDialog;
@@ -38,18 +35,11 @@ private:
     QMenu *_m_scenarioMenu;
     QMenu *_m_pathMenu;
     
-    // Home location
-    double _m_homeLat;
-    double _m_homeLon;
-    double _m_homeAlt;
-    
-    // Current cursor position
-    double _m_currentLat;
-    double _m_currentLon;
+    // Action group for exclusive object selection
+    QActionGroup *_m_objectActionGroup;
 
 private slots :
     void slotMouseRead( QString mouseRead );
-    void on_pushButton_Mark_clicked();
     void slotClearObjectSelection();
     void on_pushButton_Initialize_clicked();
     void on_pushButton_Start_clicked();
@@ -68,28 +58,10 @@ private slots :
     void onStopTriggered();
     void onImportMapTriggered();
     
-    // Waypoint file operations
-    void onLoadWPFile();
-    void onSaveWPFile();
-    void onReadWPs();
-    void onWriteWPs();
-    
-    // Waypoint table operations
-    void onAddBelowClicked();
-    void onWaypointCellChanged(int row, int column);
-    void onWaypointSelectionChanged();
-    
-    // Home location
-    void onHomeLocationChanged();
+    // Object placement actions
+    void onAddObjectTriggered(QAction *action);
     
     // Map operations
-    void onMapTypeChanged(int index);
     void onZoomSliderChanged(int value);
-    void onGridCheckboxToggled(bool checked);
-    void onViewKMLClicked();
-    
-    // Route/waypoint signals from map
-    void onRouteUpdated(const QString &routeId);
-    void onWaypointsChanged();
 };
 #endif // CVISTARPLANNER_H
