@@ -15,53 +15,104 @@
   </property>
   <property name="styleSheet">
    <string notr="true">QDialog {
-    background-color: rgba(30, 30, 40, 0.95);
-    border-radius: 15px;
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 rgba(15, 23, 42, 0.98),
+                                stop:0.5 rgba(30, 41, 59, 0.98),
+                                stop:1 rgba(15, 23, 42, 0.98));
+    border-radius: 16px;
+    border: 1px solid rgba(71, 85, 105, 0.3);
 }
 QGroupBox {
-    background-color: rgba(50, 50, 65, 0.7);
-    border: 2px solid rgba(100, 100, 120, 0.5);
-    border-radius: 10px;
-    margin-top: 12px;
-    padding-top: 10px;
-    font-weight: bold;
-    color: #E0E0E0;
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 rgba(30, 41, 59, 0.85),
+                                stop:1 rgba(51, 65, 85, 0.85));
+    border: 2px solid rgba(71, 85, 105, 0.5);
+    border-radius: 14px;
+    margin-top: 14px;
+    padding: 18px 14px 14px 14px;
+    font-weight: 700;
+    color: rgba(226, 232, 240, 0.95);
 }
 QGroupBox::title {
     subcontrol-origin: margin;
     subcontrol-position: top left;
-    left: 15px;
-    padding: 0 8px;
-    color: #64B5F6;
+    left: 18px;
+    padding: 2px 12px;
+    color: rgba(147, 197, 253, 1);
+    font-size: 11pt;
+    font-weight: 700;
 }
 QLabel {
-    color: #E0E0E0;
+    color: rgba(226, 232, 240, 0.9);
+    font-weight: 500;
+}
+QLabel#label_Title {
+    color: rgba(147, 197, 253, 1);
+    font-size: 16pt;
+    font-weight: 700;
+    padding: 10px;
+    letter-spacing: 0.5px;
+}
+QLabel#label_Status {
+    color: rgba(148, 163, 184, 0.9);
+    font-style: italic;
+    padding: 8px;
 }
 QLineEdit {
-    background-color: rgba(60, 60, 80, 0.8);
-    border: 2px solid rgba(100, 100, 120, 0.6);
-    border-radius: 8px;
-    padding: 8px 12px;
-    color: white;
-    selection-background-color: rgba(33, 150, 243, 0.7);
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 rgba(30, 41, 59, 0.95),
+                                stop:1 rgba(15, 23, 42, 0.95));
+    border: 2px solid rgba(71, 85, 105, 0.6);
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: rgba(226, 232, 240, 0.95);
+    font-size: 10pt;
+    selection-background-color: rgba(59, 130, 246, 0.6);
 }
 QLineEdit:focus {
-    border: 2px solid rgba(33, 150, 243, 0.8);
+    border: 2px solid rgba(96, 165, 250, 0.8);
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 rgba(30, 41, 59, 0.98),
+                                stop:1 rgba(15, 23, 42, 0.98));
 }
 QLineEdit:read-only {
-    background-color: rgba(45, 45, 60, 0.6);
-    color: #B0B0B0;
+    background: rgba(30, 41, 59, 0.6);
+    color: rgba(148, 163, 184, 0.8);
+    border: 2px solid rgba(51, 65, 85, 0.5);
+}
+QLineEdit::placeholder {
+    color: rgba(100, 116, 139, 0.7);
 }
 QTextEdit {
-    background-color: rgba(60, 60, 80, 0.8);
-    border: 2px solid rgba(100, 100, 120, 0.6);
-    border-radius: 8px;
-    padding: 8px;
-    color: white;
-    selection-background-color: rgba(33, 150, 243, 0.7);
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 rgba(30, 41, 59, 0.95),
+                                stop:1 rgba(15, 23, 42, 0.95));
+    border: 2px solid rgba(71, 85, 105, 0.6);
+    border-radius: 10px;
+    padding: 10px;
+    color: rgba(226, 232, 240, 0.95);
+    font-size: 10pt;
+    selection-background-color: rgba(59, 130, 246, 0.6);
 }
 QTextEdit:focus {
-    border: 2px solid rgba(33, 150, 243, 0.8);
+    border: 2px solid rgba(96, 165, 250, 0.8);
+}
+QScrollBar:vertical {
+    width: 8px;
+    background: rgba(30, 41, 59, 0.5);
+    border-radius: 4px;
+    margin: 2px;
+}
+QScrollBar::handle:vertical {
+    background: rgba(71, 85, 105, 0.8);
+    min-height: 25px;
+    border-radius: 4px;
+}
+QScrollBar::handle:vertical:hover {
+    background: rgba(100, 116, 139, 0.9);
+}
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+    height: 0px;
 }</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
@@ -147,28 +198,30 @@ QTextEdit:focus {
           <property name="styleSheet">
            <string notr="true">QPushButton {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                stop:0 rgba(158, 158, 158, 0.75),
-                                stop:0.5 rgba(141, 141, 141, 0.75),
-                                stop:1 rgba(117, 117, 117, 0.75));
-    border: 2px solid rgba(158, 158, 158, 0.4);
-    color: white;
+                                stop:0 rgba(71, 85, 105, 0.95),
+                                stop:0.4 rgba(51, 65, 85, 0.95),
+                                stop:1 rgba(30, 41, 59, 0.95));
+    border: 2px solid rgba(100, 116, 139, 0.5);
+    color: rgba(226, 232, 240, 0.95);
     padding: 10px 20px;
-    border-radius: 12px;
+    border-radius: 10px;
     font-weight: 600;
-    letter-spacing: 0.5px;
+    font-size: 10pt;
+    letter-spacing: 0.3px;
 }
 QPushButton:hover {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                stop:0 rgba(189, 189, 189, 0.8),
-                                stop:0.5 rgba(168, 168, 168, 0.8),
-                                stop:1 rgba(158, 158, 158, 0.8));
-    border: 2px solid rgba(189, 189, 189, 0.6);
+                                stop:0 rgba(100, 116, 139, 0.95),
+                                stop:0.4 rgba(71, 85, 105, 0.95),
+                                stop:1 rgba(51, 65, 85, 0.95));
+    border: 2px solid rgba(148, 163, 184, 0.6);
+    color: white;
 }
 QPushButton:pressed {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                stop:0 rgba(97, 97, 97, 0.8),
-                                stop:1 rgba(66, 66, 66, 0.8));
-    border: 2px solid rgba(97, 97, 97, 0.8);
+                                stop:0 rgba(30, 41, 59, 0.95),
+                                stop:1 rgba(15, 23, 42, 0.95));
+    border: 2px solid rgba(71, 85, 105, 0.7);
     padding: 11px 20px 9px 20px;
 }</string>
           </property>
@@ -224,8 +277,8 @@ QPushButton:pressed {
       <widget class="QPushButton" name="pushButton_Save">
        <property name="minimumSize">
         <size>
-         <width>100</width>
-         <height>30</height>
+         <width>110</width>
+         <height>36</height>
         </size>
        </property>
        <property name="font">
@@ -237,36 +290,36 @@ QPushButton:pressed {
        <property name="styleSheet">
         <string notr="true">QPushButton {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                stop:0 rgba(33, 150, 243, 0.8),
-                                stop:0.5 rgba(30, 136, 229, 0.8),
-                                stop:1 rgba(25, 118, 210, 0.8));
-    border: 2px solid rgba(33, 150, 243, 0.4);
+                                stop:0 rgba(59, 130, 246, 0.95),
+                                stop:0.4 rgba(37, 99, 235, 0.95),
+                                stop:1 rgba(29, 78, 216, 0.95));
+    border: 2px solid rgba(96, 165, 250, 0.5);
     color: white;
-    padding: 10px 24px;
+    padding: 12px 28px;
     border-radius: 12px;
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: 0.5px;
 }
 QPushButton:hover {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                stop:0 rgba(66, 165, 245, 0.85),
-                                stop:0.5 rgba(33, 150, 243, 0.85),
-                                stop:1 rgba(30, 136, 229, 0.85));
-    border: 2px solid rgba(66, 165, 245, 0.6);
+                                stop:0 rgba(96, 165, 250, 0.95),
+                                stop:0.4 rgba(59, 130, 246, 0.95),
+                                stop:1 rgba(37, 99, 235, 0.95));
+    border: 2px solid rgba(147, 197, 253, 0.7);
 }
 QPushButton:pressed {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                stop:0 rgba(21, 101, 192, 0.85),
-                                stop:1 rgba(13, 71, 161, 0.85));
-    border: 2px solid rgba(21, 101, 192, 0.8);
-    padding: 11px 24px 9px 24px;
+                                stop:0 rgba(30, 64, 175, 0.95),
+                                stop:1 rgba(30, 58, 138, 0.95));
+    border: 2px solid rgba(59, 130, 246, 0.8);
+    padding: 13px 28px 11px 28px;
 }
 QPushButton:disabled {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                stop:0 rgba(189, 189, 189, 0.6),
-                                stop:1 rgba(158, 158, 158, 0.6));
-    border: 2px solid rgba(189, 189, 189, 0.3);
-    color: rgba(255, 255, 255, 0.4);
+                                stop:0 rgba(71, 85, 105, 0.7),
+                                stop:1 rgba(51, 65, 85, 0.7));
+    border: 2px solid rgba(71, 85, 105, 0.3);
+    color: rgba(255, 255, 255, 0.35);
 }</string>
        </property>
        <property name="text">
@@ -278,8 +331,8 @@ QPushButton:disabled {
       <widget class="QPushButton" name="pushButton_Cancel">
        <property name="minimumSize">
         <size>
-         <width>100</width>
-         <height>30</height>
+         <width>110</width>
+         <height>36</height>
         </size>
        </property>
        <property name="font">
@@ -291,29 +344,30 @@ QPushButton:disabled {
        <property name="styleSheet">
         <string notr="true">QPushButton {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                stop:0 rgba(158, 158, 158, 0.75),
-                                stop:0.5 rgba(141, 141, 141, 0.75),
-                                stop:1 rgba(117, 117, 117, 0.75));
-    border: 2px solid rgba(158, 158, 158, 0.4);
-    color: white;
-    padding: 10px 24px;
+                                stop:0 rgba(71, 85, 105, 0.95),
+                                stop:0.4 rgba(51, 65, 85, 0.95),
+                                stop:1 rgba(30, 41, 59, 0.95));
+    border: 2px solid rgba(100, 116, 139, 0.5);
+    color: rgba(226, 232, 240, 0.95);
+    padding: 12px 28px;
     border-radius: 12px;
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: 0.5px;
 }
 QPushButton:hover {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                stop:0 rgba(189, 189, 189, 0.8),
-                                stop:0.5 rgba(168, 168, 168, 0.8),
-                                stop:1 rgba(158, 158, 158, 0.8));
-    border: 2px solid rgba(189, 189, 189, 0.6);
+                                stop:0 rgba(100, 116, 139, 0.95),
+                                stop:0.4 rgba(71, 85, 105, 0.95),
+                                stop:1 rgba(51, 65, 85, 0.95));
+    border: 2px solid rgba(148, 163, 184, 0.6);
+    color: white;
 }
 QPushButton:pressed {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                stop:0 rgba(97, 97, 97, 0.8),
-                                stop:1 rgba(66, 66, 66, 0.8));
-    border: 2px solid rgba(97, 97, 97, 0.8);
-    padding: 11px 24px 9px 24px;
+                                stop:0 rgba(30, 41, 59, 0.95),
+                                stop:1 rgba(15, 23, 42, 0.95));
+    border: 2px solid rgba(71, 85, 105, 0.7);
+    padding: 13px 28px 11px 28px;
 }</string>
        </property>
        <property name="text">
