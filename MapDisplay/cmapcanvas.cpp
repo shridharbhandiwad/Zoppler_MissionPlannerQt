@@ -45,15 +45,36 @@ CMapCanvas::CMapCanvas(QWidget *parent) : QgsMapCanvas(parent)
     
     // Initialize path generation parameters with defaults
     _m_pathParams = CPathGenerator::PathParameters();
-    _m_pathParams.numWaypoints = 20;         // Number of intermediate waypoints
+    
+    // General parameters
+    _m_pathParams.numWaypoints = 50;         // Number of intermediate waypoints (more for smoother paths)
     _m_pathParams.defaultAltitude = 1000.0;  // Default altitude in meters
-    _m_pathParams.curveFactor = 0.3;         // Controls curve intensity (0.0-1.0)
-    _m_pathParams.spiralTurns = 2.0;         // Number of spiral rotations
-    _m_pathParams.zigzagAmplitude = 0.2;     // Amplitude of zigzag (fraction of distance)
-    _m_pathParams.zigzagFrequency = 6;       // Number of zigzag oscillations
-    _m_pathParams.maxTurnRadius = 0.05;      // Maximum turn radius in degrees
-    _m_pathParams.randomVariance = 0.15;     // Random path variance factor
-    _m_pathParams.spreadRadiusKm = 5.0;      // Maximum trajectory spread radius in kilometers
+    _m_pathParams.curveFactor = 0.6;         // Controls curve intensity (0.0-1.0)
+    _m_pathParams.spreadRadiusKm = 15.0;     // Maximum trajectory spread radius in kilometers
+    
+    // Spiral-specific parameters
+    _m_pathParams.spiralTurns = 4.0;         // Number of spiral rotations
+    _m_pathParams.spiralExpansionRate = 0.8; // How fast the spiral expands
+    _m_pathParams.spiralTightness = 0.5;     // How tight the spiral is
+    _m_pathParams.spiralClockwise = true;    // Direction of spiral rotation
+    
+    // Zigzag parameters
+    _m_pathParams.zigzagAmplitude = 0.45;    // Amplitude of zigzag (fraction of distance)
+    _m_pathParams.zigzagFrequency = 8;       // Number of zigzag oscillations
+    
+    // Turn parameters
+    _m_pathParams.maxTurnRadius = 0.1;       // Maximum turn radius in degrees
+    
+    // Randomness parameters
+    _m_pathParams.randomVariance = 0.45;     // Random path variance factor
+    _m_pathParams.randomnessLevel = 0.5;     // Global randomness multiplier (0.0-1.0)
+    _m_pathParams.noiseScale = 0.3;          // Scale of noise added to paths
+    _m_pathParams.altitudeVariation = 150.0; // Max altitude variation in meters
+    _m_pathParams.wobbleIntensity = 0.4;     // Intensity of path wobble
+    
+    // Advanced randomness
+    _m_pathParams.pathAsymmetry = 0.3;       // How asymmetric paths can be
+    _m_pathParams.clusterTendency = 0.5;     // Tendency to cluster waypoints
     
     QgsRectangle fixedWorldExtent(-180.0, -90.0, 180.0, 90.0);
      mPreviousCursor = Qt::ArrowCursor;
