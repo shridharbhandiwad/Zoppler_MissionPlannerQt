@@ -21,37 +21,58 @@ public:
      */
     struct PathParameters {
         // General parameters
-        double defaultAltitude = 1000.0;      // Default altitude in meters
-        int numWaypoints = 50;                // Number of intermediate waypoints (increased for smoother paths)
-        double curveFactor = 0.6;             // Controls curve intensity (0.0-1.0)
-        double spreadRadiusKm = 15.0;         // Maximum trajectory spread radius in kilometers
+        double defaultAltitude;      // Default altitude in meters
+        int numWaypoints;            // Number of intermediate waypoints (increased for smoother paths)
+        double curveFactor;          // Controls curve intensity (0.0-1.0)
+        double spreadRadiusKm;       // Maximum trajectory spread radius in kilometers
         
         // Spiral-specific parameters
-        double spiralTurns = 4.0;             // Number of spiral rotations
-        double spiralExpansionRate = 0.8;     // How fast the spiral expands (0.1-2.0)
-        double spiralTightness = 0.5;         // How tight the spiral is (0.0=loose, 1.0=tight)
-        bool spiralClockwise = true;          // Direction of spiral rotation
+        double spiralTurns;          // Number of spiral rotations
+        double spiralExpansionRate;  // How fast the spiral expands (0.1-2.0)
+        double spiralTightness;      // How tight the spiral is (0.0=loose, 1.0=tight)
+        bool spiralClockwise;        // Direction of spiral rotation
         
         // Zigzag parameters
-        double zigzagAmplitude = 0.45;        // Amplitude of zigzag (fraction of distance)
-        int zigzagFrequency = 8;              // Number of zigzag oscillations
+        double zigzagAmplitude;      // Amplitude of zigzag (fraction of distance)
+        int zigzagFrequency;         // Number of zigzag oscillations
         
         // Turn parameters
-        double maxTurnRadius = 0.1;           // Maximum turn radius in degrees
+        double maxTurnRadius;        // Maximum turn radius in degrees
         
         // Randomness parameters
-        double randomVariance = 0.45;         // Random path variance factor
-        double randomnessLevel = 0.5;         // Global randomness multiplier (0.0-1.0) for all paths
-        double noiseScale = 0.3;              // Scale of Perlin-like noise added to paths (0.0-1.0)
-        double altitudeVariation = 150.0;     // Max altitude variation in meters
-        double wobbleIntensity = 0.4;         // Intensity of path wobble (0.0-1.0)
+        double randomVariance;       // Random path variance factor
+        double randomnessLevel;      // Global randomness multiplier (0.0-1.0) for all paths
+        double noiseScale;           // Scale of Perlin-like noise added to paths (0.0-1.0)
+        double altitudeVariation;    // Max altitude variation in meters
+        double wobbleIntensity;      // Intensity of path wobble (0.0-1.0)
         
         // Advanced randomness
-        double pathAsymmetry = 0.3;           // How asymmetric paths can be (0.0-1.0)
-        double clusterTendency = 0.5;         // Tendency to cluster waypoints (0.0-1.0)
-        int randomSeed = -1;                  // -1 for random seed, otherwise fixed seed
+        double pathAsymmetry;        // How asymmetric paths can be (0.0-1.0)
+        double clusterTendency;      // Tendency to cluster waypoints (0.0-1.0)
+        int randomSeed;              // -1 for random seed, otherwise fixed seed
         
-        PathParameters() = default;
+        // Constructor with default values
+        PathParameters() :
+            defaultAltitude(1000.0),
+            numWaypoints(50),
+            curveFactor(0.6),
+            spreadRadiusKm(15.0),
+            spiralTurns(4.0),
+            spiralExpansionRate(0.8),
+            spiralTightness(0.5),
+            spiralClockwise(true),
+            zigzagAmplitude(0.45),
+            zigzagFrequency(8),
+            maxTurnRadius(0.1),
+            randomVariance(0.45),
+            randomnessLevel(0.5),
+            noiseScale(0.3),
+            altitudeVariation(150.0),
+            wobbleIntensity(0.4),
+            pathAsymmetry(0.3),
+            clusterTendency(0.5),
+            randomSeed(-1)
+        {}
     };
 
     CPathGenerator();
