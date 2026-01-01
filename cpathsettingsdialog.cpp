@@ -1,6 +1,7 @@
 #include "cpathsettingsdialog.h"
 #include "ui_cpathsettingsdialog.h"
 #include <QMessageBox>
+#include <QSettings>
 
 // Settings keys for path parameters
 static const QString SETTINGS_GROUP = "PathGeneratorDefaults";
