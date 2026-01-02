@@ -7,8 +7,20 @@
     <x>0</x>
     <y>0</y>
     <width>480</width>
-    <height>850</height>
+    <height>600</height>
    </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>400</width>
+    <height>400</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>600</width>
+    <height>16777215</height>
+   </size>
   </property>
   <property name="windowTitle">
    <string>Path Generator Settings</string>
@@ -21,33 +33,60 @@
 QLabel {
     color: white;
     font-weight: bold;
-    font-size: 10pt;
+    font-size: 9pt;
 }
 QGroupBox {
     color: #FFB74D;
     font-weight: bold;
-    font-size: 11pt;
+    font-size: 10pt;
     border: 2px solid rgba(255, 152, 0, 0.4);
-    border-radius: 8px;
-    margin-top: 12px;
-    padding-top: 10px;
+    border-radius: 6px;
+    margin-top: 10px;
+    padding-top: 8px;
 }
 QGroupBox::title {
     subcontrol-origin: margin;
     subcontrol-position: top left;
-    padding: 0 8px;
-    left: 10px;
+    padding: 0 6px;
+    left: 8px;
 }
 QSpinBox, QDoubleSpinBox {
     background-color: rgb(50, 50, 65);
     color: white;
     border: 1px solid rgba(255, 152, 0, 0.5);
     border-radius: 4px;
-    padding: 5px;
-    font-size: 10pt;
+    padding: 3px;
+    font-size: 9pt;
 }
 QSpinBox:focus, QDoubleSpinBox:focus {
     border: 2px solid rgba(255, 167, 38, 0.8);
+}
+QCheckBox {
+    color: white;
+    font-size: 9pt;
+}
+QScrollArea {
+    background-color: transparent;
+    border: none;
+}
+QScrollArea > QWidget > QWidget {
+    background-color: transparent;
+}
+QScrollBar:vertical {
+    background-color: rgb(40, 40, 50);
+    width: 12px;
+    border-radius: 6px;
+}
+QScrollBar::handle:vertical {
+    background-color: rgba(255, 152, 0, 0.6);
+    border-radius: 5px;
+    min-height: 30px;
+}
+QScrollBar::handle:vertical:hover {
+    background-color: rgba(255, 152, 0, 0.8);
+}
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+    height: 0px;
 }
 QPushButton {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
@@ -56,10 +95,10 @@ QPushButton {
                                 stop:1 rgba(230, 81, 0, 0.85));
     border: 2px solid rgba(255, 152, 0, 0.4);
     color: white;
-    padding: 10px 25px;
-    border-radius: 8px;
+    padding: 8px 16px;
+    border-radius: 6px;
     font-weight: 600;
-    font-size: 10pt;
+    font-size: 9pt;
 }
 QPushButton:hover {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
@@ -115,687 +154,724 @@ QPushButton#pushButton_SaveAsDefaults:pressed {
                                 stop:1 rgba(46, 125, 50, 0.9));
 }</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QVBoxLayout" name="verticalLayout_Main">
    <property name="spacing">
-    <number>15</number>
+    <number>10</number>
    </property>
    <property name="leftMargin">
-    <number>20</number>
+    <number>12</number>
    </property>
    <property name="topMargin">
-    <number>20</number>
+    <number>12</number>
    </property>
    <property name="rightMargin">
-    <number>20</number>
+    <number>12</number>
    </property>
    <property name="bottomMargin">
-    <number>20</number>
+    <number>12</number>
    </property>
    <item>
-    <widget class="QGroupBox" name="groupBox_General">
-     <property name="title">
-      <string>General Parameters</string>
+    <widget class="QScrollArea" name="scrollArea">
+     <property name="frameShape">
+      <enum>QFrame::NoFrame</enum>
      </property>
-     <layout class="QGridLayout" name="gridLayout">
-      <property name="horizontalSpacing">
-       <number>15</number>
+     <property name="widgetResizable">
+      <bool>true</bool>
+     </property>
+     <widget class="QWidget" name="scrollAreaWidgetContents">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>456</width>
+        <height>720</height>
+       </rect>
       </property>
-      <property name="verticalSpacing">
-       <number>12</number>
-      </property>
-      <property name="leftMargin">
-       <number>15</number>
-      </property>
-      <property name="topMargin">
-       <number>20</number>
-      </property>
-      <property name="rightMargin">
-       <number>15</number>
-      </property>
-      <property name="bottomMargin">
-       <number>15</number>
-      </property>
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_NumWaypoints">
-        <property name="text">
-         <string>Number of Waypoints:</string>
-        </property>
-        <property name="toolTip">
-         <string>Number of intermediate waypoints to generate in the path (2-100)</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QSpinBox" name="spinBox_NumWaypoints">
-        <property name="minimum">
-         <number>2</number>
-        </property>
-        <property name="maximum">
-         <number>100</number>
-        </property>
-        <property name="value">
-         <number>30</number>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_Altitude">
-        <property name="text">
-         <string>Default Altitude (m):</string>
-        </property>
-        <property name="toolTip">
-         <string>Default altitude in meters for generated waypoints</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QDoubleSpinBox" name="doubleSpinBox_Altitude">
-        <property name="decimals">
-         <number>1</number>
-        </property>
-        <property name="minimum">
-         <double>0.000000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>50000.000000000000000</double>
-        </property>
-        <property name="singleStep">
-         <double>100.000000000000000</double>
-        </property>
-        <property name="value">
-         <double>1000.000000000000000</double>
-        </property>
-        <property name="suffix">
-         <string> m</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <property name="spacing">
+        <number>8</number>
+       </property>
+       <property name="leftMargin">
+        <number>4</number>
+       </property>
+       <property name="topMargin">
+        <number>4</number>
+       </property>
+       <property name="rightMargin">
+        <number>8</number>
+       </property>
+       <property name="bottomMargin">
+        <number>4</number>
+       </property>
+       <item>
+        <widget class="QGroupBox" name="groupBox_General">
+         <property name="title">
+          <string>General Parameters</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout">
+          <property name="horizontalSpacing">
+           <number>10</number>
+          </property>
+          <property name="verticalSpacing">
+           <number>6</number>
+          </property>
+          <property name="leftMargin">
+           <number>10</number>
+          </property>
+          <property name="topMargin">
+           <number>14</number>
+          </property>
+          <property name="rightMargin">
+           <number>10</number>
+          </property>
+          <property name="bottomMargin">
+           <number>10</number>
+          </property>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_NumWaypoints">
+            <property name="text">
+             <string>Number of Waypoints:</string>
+            </property>
+            <property name="toolTip">
+             <string>Number of intermediate waypoints to generate in the path (2-100)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QSpinBox" name="spinBox_NumWaypoints">
+            <property name="minimum">
+             <number>2</number>
+            </property>
+            <property name="maximum">
+             <number>100</number>
+            </property>
+            <property name="value">
+             <number>30</number>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_Altitude">
+            <property name="text">
+             <string>Default Altitude (m):</string>
+            </property>
+            <property name="toolTip">
+             <string>Default altitude in meters for generated waypoints</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QDoubleSpinBox" name="doubleSpinBox_Altitude">
+            <property name="decimals">
+             <number>1</number>
+            </property>
+            <property name="minimum">
+             <double>0.000000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>50000.000000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>100.000000000000000</double>
+            </property>
+            <property name="value">
+             <double>1000.000000000000000</double>
+            </property>
+            <property name="suffix">
+             <string> m</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_Curve">
+         <property name="title">
+          <string>Curve &amp; Spread Parameters</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_2">
+          <property name="horizontalSpacing">
+           <number>10</number>
+          </property>
+          <property name="verticalSpacing">
+           <number>6</number>
+          </property>
+          <property name="leftMargin">
+           <number>10</number>
+          </property>
+          <property name="topMargin">
+           <number>14</number>
+          </property>
+          <property name="rightMargin">
+           <number>10</number>
+          </property>
+          <property name="bottomMargin">
+           <number>10</number>
+          </property>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_CurveFactor">
+            <property name="text">
+             <string>Curve Factor:</string>
+            </property>
+            <property name="toolTip">
+             <string>Controls curve intensity (0.0 = straight, 1.0 = maximum curve)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QDoubleSpinBox" name="doubleSpinBox_CurveFactor">
+            <property name="decimals">
+             <number>2</number>
+            </property>
+            <property name="minimum">
+             <double>0.000000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>1.000000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>0.050000000000000</double>
+            </property>
+            <property name="value">
+             <double>0.600000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_MaxTurnRadius">
+            <property name="text">
+             <string>Max Turn Radius (°):</string>
+            </property>
+            <property name="toolTip">
+             <string>Maximum turn radius in degrees for L-curve paths</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QDoubleSpinBox" name="doubleSpinBox_MaxTurnRadius">
+            <property name="decimals">
+             <number>3</number>
+            </property>
+            <property name="minimum">
+             <double>0.010000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>0.500000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>0.010000000000000</double>
+            </property>
+            <property name="value">
+             <double>0.100000000000000</double>
+            </property>
+            <property name="suffix">
+             <string>°</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_SpreadRadius">
+            <property name="text">
+             <string>Spread Radius (km):</string>
+            </property>
+            <property name="toolTip">
+             <string>Maximum lateral spread of the trajectory from the main path in kilometers</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QDoubleSpinBox" name="doubleSpinBox_SpreadRadius">
+            <property name="decimals">
+             <number>1</number>
+            </property>
+            <property name="minimum">
+             <double>0.500000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>100.000000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>1.000000000000000</double>
+            </property>
+            <property name="value">
+             <double>15.000000000000000</double>
+            </property>
+            <property name="suffix">
+             <string> km</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_Spiral">
+         <property name="title">
+          <string>Spiral Parameters</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_5">
+          <property name="horizontalSpacing">
+           <number>10</number>
+          </property>
+          <property name="verticalSpacing">
+           <number>6</number>
+          </property>
+          <property name="leftMargin">
+           <number>10</number>
+          </property>
+          <property name="topMargin">
+           <number>14</number>
+          </property>
+          <property name="rightMargin">
+           <number>10</number>
+          </property>
+          <property name="bottomMargin">
+           <number>10</number>
+          </property>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_SpiralTurns">
+            <property name="text">
+             <string>Spiral Turns:</string>
+            </property>
+            <property name="toolTip">
+             <string>Number of spiral rotations (1-10)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QDoubleSpinBox" name="doubleSpinBox_SpiralTurns">
+            <property name="decimals">
+             <number>1</number>
+            </property>
+            <property name="minimum">
+             <double>1.000000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>10.000000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>0.500000000000000</double>
+            </property>
+            <property name="value">
+             <double>4.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_SpiralExpansion">
+            <property name="text">
+             <string>Expansion Rate:</string>
+            </property>
+            <property name="toolTip">
+             <string>How fast the spiral expands outward (0.1 = slow, 2.0 = fast)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QDoubleSpinBox" name="doubleSpinBox_SpiralExpansion">
+            <property name="decimals">
+             <number>2</number>
+            </property>
+            <property name="minimum">
+             <double>0.100000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>2.000000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>0.100000000000000</double>
+            </property>
+            <property name="value">
+             <double>0.800000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_SpiralTightness">
+            <property name="text">
+             <string>Tightness:</string>
+            </property>
+            <property name="toolTip">
+             <string>How tight the spiral is (0.0 = loose, 1.0 = tight)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QDoubleSpinBox" name="doubleSpinBox_SpiralTightness">
+            <property name="decimals">
+             <number>2</number>
+            </property>
+            <property name="minimum">
+             <double>0.000000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>1.000000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>0.100000000000000</double>
+            </property>
+            <property name="value">
+             <double>0.500000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_SpiralClockwise">
+            <property name="text">
+             <string>Clockwise:</string>
+            </property>
+            <property name="toolTip">
+             <string>Spiral rotation direction (clockwise or counter-clockwise)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QCheckBox" name="checkBox_SpiralClockwise">
+            <property name="text">
+             <string>Clockwise rotation</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_Zigzag">
+         <property name="title">
+          <string>Zigzag Parameters</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_3">
+          <property name="horizontalSpacing">
+           <number>10</number>
+          </property>
+          <property name="verticalSpacing">
+           <number>6</number>
+          </property>
+          <property name="leftMargin">
+           <number>10</number>
+          </property>
+          <property name="topMargin">
+           <number>14</number>
+          </property>
+          <property name="rightMargin">
+           <number>10</number>
+          </property>
+          <property name="bottomMargin">
+           <number>10</number>
+          </property>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_ZigzagAmplitude">
+            <property name="text">
+             <string>Zigzag Amplitude:</string>
+            </property>
+            <property name="toolTip">
+             <string>Amplitude of zigzag as fraction of total distance (0.05-0.5)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QDoubleSpinBox" name="doubleSpinBox_ZigzagAmplitude">
+            <property name="decimals">
+             <number>2</number>
+            </property>
+            <property name="minimum">
+             <double>0.050000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>1.000000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>0.050000000000000</double>
+            </property>
+            <property name="value">
+             <double>0.450000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_ZigzagFrequency">
+            <property name="text">
+             <string>Zigzag Frequency:</string>
+            </property>
+            <property name="toolTip">
+             <string>Number of zigzag oscillations (2-20)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QSpinBox" name="spinBox_ZigzagFrequency">
+            <property name="minimum">
+             <number>2</number>
+            </property>
+            <property name="maximum">
+             <number>20</number>
+            </property>
+            <property name="value">
+             <number>8</number>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_Random">
+         <property name="title">
+          <string>Randomness &amp; Noise Parameters</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_4">
+          <property name="horizontalSpacing">
+           <number>10</number>
+          </property>
+          <property name="verticalSpacing">
+           <number>6</number>
+          </property>
+          <property name="leftMargin">
+           <number>10</number>
+          </property>
+          <property name="topMargin">
+           <number>14</number>
+          </property>
+          <property name="rightMargin">
+           <number>10</number>
+          </property>
+          <property name="bottomMargin">
+           <number>10</number>
+          </property>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_RandomnessLevel">
+            <property name="text">
+             <string>Randomness Level:</string>
+            </property>
+            <property name="toolTip">
+             <string>Global randomness multiplier for ALL path types (0.0 = deterministic, 1.0 = maximum randomness)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QDoubleSpinBox" name="doubleSpinBox_RandomnessLevel">
+            <property name="decimals">
+             <number>2</number>
+            </property>
+            <property name="minimum">
+             <double>0.000000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>1.000000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>0.100000000000000</double>
+            </property>
+            <property name="value">
+             <double>0.500000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_RandomVariance">
+            <property name="text">
+             <string>Random Variance:</string>
+            </property>
+            <property name="toolTip">
+             <string>Variance factor for random path generation (0.05-1.0)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QDoubleSpinBox" name="doubleSpinBox_RandomVariance">
+            <property name="decimals">
+             <number>2</number>
+            </property>
+            <property name="minimum">
+             <double>0.050000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>1.000000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>0.050000000000000</double>
+            </property>
+            <property name="value">
+             <double>0.450000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_NoiseScale">
+            <property name="text">
+             <string>Noise Scale:</string>
+            </property>
+            <property name="toolTip">
+             <string>Scale of organic noise added to paths (0.0 = smooth, 1.0 = noisy)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QDoubleSpinBox" name="doubleSpinBox_NoiseScale">
+            <property name="decimals">
+             <number>2</number>
+            </property>
+            <property name="minimum">
+             <double>0.000000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>1.000000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>0.100000000000000</double>
+            </property>
+            <property name="value">
+             <double>0.300000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_AltitudeVariation">
+            <property name="text">
+             <string>Altitude Variation (m):</string>
+            </property>
+            <property name="toolTip">
+             <string>Maximum altitude variation in meters from the base altitude</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QDoubleSpinBox" name="doubleSpinBox_AltitudeVariation">
+            <property name="decimals">
+             <number>0</number>
+            </property>
+            <property name="minimum">
+             <double>0.000000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>1000.000000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>25.000000000000000</double>
+            </property>
+            <property name="value">
+             <double>150.000000000000000</double>
+            </property>
+            <property name="suffix">
+             <string> m</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_WobbleIntensity">
+            <property name="text">
+             <string>Wobble Intensity:</string>
+            </property>
+            <property name="toolTip">
+             <string>Intensity of path wobble/oscillation (0.0 = none, 1.0 = maximum)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QDoubleSpinBox" name="doubleSpinBox_WobbleIntensity">
+            <property name="decimals">
+             <number>2</number>
+            </property>
+            <property name="minimum">
+             <double>0.000000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>1.000000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>0.100000000000000</double>
+            </property>
+            <property name="value">
+             <double>0.400000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="label_PathAsymmetry">
+            <property name="text">
+             <string>Path Asymmetry:</string>
+            </property>
+            <property name="toolTip">
+             <string>How asymmetric paths can be (0.0 = symmetric, 1.0 = highly asymmetric)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="QDoubleSpinBox" name="doubleSpinBox_PathAsymmetry">
+            <property name="decimals">
+             <number>2</number>
+            </property>
+            <property name="minimum">
+             <double>0.000000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>1.000000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>0.100000000000000</double>
+            </property>
+            <property name="value">
+             <double>0.300000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="0">
+           <widget class="QLabel" name="label_ClusterTendency">
+            <property name="text">
+             <string>Cluster Tendency:</string>
+            </property>
+            <property name="toolTip">
+             <string>Tendency to cluster waypoints together (0.0 = spread out, 1.0 = clustered)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="1">
+           <widget class="QDoubleSpinBox" name="doubleSpinBox_ClusterTendency">
+            <property name="decimals">
+             <number>2</number>
+            </property>
+            <property name="minimum">
+             <double>0.000000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>1.000000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>0.100000000000000</double>
+            </property>
+            <property name="value">
+             <double>0.500000000000000</double>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>10</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
     </widget>
-   </item>
-   <item>
-    <widget class="QGroupBox" name="groupBox_Curve">
-     <property name="title">
-      <string>Curve &amp; Spread Parameters</string>
-     </property>
-     <layout class="QGridLayout" name="gridLayout_2">
-      <property name="horizontalSpacing">
-       <number>15</number>
-      </property>
-      <property name="verticalSpacing">
-       <number>10</number>
-      </property>
-      <property name="leftMargin">
-       <number>15</number>
-      </property>
-      <property name="topMargin">
-       <number>20</number>
-      </property>
-      <property name="rightMargin">
-       <number>15</number>
-      </property>
-      <property name="bottomMargin">
-       <number>15</number>
-      </property>
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_CurveFactor">
-        <property name="text">
-         <string>Curve Factor:</string>
-        </property>
-        <property name="toolTip">
-         <string>Controls curve intensity (0.0 = straight, 1.0 = maximum curve)</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QDoubleSpinBox" name="doubleSpinBox_CurveFactor">
-        <property name="decimals">
-         <number>2</number>
-        </property>
-        <property name="minimum">
-         <double>0.000000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>1.000000000000000</double>
-        </property>
-        <property name="singleStep">
-         <double>0.050000000000000</double>
-        </property>
-        <property name="value">
-         <double>0.600000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_MaxTurnRadius">
-        <property name="text">
-         <string>Max Turn Radius (°):</string>
-        </property>
-        <property name="toolTip">
-         <string>Maximum turn radius in degrees for L-curve paths</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QDoubleSpinBox" name="doubleSpinBox_MaxTurnRadius">
-        <property name="decimals">
-         <number>3</number>
-        </property>
-        <property name="minimum">
-         <double>0.010000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>0.500000000000000</double>
-        </property>
-        <property name="singleStep">
-         <double>0.010000000000000</double>
-        </property>
-        <property name="value">
-         <double>0.100000000000000</double>
-        </property>
-        <property name="suffix">
-         <string>°</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="label_SpreadRadius">
-        <property name="text">
-         <string>Spread Radius (km):</string>
-        </property>
-        <property name="toolTip">
-         <string>Maximum lateral spread of the trajectory from the main path in kilometers</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1">
-       <widget class="QDoubleSpinBox" name="doubleSpinBox_SpreadRadius">
-        <property name="decimals">
-         <number>1</number>
-        </property>
-        <property name="minimum">
-         <double>0.500000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>100.000000000000000</double>
-        </property>
-        <property name="singleStep">
-         <double>1.000000000000000</double>
-        </property>
-        <property name="value">
-         <double>15.000000000000000</double>
-        </property>
-        <property name="suffix">
-         <string> km</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QGroupBox" name="groupBox_Spiral">
-     <property name="title">
-      <string>Spiral Parameters</string>
-     </property>
-     <layout class="QGridLayout" name="gridLayout_5">
-      <property name="horizontalSpacing">
-       <number>15</number>
-      </property>
-      <property name="verticalSpacing">
-       <number>10</number>
-      </property>
-      <property name="leftMargin">
-       <number>15</number>
-      </property>
-      <property name="topMargin">
-       <number>20</number>
-      </property>
-      <property name="rightMargin">
-       <number>15</number>
-      </property>
-      <property name="bottomMargin">
-       <number>15</number>
-      </property>
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_SpiralTurns">
-        <property name="text">
-         <string>Spiral Turns:</string>
-        </property>
-        <property name="toolTip">
-         <string>Number of spiral rotations (1-10)</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QDoubleSpinBox" name="doubleSpinBox_SpiralTurns">
-        <property name="decimals">
-         <number>1</number>
-        </property>
-        <property name="minimum">
-         <double>1.000000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>10.000000000000000</double>
-        </property>
-        <property name="singleStep">
-         <double>0.500000000000000</double>
-        </property>
-        <property name="value">
-         <double>4.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_SpiralExpansion">
-        <property name="text">
-         <string>Expansion Rate:</string>
-        </property>
-        <property name="toolTip">
-         <string>How fast the spiral expands outward (0.1 = slow, 2.0 = fast)</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QDoubleSpinBox" name="doubleSpinBox_SpiralExpansion">
-        <property name="decimals">
-         <number>2</number>
-        </property>
-        <property name="minimum">
-         <double>0.100000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>2.000000000000000</double>
-        </property>
-        <property name="singleStep">
-         <double>0.100000000000000</double>
-        </property>
-        <property name="value">
-         <double>0.800000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="label_SpiralTightness">
-        <property name="text">
-         <string>Tightness:</string>
-        </property>
-        <property name="toolTip">
-         <string>How tight the spiral is (0.0 = loose, 1.0 = tight)</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1">
-       <widget class="QDoubleSpinBox" name="doubleSpinBox_SpiralTightness">
-        <property name="decimals">
-         <number>2</number>
-        </property>
-        <property name="minimum">
-         <double>0.000000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>1.000000000000000</double>
-        </property>
-        <property name="singleStep">
-         <double>0.100000000000000</double>
-        </property>
-        <property name="value">
-         <double>0.500000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="0">
-       <widget class="QLabel" name="label_SpiralClockwise">
-        <property name="text">
-         <string>Clockwise:</string>
-        </property>
-        <property name="toolTip">
-         <string>Spiral rotation direction (clockwise or counter-clockwise)</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="1">
-       <widget class="QCheckBox" name="checkBox_SpiralClockwise">
-        <property name="text">
-         <string>Clockwise rotation</string>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QGroupBox" name="groupBox_Zigzag">
-     <property name="title">
-      <string>Zigzag Parameters</string>
-     </property>
-     <layout class="QGridLayout" name="gridLayout_3">
-      <property name="horizontalSpacing">
-       <number>15</number>
-      </property>
-      <property name="verticalSpacing">
-       <number>12</number>
-      </property>
-      <property name="leftMargin">
-       <number>15</number>
-      </property>
-      <property name="topMargin">
-       <number>20</number>
-      </property>
-      <property name="rightMargin">
-       <number>15</number>
-      </property>
-      <property name="bottomMargin">
-       <number>15</number>
-      </property>
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_ZigzagAmplitude">
-        <property name="text">
-         <string>Zigzag Amplitude:</string>
-        </property>
-        <property name="toolTip">
-         <string>Amplitude of zigzag as fraction of total distance (0.05-0.5)</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QDoubleSpinBox" name="doubleSpinBox_ZigzagAmplitude">
-        <property name="decimals">
-         <number>2</number>
-        </property>
-        <property name="minimum">
-         <double>0.050000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>1.000000000000000</double>
-        </property>
-        <property name="singleStep">
-         <double>0.050000000000000</double>
-        </property>
-        <property name="value">
-         <double>0.450000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_ZigzagFrequency">
-        <property name="text">
-         <string>Zigzag Frequency:</string>
-        </property>
-        <property name="toolTip">
-         <string>Number of zigzag oscillations (2-20)</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QSpinBox" name="spinBox_ZigzagFrequency">
-        <property name="minimum">
-         <number>2</number>
-        </property>
-        <property name="maximum">
-         <number>20</number>
-        </property>
-        <property name="value">
-         <number>8</number>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QGroupBox" name="groupBox_Random">
-     <property name="title">
-      <string>Randomness &amp; Noise Parameters</string>
-     </property>
-     <layout class="QGridLayout" name="gridLayout_4">
-      <property name="horizontalSpacing">
-       <number>15</number>
-      </property>
-      <property name="verticalSpacing">
-       <number>10</number>
-      </property>
-      <property name="leftMargin">
-       <number>15</number>
-      </property>
-      <property name="topMargin">
-       <number>20</number>
-      </property>
-      <property name="rightMargin">
-       <number>15</number>
-      </property>
-      <property name="bottomMargin">
-       <number>15</number>
-      </property>
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_RandomnessLevel">
-        <property name="text">
-         <string>Randomness Level:</string>
-        </property>
-        <property name="toolTip">
-         <string>Global randomness multiplier for ALL path types (0.0 = deterministic, 1.0 = maximum randomness)</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QDoubleSpinBox" name="doubleSpinBox_RandomnessLevel">
-        <property name="decimals">
-         <number>2</number>
-        </property>
-        <property name="minimum">
-         <double>0.000000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>1.000000000000000</double>
-        </property>
-        <property name="singleStep">
-         <double>0.100000000000000</double>
-        </property>
-        <property name="value">
-         <double>0.500000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_RandomVariance">
-        <property name="text">
-         <string>Random Variance:</string>
-        </property>
-        <property name="toolTip">
-         <string>Variance factor for random path generation (0.05-1.0)</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QDoubleSpinBox" name="doubleSpinBox_RandomVariance">
-        <property name="decimals">
-         <number>2</number>
-        </property>
-        <property name="minimum">
-         <double>0.050000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>1.000000000000000</double>
-        </property>
-        <property name="singleStep">
-         <double>0.050000000000000</double>
-        </property>
-        <property name="value">
-         <double>0.450000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="label_NoiseScale">
-        <property name="text">
-         <string>Noise Scale:</string>
-        </property>
-        <property name="toolTip">
-         <string>Scale of organic noise added to paths (0.0 = smooth, 1.0 = noisy)</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1">
-       <widget class="QDoubleSpinBox" name="doubleSpinBox_NoiseScale">
-        <property name="decimals">
-         <number>2</number>
-        </property>
-        <property name="minimum">
-         <double>0.000000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>1.000000000000000</double>
-        </property>
-        <property name="singleStep">
-         <double>0.100000000000000</double>
-        </property>
-        <property name="value">
-         <double>0.300000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="0">
-       <widget class="QLabel" name="label_AltitudeVariation">
-        <property name="text">
-         <string>Altitude Variation (m):</string>
-        </property>
-        <property name="toolTip">
-         <string>Maximum altitude variation in meters from the base altitude</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="1">
-       <widget class="QDoubleSpinBox" name="doubleSpinBox_AltitudeVariation">
-        <property name="decimals">
-         <number>0</number>
-        </property>
-        <property name="minimum">
-         <double>0.000000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>1000.000000000000000</double>
-        </property>
-        <property name="singleStep">
-         <double>25.000000000000000</double>
-        </property>
-        <property name="value">
-         <double>150.000000000000000</double>
-        </property>
-        <property name="suffix">
-         <string> m</string>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="0">
-       <widget class="QLabel" name="label_WobbleIntensity">
-        <property name="text">
-         <string>Wobble Intensity:</string>
-        </property>
-        <property name="toolTip">
-         <string>Intensity of path wobble/oscillation (0.0 = none, 1.0 = maximum)</string>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="1">
-       <widget class="QDoubleSpinBox" name="doubleSpinBox_WobbleIntensity">
-        <property name="decimals">
-         <number>2</number>
-        </property>
-        <property name="minimum">
-         <double>0.000000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>1.000000000000000</double>
-        </property>
-        <property name="singleStep">
-         <double>0.100000000000000</double>
-        </property>
-        <property name="value">
-         <double>0.400000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="0">
-       <widget class="QLabel" name="label_PathAsymmetry">
-        <property name="text">
-         <string>Path Asymmetry:</string>
-        </property>
-        <property name="toolTip">
-         <string>How asymmetric paths can be (0.0 = symmetric, 1.0 = highly asymmetric)</string>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="1">
-       <widget class="QDoubleSpinBox" name="doubleSpinBox_PathAsymmetry">
-        <property name="decimals">
-         <number>2</number>
-        </property>
-        <property name="minimum">
-         <double>0.000000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>1.000000000000000</double>
-        </property>
-        <property name="singleStep">
-         <double>0.100000000000000</double>
-        </property>
-        <property name="value">
-         <double>0.300000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="6" column="0">
-       <widget class="QLabel" name="label_ClusterTendency">
-        <property name="text">
-         <string>Cluster Tendency:</string>
-        </property>
-        <property name="toolTip">
-         <string>Tendency to cluster waypoints together (0.0 = spread out, 1.0 = clustered)</string>
-        </property>
-       </widget>
-      </item>
-      <item row="6" column="1">
-       <widget class="QDoubleSpinBox" name="doubleSpinBox_ClusterTendency">
-        <property name="decimals">
-         <number>2</number>
-        </property>
-        <property name="minimum">
-         <double>0.000000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>1.000000000000000</double>
-        </property>
-        <property name="singleStep">
-         <double>0.100000000000000</double>
-        </property>
-        <property name="value">
-         <double>0.500000000000000</double>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <spacer name="verticalSpacer">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>10</height>
-      </size>
-     </property>
-    </spacer>
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_Buttons">
      <property name="spacing">
-      <number>15</number>
+      <number>10</number>
      </property>
      <item>
       <widget class="QPushButton" name="pushButton_ResetDefaults">
