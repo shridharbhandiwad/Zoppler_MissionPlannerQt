@@ -1,6 +1,7 @@
 #include "cmapcanvas.h"
 #include <qgsvectorlayer.h>
 #include <QMouseEvent>
+#include <cmath>
 #include <QKeyEvent>
 #include <qgsrectangle.h>
 #include <QDir>
@@ -731,9 +732,57 @@ void CMapCanvas::mouseMoveEvent(QMouseEvent *event)
 
 void CMapCanvas::mouseReleaseEvent(QMouseEvent *event)
 {
-    if (event->button() == Qt::LeftButton && mPanning ) {
+    if (event->button() == Qt::LeftButton && mPanning) {
         mPanning = false;
         setCursor(mPreviousCursor);
+        
+        // Check if this was just a click (not a drag) - for object selection
+        QPoint delta = event->pos() - mLastMousePos;
+        bool wasJustAClick = (std::abs(delta.x()) < 5 && std::abs(delta.y()) < 5);
+        
+        if (wasJustAClick && _m_nCurrentObjectClassForLoading == VISTAR_CLASS_NONE) {
+            // Object selection on single left click (when no mode is active)
+            bool anySelected = false;
+            
+            // Check for object selection
+            for (CVistarObject* item : _m_listVistarObjects)
+            {
+                QgsPointXY screenPoint = mapSettings().mapToPixel().transform(item->getPoint());
+                int nRadius = 20;
+                QRectF rect(screenPoint.x() - nRadius/2, screenPoint.y() - nRadius/2, nRadius, nRadius);
+                
+                if (rect.contains(event->pos())) {
+                    item->setHighlighted(true);
+                    anySelected = true;
+                }
+                else {
+                    item->setHighlighted(false);
+                }
+            }
+            
+            // Check for route selection
+            for (CVistarRoute* item : _m_listVistarRoutes)
+            {
+                item->setHighlighted(false);
+                int nCount = item->getPointCount();
+                for (int i = 0; i < nCount; i++) {
+                    QgsPointXY pt = item->getPointAt(i);
+                    QgsPointXY screenPoint = mapSettings().mapToPixel().transform(pt);
+                    int nRadius = 20;
+                    QRectF rect(screenPoint.x() - nRadius/2, screenPoint.y() - nRadius/2, nRadius, nRadius);
+                    
+                    if (rect.contains(event->pos())) {
+                        item->setHighlighted(true);
+                        anySelected = true;
+                        break;
+                    }
+                }
+            }
+            
+            if (anySelected) {
+                refresh();
+            }
+        }
     }
     else if (event->button() == Qt::LeftButton) {
 
@@ -881,7 +930,7 @@ void CMapCanvas::mouseReleaseEvent(QMouseEvent *event)
             });
         }
         else {
-
+            // Empty - selection handled above in the panning check
         }
     }
     else if (event->button() == Qt::RightButton) {
