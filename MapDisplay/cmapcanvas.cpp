@@ -1286,7 +1286,7 @@ void CMapCanvas::showContextMenu(QPoint pos) {
     }
 
     if (menu.actions().count() > 0 ) {
-        QAction* selected = menu.exec(pos);
+        QAction* selected = menu.exec(mapToGlobal(pos));
         if ( selected ) {
             qDebug()<<selected->text()<<selected->objectName();
             CVistarObject* object = getVistarObjectById(selected->objectName());
