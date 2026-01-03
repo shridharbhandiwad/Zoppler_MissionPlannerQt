@@ -134,6 +134,7 @@ private:
     bool _m_bPathStartPointSet;
     QGraphicsEllipseItem *_m_pathStartMarker;
     QGraphicsTextItem *_m_pathInstructionText;
+    QGraphicsRectItem *_m_pathInstructionBgRect;
     CPathGenerator::PathParameters _m_pathParams;  // Configurable path generation parameters
 
     void enforceLayerOrder();

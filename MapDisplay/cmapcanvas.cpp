@@ -43,6 +43,7 @@ CMapCanvas::CMapCanvas(QWidget *parent) : QgsMapCanvas(parent)
     _m_bPathStartPointSet = false;
     _m_pathStartMarker = nullptr;
     _m_pathInstructionText = nullptr;
+    _m_pathInstructionBgRect = nullptr;
     
     // Initialize path generation parameters with defaults
     _m_pathParams = CPathGenerator::PathParameters();
@@ -1739,6 +1740,13 @@ CPathGenerator* CMapCanvas::getPathGenerator()
 
 void CMapCanvas::showPathGenerationInstruction(const QString &text)
 {
+    // Remove existing background rectangle first
+    if (_m_pathInstructionBgRect) {
+        scene()->removeItem(_m_pathInstructionBgRect);
+        delete _m_pathInstructionBgRect;
+        _m_pathInstructionBgRect = nullptr;
+    }
+    
     // Remove existing instruction text
     if (_m_pathInstructionText) {
         scene()->removeItem(_m_pathInstructionText);
@@ -1758,13 +1766,13 @@ void CMapCanvas::showPathGenerationInstruction(const QString &text)
     _m_pathInstructionText->setPos((sceneRect.width() - textWidth) / 2, 80);
     
     // Add background rectangle for better visibility
-    QGraphicsRectItem *bgRect = scene()->addRect(
+    _m_pathInstructionBgRect = scene()->addRect(
         _m_pathInstructionText->boundingRect().adjusted(-10, -5, 10, 5),
         QPen(Qt::transparent),
         QBrush(QColor(0, 100, 200, 180))
     );
-    bgRect->setPos(_m_pathInstructionText->pos() + QPointF(-10, -5));
-    bgRect->setZValue(999);
+    _m_pathInstructionBgRect->setPos(_m_pathInstructionText->pos() + QPointF(-10, -5));
+    _m_pathInstructionBgRect->setZValue(999);
     
     refresh();
 }
@@ -1776,6 +1784,13 @@ void CMapCanvas::clearPathGenerationMarkers()
         scene()->removeItem(_m_pathStartMarker);
         delete _m_pathStartMarker;
         _m_pathStartMarker = nullptr;
+    }
+    
+    // Remove instruction text background
+    if (_m_pathInstructionBgRect) {
+        scene()->removeItem(_m_pathInstructionBgRect);
+        delete _m_pathInstructionBgRect;
+        _m_pathInstructionBgRect = nullptr;
     }
     
     // Remove instruction text
