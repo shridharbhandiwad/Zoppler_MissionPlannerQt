@@ -22,9 +22,9 @@ CNetworkInterface::CNetworkInterface(QObject *parent)
 void CNetworkInterface::PublishMessage(QJsonDocument doc) {
 
     QByteArray data = doc.toJson(QJsonDocument::Compact);
-    QHostAddress SenderAddress("225.0.0.1");
-    //QHostAddress SenderAddress("192.168.1.6");
-    _m_udpSenderSocket.writeDatagram(data,data.size(), SenderAddress, 8888);
+    // Unicast to specific destination
+    QHostAddress DestinationAddress("192.168.1.2");
+    _m_udpSenderSocket.writeDatagram(data, data.size(), DestinationAddress, 8888);
 }
 
 void CNetworkInterface::startListening(quint16 nPort)
@@ -35,7 +35,7 @@ void CNetworkInterface::startListening(quint16 nPort)
     QMetaObject::invokeMethod(this, [this]() {
         m_pUdpReceiverSocket = new QUdpSocket();
 
-        // Bind to the given port
+        // Bind to the local address for unicast reception
         if (!m_pUdpReceiverSocket->bind(QHostAddress::AnyIPv4, m_nListeningPort,
             QUdpSocket::ShareAddress | QUdpSocket::ReuseAddressHint)) {
 
@@ -45,13 +45,13 @@ void CNetworkInterface::startListening(quint16 nPort)
             m_pUdpReceiverSocket = nullptr;
             return;
         }
-        bool bMulticast = m_pUdpReceiverSocket->joinMulticastGroup(QHostAddress("225.0.0.1"));
+        // Unicast mode - no multicast group joining needed
 
         // Connect readyRead to our processing slot
         connect(m_pUdpReceiverSocket, &QUdpSocket::readyRead,
                 this, &CNetworkInterface::_processPendingDatagrams);
 
-        qDebug() << "[CUdpReceiver] Listening on port" << m_nListeningPort;
+        qDebug() << "[CUdpReceiver] Listening on port" << m_nListeningPort << "(unicast mode)";
     });
 }
 
