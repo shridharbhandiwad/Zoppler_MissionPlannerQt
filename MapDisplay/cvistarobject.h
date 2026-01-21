@@ -28,6 +28,18 @@ public:
     QString getParent();
     int getChildId();
     QString getAttachedRoute();
+    
+    // Trajectory methods
+    void setTrajectoryEnabled(bool enabled);
+    bool isTrajectoryEnabled() const;
+    void clearTrajectory();
+    QList<QgsPointXYZ> getTrajectory() const;
+    void setTrajectoryColor(const QColor &color);
+    QColor getTrajectoryColor() const;
+    void setTrajectoryWidth(int width);
+    int getTrajectoryWidth() const;
+    void addTrajectoryPoint(double dLon, double dLat, double dAlt);
+    
 private :
     QgsMapCanvas *_m_canvas;
     QString _m_sObjectID;
@@ -48,6 +60,12 @@ private :
     int _m_nChildId;
     QString _m_sParentObject;
     QString _m_sAttachedRoute;
+    
+    // Trajectory tracking
+    bool _m_bTrajectoryEnabled;
+    QList<QgsPointXYZ> _m_listTrajectoryPoints;
+    QColor _m_trajectoryColor;
+    int _m_nTrajectoryWidth;
 
 protected :
     void paint(QPainter *painter) override;
