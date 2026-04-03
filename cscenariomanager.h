@@ -90,6 +90,7 @@ private:
     ScenarioRoute gpxTrackToRoute(const QDomElement &trkElement, int routeIndex);
     ScenarioRoute gpxRouteToScenarioRoute(const QDomElement &rteElement, int routeIndex);
     ScenarioObject gpxWaypointToObject(const QDomElement &wptElement, int wptIndex);
+    ScenarioRoute gpxWaypointsToRoute(const QDomNodeList &wptNodes);
 };
 
 #endif // CSCENARIOMANAGER_H
