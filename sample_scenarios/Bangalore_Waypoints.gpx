@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="VistarPlanner"
+     xmlns="http://www.topografix.com/GPX/1/1">
+  <metadata>
+    <name>Bangalore Waypoints</name>
+    <desc>25 waypoints in the Koramangala / HSR Layout area of Bangalore</desc>
+    <time>2026-04-03T00:00:00Z</time>
+  </metadata>
+
+  <wpt lat="12.976380" lon="77.594032"><name>WP1</name></wpt>
+  <wpt lat="12.973431" lon="77.593051"><name>WP2</name></wpt>
+  <wpt lat="12.965866" lon="77.585465"><name>WP3</name></wpt>
+  <wpt lat="12.980431" lon="77.584688"><name>WP4</name></wpt>
+  <wpt lat="12.975541" lon="77.585224"><name>WP5</name></wpt>
+  <wpt lat="12.978981" lon="77.594476"><name>WP6</name></wpt>
+  <wpt lat="12.967219" lon="77.602883"><name>WP7</name></wpt>
+  <wpt lat="12.973612" lon="77.600754"><name>WP8</name></wpt>
+  <wpt lat="12.966833" lon="77.598581"><name>WP9</name></wpt>
+  <wpt lat="12.964069" lon="77.597764"><name>WP10</name></wpt>
+  <wpt lat="12.962469" lon="77.595759"><name>WP11</name></wpt>
+  <wpt lat="12.966844" lon="77.585040"><name>WP12</name></wpt>
+  <wpt lat="12.974619" lon="77.593556"><name>WP13</name></wpt>
+  <wpt lat="12.965763" lon="77.587214"><name>WP14</name></wpt>
+  <wpt lat="12.971741" lon="77.595944"><name>WP15</name></wpt>
+  <wpt lat="12.962147" lon="77.593980"><name>WP16</name></wpt>
+  <wpt lat="12.966607" lon="77.588111"><name>WP17</name></wpt>
+  <wpt lat="12.971425" lon="77.603609"><name>WP18</name></wpt>
+  <wpt lat="12.967880" lon="77.594294"><name>WP19</name></wpt>
+  <wpt lat="12.962397" lon="77.596046"><name>WP20</name></wpt>
+  <wpt lat="12.965779" lon="77.584631"><name>WP21</name></wpt>
+  <wpt lat="12.971065" lon="77.585242"><name>WP22</name></wpt>
+  <wpt lat="12.976706" lon="77.590993"><name>WP23</name></wpt>
+  <wpt lat="12.975039" lon="77.590101"><name>WP24</name></wpt>
+  <wpt lat="12.969014" lon="77.597456"><name>WP25</name></wpt>
+</gpx>
