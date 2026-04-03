@@ -71,8 +71,9 @@ def parse_gpx(filepath: str) -> dict:
         if t is not None and t.text:
             scenario["createdDate"] = t.text.strip()
 
-    # Waypoints → objects
-    for i, wpt in enumerate(findall(root, "wpt")):
+    # Waypoints → objects (and also a combined waypoints route)
+    wpt_elems = findall(root, "wpt")
+    for i, wpt in enumerate(wpt_elems):
         lat = float(wpt.get("lat", 0))
         lon = float(wpt.get("lon", 0))
         ele_elem = find(wpt, "ele")
@@ -90,6 +91,23 @@ def parse_gpx(filepath: str) -> dict:
                 "altitude": alt,
             }
         )
+
+    # All <wpt> elements are also collected into a single route so they are
+    # automatically included as part of the next route (mirrors C++ gpxWaypointsToRoute).
+    if wpt_elems:
+        wpt_route = {
+            "id": "WPT_ROUTE",
+            "name": "Waypoints Route",
+            "gpxType": "waypoints",
+            "waypoints": [],
+        }
+        for wpt in wpt_elems:
+            lat = float(wpt.get("lat", 0))
+            lon = float(wpt.get("lon", 0))
+            ele_elem = find(wpt, "ele")
+            alt = float(ele_elem.text) if ele_elem is not None else 0.0
+            wpt_route["waypoints"].append({"lat": lat, "lon": lon, "alt": alt})
+        scenario["routes"].append(wpt_route)
 
     # Tracks → routes
     for i, trk in enumerate(findall(root, "trk")):
@@ -197,8 +215,20 @@ class TestGpxParsing(unittest.TestCase):
     # -- Routes --
 
     def test_route_count(self):
-        # 1 <rte> + 1 <trk>
-        self.assertEqual(len(self.scenario["routes"]), 2)
+        # 1 waypoints route (from <wpt> elements) + 1 <rte> + 1 <trk>
+        self.assertEqual(len(self.scenario["routes"]), 3)
+
+    def test_waypoints_route(self):
+        """All <wpt> elements must be collected into a dedicated waypoints route."""
+        wpt_route = next(r for r in self.scenario["routes"] if r["gpxType"] == "waypoints")
+        self.assertEqual(wpt_route["id"], "WPT_ROUTE")
+        self.assertEqual(wpt_route["name"], "Waypoints Route")
+        # Sample GPX has 3 <wpt> elements
+        self.assertEqual(len(wpt_route["waypoints"]), 3)
+        first = wpt_route["waypoints"][0]
+        self.assertAlmostEqual(first["lat"], 28.5000, places=4)
+        self.assertAlmostEqual(first["lon"], 77.2000, places=4)
+        self.assertAlmostEqual(first["alt"], 100.0, places=1)
 
     def test_track_route(self):
         trk = next(r for r in self.scenario["routes"] if r["gpxType"] == "track")

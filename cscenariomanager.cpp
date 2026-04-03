@@ -548,6 +548,12 @@ bool CScenarioManager::loadGpxScenario(const QString &filePath, Scenario &scenar
         scenario.objects.append(gpxWaypointToObject(wpt, i));
     }
 
+    // Also collect all <wpt> elements into a single route so they are
+    // automatically included as part of the next (first) route.
+    if (wptNodes.count() > 0) {
+        scenario.routes.append(gpxWaypointsToRoute(wptNodes));
+    }
+
     // Parse <trk> tracks as ScenarioRoutes
     QDomNodeList trkNodes = root.elementsByTagName("trk");
     for (int i = 0; i < trkNodes.count(); ++i) {
@@ -664,6 +670,29 @@ ScenarioRoute CScenarioManager::gpxRouteToScenarioRoute(const QDomElement &rteEl
         double lon = rtept.attribute("lon", "0").toDouble();
 
         QDomElement eleElem = rtept.firstChildElement("ele");
+        double alt = eleElem.isNull() ? 0.0 : eleElem.text().toDouble();
+
+        route.waypoints.append(QPointF(lat, lon));
+        route.altitudes.append(alt);
+        route.maneuverTypes.append("DIRECT");
+    }
+
+    return route;
+}
+
+ScenarioRoute CScenarioManager::gpxWaypointsToRoute(const QDomNodeList &wptNodes)
+{
+    ScenarioRoute route;
+    route.id   = "WPT_ROUTE";
+    route.name = "Waypoints Route";
+    route.additionalData["gpxType"] = "waypoints";
+
+    for (int i = 0; i < wptNodes.count(); ++i) {
+        QDomElement wpt = wptNodes.at(i).toElement();
+        double lat = wpt.attribute("lat", "0").toDouble();
+        double lon = wpt.attribute("lon", "0").toDouble();
+
+        QDomElement eleElem = wpt.firstChildElement("ele");
         double alt = eleElem.isNull() ? 0.0 : eleElem.text().toDouble();
 
         route.waypoints.append(QPointF(lat, lon));
