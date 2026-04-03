@@ -541,7 +541,7 @@ bool CScenarioManager::loadGpxScenario(const QString &filePath, Scenario &scenar
         }
     }
 
-    // Parse <wpt> waypoints as ScenarioObjects (type = "WAYPOINT")
+    // Parse <wpt> waypoints as ScenarioObjects (type = "WAYPOINT" unless overridden by <type>)
     QDomNodeList wptNodes = root.elementsByTagName("wpt");
     for (int i = 0; i < wptNodes.count(); ++i) {
         QDomElement wpt = wptNodes.at(i).toElement();
@@ -560,6 +560,25 @@ bool CScenarioManager::loadGpxScenario(const QString &filePath, Scenario &scenar
     for (int i = 0; i < rteNodes.count(); ++i) {
         QDomElement rte = rteNodes.at(i).toElement();
         scenario.routes.append(gpxRouteToScenarioRoute(rte, i));
+    }
+
+    // If the GPX contains only waypoints (no tracks or routes), synthesise a
+    // connecting route so the waypoint sequence is visible as a path on the canvas.
+    if (!scenario.objects.isEmpty() && scenario.routes.isEmpty()) {
+        ScenarioRoute syntheticRoute;
+        syntheticRoute.id   = "WPT_ROUTE_001";
+        syntheticRoute.name = scenario.name + " (waypoint path)";
+        syntheticRoute.additionalData["gpxType"] = "waypoints";
+        syntheticRoute.additionalData["type"]    = "waypoint_path";
+
+        for (const ScenarioObject &obj : scenario.objects) {
+            syntheticRoute.waypoints.append(QPointF(obj.latitude, obj.longitude));
+            syntheticRoute.altitudes.append(obj.altitude);
+            syntheticRoute.maneuverTypes.append("DIRECT");
+        }
+        scenario.routes.append(syntheticRoute);
+        qDebug() << "GPX: no tracks/routes found — synthesised connecting route from"
+                 << scenario.objects.size() << "waypoints";
     }
 
     qDebug() << "GPX loaded:" << scenario.name
