@@ -562,6 +562,29 @@ bool CScenarioManager::loadGpxScenario(const QString &filePath, Scenario &scenar
         scenario.routes.append(gpxRouteToScenarioRoute(rte, i));
     }
 
+    // If the file contains plain <wpt> waypoints (type == "WAYPOINT") that
+    // would otherwise be invisible on the map (no matching object class),
+    // automatically synthesize a route from them so they are displayed.
+    {
+        ScenarioRoute wptRoute;
+        wptRoute.id   = "WPT_ROUTE";
+        wptRoute.name = scenario.name.isEmpty() ? "Waypoints" : scenario.name;
+        wptRoute.additionalData["gpxType"] = "waypoints";
+
+        for (const ScenarioObject &obj : scenario.objects) {
+            if (obj.type == "WAYPOINT") {
+                wptRoute.waypoints.append(QPointF(obj.latitude, obj.longitude));
+                wptRoute.altitudes.append(obj.altitude);
+                wptRoute.maneuverTypes.append("DIRECT");
+            }
+        }
+
+        if (!wptRoute.waypoints.isEmpty()) {
+            scenario.routes.append(wptRoute);
+            qDebug() << "Auto-created route from" << wptRoute.waypoints.size() << "<wpt> waypoints";
+        }
+    }
+
     qDebug() << "GPX loaded:" << scenario.name
              << "- waypoints:" << scenario.objects.size()
              << "routes:" << scenario.routes.size();
