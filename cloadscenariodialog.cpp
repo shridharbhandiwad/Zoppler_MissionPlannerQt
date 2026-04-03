@@ -116,7 +116,7 @@ void CLoadScenarioDialog::on_pushButton_Browse_clicked()
         this,
         "Select Scenario File",
         _m_scenarioManager->getDefaultScenariosDirectory(),
-        "Scenario Files (*.json *.scenario);;All Files (*.*)"
+        "Scenario Files (*.json *.gpx *.scenario);;JSON Files (*.json);;GPX Files (*.gpx);;All Files (*.*)"
     );
     
     if (!filePath.isEmpty()) {
