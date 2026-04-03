@@ -1401,6 +1401,7 @@ QString CMapCanvas::getClassNameFromEnum(int nClass) {
         case VISTAR_CLASS_LAUNCHER: return "LAUNCHER";
         case VISTAR_CLASS_MISSILE: return "MISSILE";
         case VISTAR_CLASS_ROUTE: return "ROUTE";
+        case VISTAR_CLASS_WAYPOINT: return "WAYPOINT";
         default: return "UNKNOWN";
     }
 }
@@ -1414,6 +1415,7 @@ int CMapCanvas::getEnumFromClassName(const QString &className) {
     if (className == "LAUNCHER") return VISTAR_CLASS_LAUNCHER;
     if (className == "MISSILE") return VISTAR_CLASS_MISSILE;
     if (className == "ROUTE") return VISTAR_CLASS_ROUTE;
+    if (className == "WAYPOINT") return VISTAR_CLASS_WAYPOINT;
     return VISTAR_CLASS_NONE;
 }
 
