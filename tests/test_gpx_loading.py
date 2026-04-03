@@ -138,6 +138,23 @@ def parse_gpx(filepath: str) -> dict:
 
         scenario["routes"].append(route)
 
+    # Auto-synthesise a route from plain WAYPOINT objects so they appear on the
+    # map even when the GPX file contains no <trk> or <rte> elements.
+    wpt_route_pts = [
+        {"lat": o["latitude"], "lon": o["longitude"], "alt": o["altitude"]}
+        for o in scenario["objects"]
+        if o["type"] == "WAYPOINT"
+    ]
+    if wpt_route_pts:
+        scenario["routes"].append(
+            {
+                "id": "WPT_ROUTE",
+                "name": scenario["name"] if scenario["name"] else "Waypoints",
+                "gpxType": "waypoints",
+                "waypoints": wpt_route_pts,
+            }
+        )
+
     return scenario
 
 
@@ -291,6 +308,50 @@ class TestGpxParsing(unittest.TestCase):
             self.assertAlmostEqual(scenario["routes"][0]["waypoints"][0]["alt"], 0.0)
         finally:
             os.unlink(tmp_path)
+
+    def test_wpt_only_gpx_auto_route(self):
+        """A GPX with only <wpt> elements must auto-create a route from them."""
+        import tempfile
+
+        gpx_content = """<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="ChatGPT Sample Generator"
+     xmlns="http://www.topografix.com/GPX/1/1">
+  <wpt lat="12.976380" lon="77.594032"><name>WP1</name></wpt>
+  <wpt lat="12.973431" lon="77.593051"><name>WP2</name></wpt>
+  <wpt lat="12.965866" lon="77.585465"><name>WP3</name></wpt>
+  <wpt lat="12.980431" lon="77.584688"><name>WP4</name></wpt>
+  <wpt lat="12.975541" lon="77.585224"><name>WP5</name></wpt>
+</gpx>"""
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".gpx", delete=False) as f:
+            f.write(gpx_content)
+            tmp_path = f.name
+        try:
+            scenario = parse_gpx(tmp_path)
+            # All 5 wpts are parsed as WAYPOINT-type objects
+            self.assertEqual(len(scenario["objects"]), 5)
+            for obj in scenario["objects"]:
+                self.assertEqual(obj["type"], "WAYPOINT")
+            # An auto-synthesised route must be present
+            self.assertEqual(len(scenario["routes"]), 1)
+            auto_route = scenario["routes"][0]
+            self.assertEqual(auto_route["id"], "WPT_ROUTE")
+            self.assertEqual(auto_route["gpxType"], "waypoints")
+            self.assertEqual(len(auto_route["waypoints"]), 5)
+            # First waypoint coordinates
+            self.assertAlmostEqual(auto_route["waypoints"][0]["lat"], 12.976380, places=5)
+            self.assertAlmostEqual(auto_route["waypoints"][0]["lon"], 77.594032, places=5)
+            # Last waypoint coordinates
+            self.assertAlmostEqual(auto_route["waypoints"][-1]["lat"], 12.975541, places=5)
+            self.assertAlmostEqual(auto_route["waypoints"][-1]["lon"], 77.585224, places=5)
+        finally:
+            os.unlink(tmp_path)
+
+    def test_mixed_gpx_no_duplicate_route(self):
+        """A GPX with known-type wpts (RADAR etc.) must NOT add an auto wpt route."""
+        # The sample GPX has RADAR/LAUNCHER/FIGHTER wpts + 1 rte + 1 trk = 2 routes.
+        scenario = self.__class__.scenario
+        wpt_routes = [r for r in scenario["routes"] if r.get("gpxType") == "waypoints"]
+        self.assertEqual(len(wpt_routes), 0, "Known-type wpts must not trigger auto-route")
 
 
 if __name__ == "__main__":
