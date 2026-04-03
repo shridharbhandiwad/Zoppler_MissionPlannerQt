@@ -9,6 +9,7 @@
 #include <QList>
 #include <QMap>
 #include <QPointF>
+#include <QDomDocument>
 
 // Structure to hold object data
 struct ScenarioObject {
@@ -83,6 +84,12 @@ private:
     ScenarioObject jsonToObject(const QJsonObject &json);
     QJsonObject routeToJson(const ScenarioRoute &route);
     ScenarioRoute jsonToRoute(const QJsonObject &json);
+
+    // GPX helpers
+    bool loadGpxScenario(const QString &filePath, Scenario &scenario);
+    ScenarioRoute gpxTrackToRoute(const QDomElement &trkElement, int routeIndex);
+    ScenarioRoute gpxRouteToScenarioRoute(const QDomElement &rteElement, int routeIndex);
+    ScenarioObject gpxWaypointToObject(const QDomElement &wptElement, int wptIndex);
 };
 
 #endif // CSCENARIOMANAGER_H

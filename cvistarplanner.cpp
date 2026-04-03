@@ -429,7 +429,7 @@ void CVistarPlanner::on_pushButton_LoadScenario_clicked()
         this,
         "Load Scenario",
         "",
-        "JSON Files (*.json)"
+        "Scenario Files (*.json *.gpx *.scenario);;JSON Files (*.json);;GPX Files (*.gpx);;All Files (*.*)"
         );
 
     if(filePath.isEmpty())

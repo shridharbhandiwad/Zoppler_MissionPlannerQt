@@ -1,9 +1,13 @@
 #include "cscenariomanager.h"
 #include <QFile>
 #include <QDir>
+#include <QFileInfo>
 #include <QStandardPaths>
 #include <QDateTime>
 #include <QDebug>
+#include <QDomDocument>
+#include <QDomElement>
+#include <QDomNodeList>
 
 CScenarioManager::CScenarioManager(QObject *parent)
     : QObject(parent)
@@ -64,6 +68,16 @@ bool CScenarioManager::saveScenario(const Scenario &scenario, const QString &fil
 
 bool CScenarioManager::loadScenario(const QString &filePath, Scenario &scenario)
 {
+    QFileInfo fi(filePath);
+    if (fi.suffix().toLower() == "gpx") {
+        bool ok = loadGpxScenario(filePath, scenario);
+        if (ok) {
+            emit scenarioLoaded(scenario);
+            qDebug() << "GPX scenario loaded successfully:" << filePath;
+        }
+        return ok;
+    }
+
     QFile file(filePath);
     if (!file.open(QIODevice::ReadOnly)) {
         emit error("Failed to open file for reading: " + filePath);
@@ -98,7 +112,7 @@ QStringList CScenarioManager::getAvailableScenarios(const QString &directory)
     QDir dir(searchDir);
     
     QStringList filters;
-    filters << "*.json" << "*.scenario";
+    filters << "*.json" << "*.scenario" << "*.gpx";
     
     QStringList files = dir.entryList(filters, QDir::Files, QDir::Name);
     return files;
@@ -466,4 +480,196 @@ Scenario CScenarioManager::createSampleScenario3()
     scenario.metadata["threatLevel"] = "high";
     
     return scenario;
+}
+
+// ============ GPX Parsing ============
+
+bool CScenarioManager::loadGpxScenario(const QString &filePath, Scenario &scenario)
+{
+    QFile file(filePath);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        emit error("Failed to open GPX file for reading: " + filePath);
+        return false;
+    }
+
+    QDomDocument doc;
+    QString parseErrorMsg;
+    int parseErrorLine = 0;
+    int parseErrorCol = 0;
+    if (!doc.setContent(&file, &parseErrorMsg, &parseErrorLine, &parseErrorCol)) {
+        file.close();
+        emit error(QString("GPX XML parse error at line %1, col %2: %3")
+                       .arg(parseErrorLine).arg(parseErrorCol).arg(parseErrorMsg));
+        return false;
+    }
+    file.close();
+
+    QDomElement root = doc.documentElement();
+    if (root.tagName() != "gpx") {
+        emit error("Not a valid GPX file: root element is <" + root.tagName() + ">");
+        return false;
+    }
+
+    // Populate scenario metadata from GPX metadata element
+    QFileInfo fi(filePath);
+    scenario.name = fi.baseName();
+    scenario.description = "";
+    scenario.createdDate = QDateTime::currentDateTime().toString(Qt::ISODate);
+    scenario.metadata["source"] = "gpx";
+    scenario.metadata["gpxVersion"] = root.attribute("version", "1.1");
+
+    QDomElement metaElem = root.firstChildElement("metadata");
+    if (!metaElem.isNull()) {
+        QDomElement nameElem = metaElem.firstChildElement("name");
+        if (!nameElem.isNull())
+            scenario.name = nameElem.text().trimmed();
+
+        QDomElement descElem = metaElem.firstChildElement("desc");
+        if (!descElem.isNull())
+            scenario.description = descElem.text().trimmed();
+
+        QDomElement timeElem = metaElem.firstChildElement("time");
+        if (!timeElem.isNull())
+            scenario.createdDate = timeElem.text().trimmed();
+
+        QDomElement authorElem = metaElem.firstChildElement("author");
+        if (!authorElem.isNull()) {
+            QDomElement authorName = authorElem.firstChildElement("name");
+            scenario.metadata["author"] = authorName.isNull()
+                                              ? authorElem.text().trimmed()
+                                              : authorName.text().trimmed();
+        }
+    }
+
+    // Parse <wpt> waypoints as ScenarioObjects (type = "WAYPOINT")
+    QDomNodeList wptNodes = root.elementsByTagName("wpt");
+    for (int i = 0; i < wptNodes.count(); ++i) {
+        QDomElement wpt = wptNodes.at(i).toElement();
+        scenario.objects.append(gpxWaypointToObject(wpt, i));
+    }
+
+    // Parse <trk> tracks as ScenarioRoutes
+    QDomNodeList trkNodes = root.elementsByTagName("trk");
+    for (int i = 0; i < trkNodes.count(); ++i) {
+        QDomElement trk = trkNodes.at(i).toElement();
+        scenario.routes.append(gpxTrackToRoute(trk, i));
+    }
+
+    // Parse <rte> routes as ScenarioRoutes
+    QDomNodeList rteNodes = root.elementsByTagName("rte");
+    for (int i = 0; i < rteNodes.count(); ++i) {
+        QDomElement rte = rteNodes.at(i).toElement();
+        scenario.routes.append(gpxRouteToScenarioRoute(rte, i));
+    }
+
+    qDebug() << "GPX loaded:" << scenario.name
+             << "- waypoints:" << scenario.objects.size()
+             << "routes:" << scenario.routes.size();
+    return true;
+}
+
+ScenarioObject CScenarioManager::gpxWaypointToObject(const QDomElement &wptElement, int wptIndex)
+{
+    ScenarioObject obj;
+    obj.latitude  = wptElement.attribute("lat", "0").toDouble();
+    obj.longitude = wptElement.attribute("lon", "0").toDouble();
+
+    QDomElement eleElem = wptElement.firstChildElement("ele");
+    obj.altitude = eleElem.isNull() ? 0.0 : eleElem.text().toDouble();
+
+    QDomElement nameElem = wptElement.firstChildElement("name");
+    QString wptName = nameElem.isNull()
+                          ? QString("WPT_%1").arg(wptIndex + 1, 3, 10, QChar('0'))
+                          : nameElem.text().trimmed();
+
+    QDomElement typeElem = wptElement.firstChildElement("type");
+    QString wptType = typeElem.isNull() ? "WAYPOINT" : typeElem.text().trimmed().toUpper();
+
+    obj.id   = wptName;
+    obj.type = wptType;
+
+    QDomElement symElem = wptElement.firstChildElement("sym");
+    if (!symElem.isNull())
+        obj.additionalData["sym"] = symElem.text().trimmed();
+
+    QDomElement descElem = wptElement.firstChildElement("desc");
+    if (!descElem.isNull())
+        obj.additionalData["desc"] = descElem.text().trimmed();
+
+    QDomElement cmtElem = wptElement.firstChildElement("cmt");
+    if (!cmtElem.isNull())
+        obj.additionalData["cmt"] = cmtElem.text().trimmed();
+
+    return obj;
+}
+
+ScenarioRoute CScenarioManager::gpxTrackToRoute(const QDomElement &trkElement, int routeIndex)
+{
+    ScenarioRoute route;
+
+    QDomElement nameElem = trkElement.firstChildElement("name");
+    route.name = nameElem.isNull()
+                     ? QString("Track_%1").arg(routeIndex + 1)
+                     : nameElem.text().trimmed();
+
+    QDomElement typeElem = trkElement.firstChildElement("type");
+    QString trkType = typeElem.isNull() ? "track" : typeElem.text().trimmed();
+
+    route.id = QString("TRK_%1").arg(routeIndex + 1, 3, 10, QChar('0'));
+    route.additionalData["gpxType"] = "track";
+    route.additionalData["type"]    = trkType;
+
+    // Collect all trkpt elements across all trkseg children
+    QDomNodeList trksegs = trkElement.elementsByTagName("trkseg");
+    for (int s = 0; s < trksegs.count(); ++s) {
+        QDomElement trkseg = trksegs.at(s).toElement();
+        QDomNodeList trkpts = trkseg.elementsByTagName("trkpt");
+        for (int p = 0; p < trkpts.count(); ++p) {
+            QDomElement trkpt = trkpts.at(p).toElement();
+            double lat = trkpt.attribute("lat", "0").toDouble();
+            double lon = trkpt.attribute("lon", "0").toDouble();
+
+            QDomElement eleElem = trkpt.firstChildElement("ele");
+            double alt = eleElem.isNull() ? 0.0 : eleElem.text().toDouble();
+
+            route.waypoints.append(QPointF(lat, lon));
+            route.altitudes.append(alt);
+            route.maneuverTypes.append("DIRECT");
+        }
+    }
+
+    return route;
+}
+
+ScenarioRoute CScenarioManager::gpxRouteToScenarioRoute(const QDomElement &rteElement, int routeIndex)
+{
+    ScenarioRoute route;
+
+    QDomElement nameElem = rteElement.firstChildElement("name");
+    route.name = nameElem.isNull()
+                     ? QString("Route_%1").arg(routeIndex + 1)
+                     : nameElem.text().trimmed();
+
+    QDomElement typeElem = rteElement.firstChildElement("type");
+    QString rteType = typeElem.isNull() ? "route" : typeElem.text().trimmed();
+
+    route.id = QString("RTE_%1").arg(routeIndex + 1, 3, 10, QChar('0'));
+    route.additionalData["gpxType"] = "route";
+    route.additionalData["type"]    = rteType;
+
+    QDomNodeList rtepts = rteElement.elementsByTagName("rtept");
+    for (int p = 0; p < rtepts.count(); ++p) {
+        QDomElement rtept = rtepts.at(p).toElement();
+        double lat = rtept.attribute("lat", "0").toDouble();
+        double lon = rtept.attribute("lon", "0").toDouble();
+
+        QDomElement eleElem = rtept.firstChildElement("ele");
+        double alt = eleElem.isNull() ? 0.0 : eleElem.text().toDouble();
+
+        route.waypoints.append(QPointF(lat, lon));
+        route.altitudes.append(alt);
+        route.maneuverTypes.append("DIRECT");
+    }
+
+    return route;
 }
