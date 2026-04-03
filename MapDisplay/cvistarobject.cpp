@@ -56,6 +56,8 @@ CVistarObject::CVistarObject(QgsMapCanvas *canvas,QString sObjectID,
         break;
     case VISTAR_CLASS_MISSILE : strPath = ":/icons/cursor/missile.png"; _m_dAlt = 0;
         break;
+    case VISTAR_CLASS_WAYPOINT : strPath = ":/icons/cursor/waypoint.png"; nSize = 32; _m_dAlt = 0;
+        break;
     }
     _m_nImageSize = nSize;
     _m_Image = QImage(strPath).scaledToWidth(nSize,Qt::SmoothTransformation);
@@ -274,6 +276,8 @@ QString CVistarObject::getClassAsString() {
     case VISTAR_CLASS_LAUNCHER : sClass = "launcher";
         break;
     case VISTAR_CLASS_MISSILE : sClass = "missile";
+        break;
+    case VISTAR_CLASS_WAYPOINT : sClass = "waypoint";
         break;
     }
     return sClass;
