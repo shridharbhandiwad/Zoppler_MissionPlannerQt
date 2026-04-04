@@ -5,8 +5,12 @@
 #include <QMenu>
 #include <QActionGroup>
 #include <QSettings>
+#include <QMap>
 #include "cnetworkinterface.h"
 #include "cpathsettingsdialog.h"
+#include "RadarView/radarmanager.h"
+#include "RadarView/radarlistpanel.h"
+#include "RadarView/radardockwidget.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -44,7 +48,15 @@ private:
 
     CNetworkInterface *_m_networkInterface;
     CPathSettingsDialog *_m_pathSettingsDialog;
-    
+
+    // ── Radar View ─────────────────────────────────────────────────────
+    RadarManager     *_m_radarManager;
+    RadarListPanel   *_m_radarListPanel;
+    QDockWidget      *_m_radarListDock;
+    QMap<int, RadarDockWidget*> _m_radarDocks;  // radarId → dock
+
+    void setupRadarView();
+
     // Menus for toolbar buttons
     QMenu *_m_scenarioMenu;
     QMenu *_m_pathMenu;
@@ -83,8 +95,13 @@ private slots :
     // Theme slots
     void onDarkThemeTriggered();
     void onLightThemeTriggered();
-    
+
     // Object placement actions
     void onAddObjectTriggered(QAction *action);
+
+    // Radar View slots
+    void onRadarViewTriggered();
+    void onRadarSelected(int radarId);
+    void onRadarDockClosed(int radarId);
 };
 #endif // CVISTARPLANNER_H
