@@ -24,18 +24,16 @@ RadarDockWidget::RadarDockWidget(const RadarView::Radar &radar, QWidget *parent)
 
     setStyleSheet(R"(
 QDockWidget {
-    color: #00ff88;
+    color: #f0f0f0;
     font-weight: bold;
     font-size: 11px;
     background-color: #0a0f14;
-    border: 1px solid #003322;
-    titlebar-close-icon: url(none);
-    titlebar-normal-icon: url(none);
+    border: 1px solid #5a5a6a;
 }
 QDockWidget::title {
-    background-color: #0d1a12;
+    background-color: #48485a;
     padding: 6px 10px;
-    border-bottom: 1px solid #003322;
+    border-bottom: 1px solid #5a5a6a;
     text-align: left;
 }
 QDockWidget::close-button,
@@ -46,7 +44,7 @@ QDockWidget::float-button {
 }
 QDockWidget::close-button:hover,
 QDockWidget::float-button:hover {
-    background: rgba(0,255,136,0.15);
+    background: rgba(74, 144, 217, 0.25);
     border-radius: 3px;
 }
 )");

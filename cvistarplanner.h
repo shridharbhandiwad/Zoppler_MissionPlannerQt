@@ -53,7 +53,9 @@ private:
     RadarManager     *_m_radarManager;
     RadarListPanel   *_m_radarListPanel;
     QDockWidget      *_m_radarListDock;
-    QMap<int, RadarDockWidget*> _m_radarDocks;  // radarId → dock
+    QMap<int, RadarDockWidget*> _m_radarDocks;       // radarId → dock
+    QMap<QString, int> _m_radarObjectIdToIntId;      // objectId → radarId
+    int               _m_nextRadarIntId = 1;
 
     void setupRadarView();
 
@@ -103,5 +105,9 @@ private slots :
     void onRadarViewTriggered();
     void onRadarSelected(int radarId);
     void onRadarDockClosed(int radarId);
+    // Called when the map canvas places/loads a radar object.
+    void onRadarObjectPlaced(QString radarObjectId, double maxRangeKm);
+    // Called when the scenario is cleared/reset.
+    void onScenarioObjectsCleared();
 };
 #endif // CVISTARPLANNER_H
