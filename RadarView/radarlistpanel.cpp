@@ -5,19 +5,19 @@
 
 static const QString kPanelStyle = R"(
 QWidget#RadarListPanel {
-    background-color: #1e1e2a;
-    border-right: 1px solid #2e3a4a;
+    background-color: #3a3a44;
+    border-right: 1px solid #5a5a6a;
 }
 QLabel#titleLabel {
-    color: #00ff88;
-    font-size: 13px;
+    color: #f0f0f0;
+    font-size: 12px;
     font-weight: bold;
     padding: 8px 12px;
-    background-color: #12121c;
-    border-bottom: 1px solid #2e3a4a;
+    background-color: #48485a;
+    border-bottom: 1px solid #5a5a6a;
 }
 QListWidget {
-    background-color: #1a1a28;
+    background-color: #3a3a44;
     border: none;
     color: #d0d8e8;
     font-size: 11px;
@@ -25,20 +25,20 @@ QListWidget {
 }
 QListWidget::item {
     padding: 10px 12px;
-    border-bottom: 1px solid #2a2a3a;
+    border-bottom: 1px solid #4a4a58;
 }
 QListWidget::item:selected {
-    background-color: #1a4a3a;
-    color: #00ff88;
-    border-left: 3px solid #00ff88;
+    background-color: #2a5080;
+    color: #ffffff;
+    border-left: 3px solid #4a90d9;
 }
 QListWidget::item:hover {
-    background-color: #252538;
+    background-color: #44445a;
 }
 QPushButton#openButton {
-    background-color: #1a4a3a;
-    color: #00ff88;
-    border: 1px solid #00aa55;
+    background-color: #4a90d9;
+    color: #ffffff;
+    border: 1px solid #5aa0e9;
     border-radius: 4px;
     padding: 8px 16px;
     font-weight: bold;
@@ -46,11 +46,11 @@ QPushButton#openButton {
     margin: 8px;
 }
 QPushButton#openButton:hover {
-    background-color: #206040;
-    border-color: #00ff88;
+    background-color: #5aa0e9;
+    border-color: #7ab8f5;
 }
 QPushButton#openButton:pressed {
-    background-color: #0a3020;
+    background-color: #3a7bc8;
 }
 )";
 
@@ -111,7 +111,7 @@ void RadarListPanel::populateList()
 
         // Colour-code by status
         if (radar.active) {
-            item->setForeground(QColor("#00ff88"));
+            item->setForeground(QColor("#7ab8f5"));
         } else {
             item->setForeground(QColor("#888899"));
             QFont f = item->font();

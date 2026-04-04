@@ -441,7 +441,7 @@ QStatusBar {
    </property>
    <property name="icon">
     <iconset resource="myRes.qrc">
-     <normaloff>:/icons/radar.png</normaloff>:/icons/radar.png</iconset>
+     <normaloff>:/icons/toolbar/radar_view.svg</normaloff>:/icons/toolbar/radar_view.svg</iconset>
    </property>
    <property name="text">
     <string>Radar View</string>

@@ -148,6 +148,12 @@ signals:
     void signalPathGenerationStarted(eVISTAR_PATH_TYPE pathType);
     void signalPathGenerationCompleted(QString routeId);
     void signalPathGenerationCancelled();
+    // Emitted whenever a RADAR object is placed/loaded on the canvas.
+    // radarObjectId – the object's string ID (e.g. "RADAR_1")
+    // maxRangeKm    – parsed range from additionalData, or 0 if not present
+    void signalRadarObjectAdded(QString radarObjectId, double maxRangeKm);
+    // Emitted when all objects are cleared (scenario reset).
+    void signalScenarioCleared();
 public slots:
     void slotUpdateObject(QJsonDocument doc);
     void slotUpdatePosition(QString, double dLat, double dLon, double dAlt);

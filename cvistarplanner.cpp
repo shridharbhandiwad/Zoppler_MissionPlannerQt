@@ -280,6 +280,12 @@ void CVistarPlanner::setupConnections()
     connect(ui->action_ImportMap, &QAction::triggered, this, &CVistarPlanner::onImportMapTriggered);
     connect(ui->action_Settings, &QAction::triggered, this, &CVistarPlanner::onSettingsTriggered);
     connect(ui->action_RadarView, &QAction::triggered, this, &CVistarPlanner::onRadarViewTriggered);
+
+    // Link canvas radar objects to RadarManager so PPI docks reflect real scenario data.
+    connect(ui->mapCanvas, &CMapCanvas::signalRadarObjectAdded,
+            this, &CVistarPlanner::onRadarObjectPlaced);
+    connect(ui->mapCanvas, &CMapCanvas::signalScenarioCleared,
+            this, &CVistarPlanner::onScenarioObjectsCleared);
 }
 
 CVistarPlanner::~CVistarPlanner()
@@ -809,16 +815,16 @@ void CVistarPlanner::setupRadarView()
     _m_radarListDock->setWidget(_m_radarListPanel);
     _m_radarListDock->setStyleSheet(R"(
 QDockWidget {
-    color: #00ff88;
+    color: #f0f0f0;
     font-weight: bold;
     font-size: 11px;
-    background-color: #0a0f14;
-    border: 1px solid #003322;
+    background-color: #3a3a44;
+    border: 1px solid #5a5a6a;
 }
 QDockWidget::title {
-    background-color: #0d1a12;
+    background-color: #48485a;
     padding: 6px 10px;
-    border-bottom: 1px solid #003322;
+    border-bottom: 1px solid #5a5a6a;
     text-align: left;
 }
 )");
@@ -887,4 +893,28 @@ void CVistarPlanner::onRadarDockClosed(int radarId)
 {
     // Remove from map but don't delete yet — Qt parent will handle memory
     _m_radarDocks.remove(radarId);
+}
+
+void CVistarPlanner::onRadarObjectPlaced(QString radarObjectId, double maxRangeKm)
+{
+    if (_m_radarObjectIdToIntId.contains(radarObjectId))
+        return; // already registered
+
+    int id = _m_nextRadarIntId++;
+    _m_radarObjectIdToIntId.insert(radarObjectId, id);
+    _m_radarManager->addRadar(id, radarObjectId, maxRangeKm);
+}
+
+void CVistarPlanner::onScenarioObjectsCleared()
+{
+    // Close any open PPI docks
+    for (auto *dock : _m_radarDocks) {
+        dock->hide();
+        dock->deleteLater();
+    }
+    _m_radarDocks.clear();
+
+    _m_radarObjectIdToIntId.clear();
+    _m_nextRadarIntId = 1;
+    _m_radarManager->clearAll();
 }

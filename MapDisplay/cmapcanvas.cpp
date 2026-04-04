@@ -892,6 +892,10 @@ void CMapCanvas::mouseReleaseEvent(QMouseEvent *event)
                 _m_listVistarObjectIds.append(sObjectId);
                 qDebug()<<"VISTAR object added, ID= "<<sObjectId;
 
+                if (_m_nCurrentObjectClassForLoading == VISTAR_CLASS_RADAR) {
+                    emit signalRadarObjectAdded(sObjectId, 0.0);
+                }
+
                 if (_m_nCurrentObjectClassForLoading == VISTAR_CLASS_LAUNCHER ||
                     _m_nCurrentObjectClassForLoading == VISTAR_CLASS_FIGHTER  ||
                     _m_nCurrentObjectClassForLoading == VISTAR_CLASS_UAV) {
@@ -1499,12 +1503,15 @@ void CMapCanvas::resetScenario() {
     
     // Refresh the canvas to show the cleared state
     refresh();
-    
+
+    emit signalScenarioCleared();
     qDebug() << "Scenario reset complete";
 }
 
 void CMapCanvas::loadScenarioToCanvas(const Scenario &scenario) {
-    // Clear existing objects and routes
+    // Notify that existing scenario is being replaced before clearing.
+    emit signalScenarioCleared();
+
     qDebug() << "Loading scenario:" << scenario.name;
     
     // Clear existing routes
@@ -1568,6 +1575,13 @@ void CMapCanvas::loadScenarioToCanvas(const Scenario &scenario) {
         
         _m_listVistarObjects.insert(obj.id, vistarObject);
         _m_listVistarObjectIds.append(obj.id);
+
+        if (nClass == VISTAR_CLASS_RADAR) {
+            double rangeKm = 0.0;
+            if (obj.additionalData.contains("range"))
+                rangeKm = obj.additionalData["range"].toDouble() / 1000.0; // metres → km
+            emit signalRadarObjectAdded(obj.id, rangeKm);
+        }
         
         qDebug() << "Loaded object:" << obj.id << "at" << obj.latitude << "," << obj.longitude;
         
