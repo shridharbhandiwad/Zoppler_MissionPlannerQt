@@ -220,6 +220,8 @@ QStatusBar {
    <addaction name="action_Stop"/>
    <addaction name="separator"/>
    <addaction name="action_Settings"/>
+   <addaction name="separator"/>
+   <addaction name="action_RadarView"/>
   </widget>
   <widget class="QStatusBar" name="statusBar">
    <property name="font">
@@ -431,6 +433,21 @@ QStatusBar {
    </property>
    <property name="toolTip">
     <string>Application Settings</string>
+   </property>
+  </action>
+  <action name="action_RadarView">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="myRes.qrc">
+     <normaloff>:/icons/radar.png</normaloff>:/icons/radar.png</iconset>
+   </property>
+   <property name="text">
+    <string>Radar View</string>
+   </property>
+   <property name="toolTip">
+    <string>Radar View — Open PPI display</string>
    </property>
   </action>
  </widget>

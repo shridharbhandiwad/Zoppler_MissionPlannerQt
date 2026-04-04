@@ -44,6 +44,10 @@ SOURCES += \
     MapDisplay/cvistarobject.cpp \
     MapDisplay/cvistarroute.cpp \
     MapDisplay/qgspointxyz.cpp \
+    RadarView/radarmanager.cpp \
+    RadarView/radarlistpanel.cpp \
+    RadarView/radarppiwidget.cpp \
+    RadarView/radardockwidget.cpp \
     cloadscenariodialog.cpp \
     cnetworkinterface.cpp \
     cpathsettingsdialog.cpp \
@@ -61,6 +65,10 @@ HEADERS += \
     MapDisplay/cvistarobject.h \
     MapDisplay/cvistarroute.h \
     MapDisplay/qgspointxyz.h \
+    RadarView/radarmanager.h \
+    RadarView/radarlistpanel.h \
+    RadarView/radarppiwidget.h \
+    RadarView/radardockwidget.h \
     cloadscenariodialog.h \
     cnetworkinterface.h \
     cpathsettingsdialog.h \
