@@ -1270,9 +1270,9 @@ void CMapCanvas::showContextMenu(QPoint pos) {
             QAction* actionUpdate = menuObject->addAction("Update");
             actionUpdate->setObjectName(vistarObject->getObjectId());
 
-            // "Attributes" entry for RADAR objects
-            if (vistarObject->getClassAsString() == "RADAR") {
-                QAction* actionAttribs = menuObject->addAction("Attributes");
+            // "Change Attributes" entry for RADAR objects
+            if (vistarObject->getClassAsString() == "radar") {
+                QAction* actionAttribs = menuObject->addAction("Change Attributes");
                 actionAttribs->setObjectName(vistarObject->getObjectId());
             }
 
@@ -1317,7 +1317,7 @@ void CMapCanvas::showContextMenu(QPoint pos) {
             qDebug()<<selected->text()<<selected->objectName();
             CVistarObject* object = getVistarObjectById(selected->objectName());
             if (object) {
-                if ( selected->text() == "Attributes") {
+                if ( selected->text() == "Change Attributes") {
                     emit signalOpenRadarAttributes(selected->objectName());
                 }
                 else if ( selected->text() == "Update") {
