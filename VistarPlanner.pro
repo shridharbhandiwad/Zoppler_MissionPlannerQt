@@ -48,6 +48,7 @@ SOURCES += \
     RadarView/radarlistpanel.cpp \
     RadarView/radarppiwidget.cpp \
     RadarView/radardockwidget.cpp \
+    RadarView/radarattributesdialog.cpp \
     cloadscenariodialog.cpp \
     cnetworkinterface.cpp \
     cpathsettingsdialog.cpp \
@@ -65,6 +66,8 @@ HEADERS += \
     MapDisplay/cvistarobject.h \
     MapDisplay/cvistarroute.h \
     MapDisplay/qgspointxyz.h \
+    RadarView/radarattributes.h \
+    RadarView/radarattributesdialog.h \
     RadarView/radarmanager.h \
     RadarView/radarlistpanel.h \
     RadarView/radarppiwidget.h \
