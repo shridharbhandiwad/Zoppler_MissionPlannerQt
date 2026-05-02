@@ -49,6 +49,7 @@ SOURCES += \
     RadarView/radarlistpanel.cpp \
     RadarView/radarppiwidget.cpp \
     RadarView/radardockwidget.cpp \
+    cclutterparamsdialog.cpp \
     cloadscenariodialog.cpp \
     cnetworkinterface.cpp \
     cpathsettingsdialog.cpp \
@@ -72,6 +73,7 @@ HEADERS += \
     RadarView/radarlistpanel.h \
     RadarView/radarppiwidget.h \
     RadarView/radardockwidget.h \
+    cclutterparamsdialog.h \
     cloadscenariodialog.h \
     cnetworkinterface.h \
     cpathsettingsdialog.h \

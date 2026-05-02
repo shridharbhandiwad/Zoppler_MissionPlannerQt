@@ -8,6 +8,10 @@
         <file>icons/cursor/route.png</file>
         <file>icons/cursor/uav.png</file>
         <file>icons/cursor/drone_swarm.png</file>
+        <file>icons/cursor/jammer.png</file>
+        <file>icons/cursor/clutter.png</file>
+        <file>icons/cursor/clutter_density.png</file>
+        <file>icons/cursor/rf_detector.png</file>
         <file>icons/toolbar/scenario.svg</file>
         <file>icons/toolbar/path.svg</file>
         <file>icons/toolbar/map.svg</file>
@@ -16,6 +20,10 @@
         <file>icons/toolbar/stop.svg</file>
         <file>icons/toolbar/settings.svg</file>
         <file>icons/toolbar/radar_view.svg</file>
+        <file>icons/toolbar/jammer.svg</file>
+        <file>icons/toolbar/clutter.svg</file>
+        <file>icons/toolbar/clutter_density.svg</file>
+        <file>icons/toolbar/rf_detector.svg</file>
         <file>icons/drone.png</file>
         <file>icons/drone_swarm.png</file>
         <file>icons/fighter.png</file>
@@ -24,5 +32,9 @@
         <file>icons/launcher.png</file>
         <file>icons/missile.png</file>
         <file>icons/route.png</file>
+        <file>icons/jammer.png</file>
+        <file>icons/clutter.png</file>
+        <file>icons/clutter_density.png</file>
+        <file>icons/rf_detector.png</file>
     </qresource>
 </RCC>

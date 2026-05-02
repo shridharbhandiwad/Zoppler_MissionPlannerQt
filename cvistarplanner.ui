@@ -214,6 +214,10 @@ QStatusBar {
    <addaction name="action_AddLauncher"/>
    <addaction name="action_AddMissile"/>
    <addaction name="action_AddRoute"/>
+   <addaction name="action_AddJammer"/>
+   <addaction name="action_AddClutter"/>
+   <addaction name="action_AddClutterDensity"/>
+   <addaction name="action_AddRFDetector"/>
    <addaction name="separator"/>
    <addaction name="action_Initialize"/>
    <addaction name="action_Start"/>
@@ -448,6 +452,66 @@ QStatusBar {
    </property>
    <property name="toolTip">
     <string>Radar View — Open PPI display</string>
+   </property>
+  </action>
+  <action name="action_AddJammer">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="myRes.qrc">
+     <normaloff>:/icons/jammer.png</normaloff>:/icons/jammer.png</iconset>
+   </property>
+   <property name="text">
+    <string>Jammer</string>
+   </property>
+   <property name="toolTip">
+    <string>Add Jammer</string>
+   </property>
+  </action>
+  <action name="action_AddClutter">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="myRes.qrc">
+     <normaloff>:/icons/clutter.png</normaloff>:/icons/clutter.png</iconset>
+   </property>
+   <property name="text">
+    <string>Clutter</string>
+   </property>
+   <property name="toolTip">
+    <string>Add Clutter</string>
+   </property>
+  </action>
+  <action name="action_AddClutterDensity">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="myRes.qrc">
+     <normaloff>:/icons/clutter_density.png</normaloff>:/icons/clutter_density.png</iconset>
+   </property>
+   <property name="text">
+    <string>Clutter Density</string>
+   </property>
+   <property name="toolTip">
+    <string>Add Clutter Density</string>
+   </property>
+  </action>
+  <action name="action_AddRFDetector">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="myRes.qrc">
+     <normaloff>:/icons/rf_detector.png</normaloff>:/icons/rf_detector.png</iconset>
+   </property>
+   <property name="text">
+    <string>RF Detector</string>
+   </property>
+   <property name="toolTip">
+    <string>Add RF Detector</string>
    </property>
   </action>
  </widget>

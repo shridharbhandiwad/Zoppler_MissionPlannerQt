@@ -15,6 +15,7 @@
 #include "../cupdateposition.h"
 #include "../cupdateroute.h"
 #include "../cscenariomanager.h"
+#include "../cclutterparamsdialog.h"
 
 class CMapCanvas : public QgsMapCanvas
 {

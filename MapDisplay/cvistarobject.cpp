@@ -57,6 +57,14 @@ CVistarObject::CVistarObject(QgsMapCanvas *canvas,QString sObjectID,
         break;
     case VISTAR_CLASS_MISSILE : strPath = ":/icons/cursor/missile.png"; _m_dAlt = 0;
         break;
+    case VISTAR_CLASS_JAMMER : strPath = ":/icons/cursor/jammer.png"; nSize = 44; _m_dAlt = 0;
+        break;
+    case VISTAR_CLASS_CLUTTER : strPath = ":/icons/cursor/clutter.png"; nSize = 44; _m_dAlt = 0;
+        break;
+    case VISTAR_CLASS_CLUTTER_DENSITY : strPath = ":/icons/cursor/clutter_density.png"; nSize = 44; _m_dAlt = 0;
+        break;
+    case VISTAR_CLASS_RF_DETECTOR : strPath = ":/icons/cursor/rf_detector.png"; nSize = 44; _m_dAlt = 0;
+        break;
     }
     _m_nImageSize = nSize;
     _m_Image = QImage(strPath).scaledToWidth(nSize,Qt::SmoothTransformation);
@@ -276,6 +284,14 @@ QString CVistarObject::getClassAsString() {
         break;
     case VISTAR_CLASS_MISSILE : sClass = "missile";
         break;
+    case VISTAR_CLASS_JAMMER : sClass = "jammer";
+        break;
+    case VISTAR_CLASS_CLUTTER : sClass = "clutter";
+        break;
+    case VISTAR_CLASS_CLUTTER_DENSITY : sClass = "clutter_density";
+        break;
+    case VISTAR_CLASS_RF_DETECTOR : sClass = "rf_detector";
+        break;
     }
     return sClass;
 }
@@ -410,6 +426,55 @@ void CVistarObject::TransmitSelfInfo() {
         jsonRoot["parameters"] = _m_radarPhysics.toJson();
     }
 
+    // Jammer parameters
+    if (_m_nClass == VISTAR_CLASS_JAMMER) {
+        QJsonObject params;
+        params["tx_power"]  = _m_jammerParams.txPowerW;
+        params["gain"]      = _m_jammerParams.gainDbi;
+        params["bandwidth"] = _m_jammerParams.bandwidthHz;
+        params["loss"]      = _m_jammerParams.lossDb;
+        jsonRoot["parameters"] = params;
+    }
+
+    // Clutter parameters
+    if (_m_nClass == VISTAR_CLASS_CLUTTER) {
+        QJsonObject params;
+        params["TYPE"]             = _m_clutterParams.type;
+        params["RADIUS_M"]         = _m_clutterParams.radiusM;
+        params["SIGMA0_DB"]        = _m_clutterParams.sigma0Db;
+        params["SURFACE_TYPE"]     = _m_clutterParams.surfaceType;
+        params["STAT_MODEL"]       = _m_clutterParams.statModel;
+        params["WEIBULL_C"]        = _m_clutterParams.weibullC;
+        params["WIND_SPEED_MS"]    = _m_clutterParams.windSpeedMs;
+        params["WIND_DIR_DEG"]     = _m_clutterParams.windDirDeg;
+        params["DOPPLER_SPREAD_MS"] = _m_clutterParams.dopplerSpreadMs;
+        jsonRoot["parameters"] = params;
+    }
+
+    // Clutter Density parameters
+    if (_m_nClass == VISTAR_CLASS_CLUTTER_DENSITY) {
+        QJsonObject params;
+        params["preset"]         = _m_clutterDensityParams.preset;
+        params["ground_patches"] = _m_clutterDensityParams.groundPatches;
+        params["rain_patches"]   = _m_clutterDensityParams.rainPatches;
+        params["cells_scale"]    = _m_clutterDensityParams.cellsScale;
+        params["pfa"]            = _m_clutterDensityParams.pfa;
+        jsonRoot["parameters"] = params;
+    }
+
+    // RF Detector parameters
+    if (_m_nClass == VISTAR_CLASS_RF_DETECTOR) {
+        if (!_m_rfDetectorParams.parentId.isEmpty()) {
+            jsonRoot["PARENT"] = _m_rfDetectorParams.parentId;
+        }
+        QJsonObject params;
+        params["MDS_DBM"]        = _m_rfDetectorParams.mdsDbm;
+        params["GR_DBM"]         = _m_rfDetectorParams.grDbm;
+        params["NOISE_FIGURE_DB"] = _m_rfDetectorParams.noiseFigureDb;
+        params["BANDWIDTH"]      = _m_rfDetectorParams.bandwidth;
+        jsonRoot["parameters"] = params;
+    }
+
     qDebug()<<"Publish object "<<_m_sObjectID<<_m_sParentObject<<_m_nChildId;
     QJsonDocument doc(jsonRoot);
     CNetworkInterface::PublishMessage(doc);
@@ -472,3 +537,15 @@ void CVistarObject::addTrajectoryPoint(double dLon, double dLat, double dAlt) {
     _m_listTrajectoryPoints.append(QgsPointXYZ(dLon, dLat, dAlt));
     refresh();
 }
+
+void CVistarObject::setJammerParams(const JammerParams &params)       { _m_jammerParams = params; }
+JammerParams CVistarObject::jammerParams() const                       { return _m_jammerParams; }
+
+void CVistarObject::setClutterParams(const ClutterParams &params)      { _m_clutterParams = params; }
+ClutterParams CVistarObject::clutterParams() const                     { return _m_clutterParams; }
+
+void CVistarObject::setClutterDensityParams(const ClutterDensityParams &params) { _m_clutterDensityParams = params; }
+ClutterDensityParams CVistarObject::clutterDensityParams() const               { return _m_clutterDensityParams; }
+
+void CVistarObject::setRFDetectorParams(const RFDetectorParams &params) { _m_rfDetectorParams = params; }
+RFDetectorParams CVistarObject::rfDetectorParams() const                { return _m_rfDetectorParams; }
