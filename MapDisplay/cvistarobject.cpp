@@ -2,6 +2,7 @@
 #include <qgsmaptopixel.h>
 #include <QtMath>
 #include <QPainter>
+#include <QDateTime>
 #include "globalConstants.h"
 #include "cnetworkinterface.h"
 #include "globalConstants.h"
@@ -378,35 +379,50 @@ void CVistarObject::TransmitSelfInfo() {
 
     // Rotation object
     QJsonObject jsonRotation;
-    jsonRotation["YAW"] = _m_dHeading;
+    jsonRotation["YAW"]   = _m_dHeading;
     jsonRotation["PITCH"] = 0;
-    jsonRotation["ROLL"] = 0;
+    jsonRotation["ROLL"]  = 0;
 
-    // Rotation object
+    // Slew (legacy – kept for backward compatibility)
     QJsonObject jsonSlew;
-    jsonSlew["SLEW_AZ"] = 180;
+    jsonSlew["SLEW_AZ"]   = 180;
     jsonSlew["SLEW_ELEV"] = 45;
 
-    // Root key-value pairs
-    jsonRoot["SRC"] = VISTAR_SRC_MISSION_PLANNER;
-    jsonRoot["ID"] = _m_sObjectID;
-    jsonRoot["CLASS"] = getClassAsString();
-    jsonRoot["STREAM"] = "create";
-    jsonRoot["TRAJECTORY"] = _m_sAttachedRoute;
-    jsonRoot["PARENT"] = _m_sParentObject;
-    jsonRoot["CHILD_ID"] = _m_nChildId;
-    jsonRoot["LOCATION"] = jsonLocation;
-    jsonRoot["ROTATION"] = jsonRotation;
-    jsonRoot["SLEW"] = jsonSlew;
+    // ISO-8601 UTC timestamp
+    QString timestamp = QDateTime::currentDateTimeUtc()
+                            .toString(Qt::ISODateWithMs);
 
+    // Root key-value pairs
+    jsonRoot["SRC"]       = VISTAR_SRC_MISSION_PLANNER;
+    jsonRoot["ID"]        = _m_sObjectID;
+    jsonRoot["CLASS"]     = getClassAsString();
+    jsonRoot["STREAM"]    = "create";
+    jsonRoot["TIMESTAMP"] = timestamp;
+    jsonRoot["LOCATION"]  = jsonLocation;
+    jsonRoot["ROTATION"]  = jsonRotation;
+    jsonRoot["TRAJECTORY"]= _m_sAttachedRoute;
+    jsonRoot["PARENT"]    = _m_sParentObject;
+    jsonRoot["CHILD_ID"]  = _m_nChildId;
+    jsonRoot["SLEW"]      = jsonSlew;
+
+    // For radar objects include the physics/simulation parameters block
+    if (_m_nClass == VISTAR_CLASS_RADAR) {
+        jsonRoot["parameters"] = _m_radarPhysics.toJson();
+    }
 
     qDebug()<<"Publish object "<<_m_sObjectID<<_m_sParentObject<<_m_nChildId;
-    // Convert to string
     QJsonDocument doc(jsonRoot);
-
     CNetworkInterface::PublishMessage(doc);
+}
 
+void CVistarObject::setRadarPhysicsParameters(const RadarView::RadarPhysicsParameters &params)
+{
+    _m_radarPhysics = params;
+}
 
+RadarView::RadarPhysicsParameters CVistarObject::radarPhysicsParameters() const
+{
+    return _m_radarPhysics;
 }
 
 // ============ Trajectory Control Methods ============
