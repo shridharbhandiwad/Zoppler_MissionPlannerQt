@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <!-- Detector body -->
+  <rect x="10" y="14" width="12" height="9" rx="2" fill="#3060a0" stroke="#5090d0" stroke-width="1"/>
+  <!-- Receive dish/antenna -->
+  <path d="M13 14 Q16 8 19 14" fill="none" stroke="#5090d0" stroke-width="2"/>
+  <line x1="16" y1="11" x2="16" y2="14" stroke="#5090d0" stroke-width="1.5"/>
+  <!-- Signal indicator LED -->
+  <circle cx="16" cy="18" r="3" fill="#00e060" opacity="0.9"/>
+  <circle cx="16" cy="18" r="1.5" fill="#80ffb0"/>
+  <!-- Incoming signal waves -->
+  <path d="M4 9 Q7 12 4 15" fill="none" stroke="#ffaa00" stroke-width="1.5" stroke-dasharray="2,1"/>
+  <path d="M2 7 Q6 12 2 17" fill="none" stroke="#ffaa00" stroke-width="1" stroke-dasharray="2,1" opacity="0.6"/>
+  <!-- Base -->
+  <rect x="13" y="23" width="6" height="2" rx="1" fill="#2050a0" stroke="#5090d0" stroke-width="0.8"/>
+</svg>

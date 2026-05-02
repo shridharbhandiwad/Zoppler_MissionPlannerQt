@@ -896,6 +896,21 @@ void CMapCanvas::mouseReleaseEvent(QMouseEvent *event)
                     emit signalRadarObjectAdded(sObjectId, 0.0);
                 }
 
+                // For Clutter / Clutter Density: show a parameter dialog so the
+                // user can configure the properties before the object is finalised.
+                if (_m_nCurrentObjectClassForLoading == VISTAR_CLASS_CLUTTER ||
+                    _m_nCurrentObjectClassForLoading == VISTAR_CLASS_CLUTTER_DENSITY)
+                {
+                    CClutterParamsDialog dlg(this);
+                    if (dlg.exec() == QDialog::Accepted) {
+                        if (_m_nCurrentObjectClassForLoading == VISTAR_CLASS_CLUTTER) {
+                            vistarObject->setClutterParams(dlg.getClutterParams());
+                        } else {
+                            vistarObject->setClutterDensityParams(dlg.getClutterDensityParams());
+                        }
+                    }
+                }
+
                 if (_m_nCurrentObjectClassForLoading == VISTAR_CLASS_LAUNCHER ||
                     _m_nCurrentObjectClassForLoading == VISTAR_CLASS_FIGHTER  ||
                     _m_nCurrentObjectClassForLoading == VISTAR_CLASS_UAV) {
@@ -963,6 +978,14 @@ QString CMapCanvas::GenerateObjectIdFromClass( int nClass ) {
     case VISTAR_CLASS_MISSILE : sClass = "MISSILE";
         break;
     case VISTAR_CLASS_ROUTE : sClass = "ROUTE";
+        break;
+    case VISTAR_CLASS_JAMMER : sClass = "JAMMER";
+        break;
+    case VISTAR_CLASS_CLUTTER : sClass = "CLUTTER";
+        break;
+    case VISTAR_CLASS_CLUTTER_DENSITY : sClass = "CLUTTER_DENSITY";
+        break;
+    case VISTAR_CLASS_RF_DETECTOR : sClass = "RF_DETECTOR";
         break;
     }
 
@@ -1146,6 +1169,14 @@ void CMapCanvas::SetObjectToLoadOnClick( int nClass ) {
     case VISTAR_CLASS_MISSILE : strPath = ":/icons/cursor/missile.png";
         break;
     case VISTAR_CLASS_ROUTE : strPath = ":/icons/cursor/route.png"; nSize = 40;
+        break;
+    case VISTAR_CLASS_JAMMER : strPath = ":/icons/cursor/jammer.png"; nSize = 44;
+        break;
+    case VISTAR_CLASS_CLUTTER : strPath = ":/icons/cursor/clutter.png"; nSize = 44;
+        break;
+    case VISTAR_CLASS_CLUTTER_DENSITY : strPath = ":/icons/cursor/clutter_density.png"; nSize = 44;
+        break;
+    case VISTAR_CLASS_RF_DETECTOR : strPath = ":/icons/cursor/rf_detector.png"; nSize = 44;
         break;
     }
 
@@ -1405,6 +1436,10 @@ QString CMapCanvas::getClassNameFromEnum(int nClass) {
         case VISTAR_CLASS_LAUNCHER: return "LAUNCHER";
         case VISTAR_CLASS_MISSILE: return "MISSILE";
         case VISTAR_CLASS_ROUTE: return "ROUTE";
+        case VISTAR_CLASS_JAMMER: return "JAMMER";
+        case VISTAR_CLASS_CLUTTER: return "CLUTTER";
+        case VISTAR_CLASS_CLUTTER_DENSITY: return "CLUTTER_DENSITY";
+        case VISTAR_CLASS_RF_DETECTOR: return "RF_DETECTOR";
         default: return "UNKNOWN";
     }
 }
@@ -1418,6 +1453,10 @@ int CMapCanvas::getEnumFromClassName(const QString &className) {
     if (className == "LAUNCHER") return VISTAR_CLASS_LAUNCHER;
     if (className == "MISSILE") return VISTAR_CLASS_MISSILE;
     if (className == "ROUTE") return VISTAR_CLASS_ROUTE;
+    if (className == "JAMMER") return VISTAR_CLASS_JAMMER;
+    if (className == "CLUTTER") return VISTAR_CLASS_CLUTTER;
+    if (className == "CLUTTER_DENSITY") return VISTAR_CLASS_CLUTTER_DENSITY;
+    if (className == "RF_DETECTOR") return VISTAR_CLASS_RF_DETECTOR;
     return VISTAR_CLASS_NONE;
 }
 
