@@ -45,6 +45,7 @@ SOURCES += \
     MapDisplay/cvistarroute.cpp \
     MapDisplay/qgspointxyz.cpp \
     RadarView/radarmanager.cpp \
+    RadarView/radarattributesdialog.cpp \
     RadarView/radarlistpanel.cpp \
     RadarView/radarppiwidget.cpp \
     RadarView/radardockwidget.cpp \
@@ -65,6 +66,8 @@ HEADERS += \
     MapDisplay/cvistarobject.h \
     MapDisplay/cvistarroute.h \
     MapDisplay/qgspointxyz.h \
+    RadarView/radarattributes.h \
+    RadarView/radarattributesdialog.h \
     RadarView/radarmanager.h \
     RadarView/radarlistpanel.h \
     RadarView/radarppiwidget.h \

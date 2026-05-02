@@ -4,6 +4,8 @@
 #include <qgsmapcanvasitem.h>
 #include <qgsmapcanvas.h>
 #include "qgspointxyz.h"
+#include "../RadarView/radarattributes.h"
+
 class CVistarObject : public QgsMapCanvasItem
 {
 
@@ -40,6 +42,10 @@ public:
     int getTrajectoryWidth() const;
     void addTrajectoryPoint(double dLon, double dLat, double dAlt);
 
+    // Radar physics parameters (only meaningful when _m_nClass == VISTAR_CLASS_RADAR)
+    void setRadarPhysicsParameters(const RadarView::RadarPhysicsParameters &params);
+    RadarView::RadarPhysicsParameters radarPhysicsParameters() const;
+
 private :
     QgsMapCanvas *_m_canvas;
     QString _m_sObjectID;
@@ -66,6 +72,9 @@ private :
     QList<QgsPointXYZ> _m_listTrajectoryPoints;
     QColor _m_trajectoryColor;
     int _m_nTrajectoryWidth;
+
+    // Radar-specific physics/simulation parameters
+    RadarView::RadarPhysicsParameters _m_radarPhysics;
 
 protected :
     void paint(QPainter *painter) override;
