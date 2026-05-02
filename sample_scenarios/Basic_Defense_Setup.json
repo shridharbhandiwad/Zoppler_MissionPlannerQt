@@ -10,60 +10,8 @@
             "longitude": 77.2,
             "altitude": 100.0,
             "additionalData": {
-                "range": 150000,
-                "status": "active",
-                "radarAttributes": {
-                    "design": {
-                        "radarType": "Surveillance",
-                        "manufacturer": "DRDO",
-                        "modelDesignation": "Arudhra-1",
-                        "frequencyMHz": 2900.0,
-                        "bandwidthMHz": 12.0,
-                        "polarization": "Linear",
-                        "maxRangeKm": 150.0,
-                        "minRangeKm": 1.0,
-                        "azimuthCovDeg": 360.0,
-                        "elevationMinDeg": 0.0,
-                        "elevationMaxDeg": 60.0,
-                        "peakPowerKw": 250.0,
-                        "rangeResolutionM": 75.0,
-                        "azimuthResolutionDeg": 0.4,
-                        "antennaHeightM": 12.0,
-                        "weightKg": 3200.0,
-                        "mountingType": "Fixed"
-                    },
-                    "operational": {
-                        "operationalMode": "Active",
-                        "assignedMission": "Area Surveillance",
-                        "trackCapacity": 200,
-                        "currentTracks": 3,
-                        "emconActive": false,
-                        "transmitPowerPct": 100.0,
-                        "scanRateDegPerSec": 6.0,
-                        "sectorStartDeg": 0.0,
-                        "sectorEndDeg": 360.0,
-                        "iffEnabled": true,
-                        "iffMode": "Mode-3",
-                        "jammingDetected": false,
-                        "jamSignalDbm": -999.0
-                    },
-                    "maintenance": {
-                        "systemHealth": "Nominal",
-                        "healthPct": 98.5,
-                        "transmitterOk": true,
-                        "receiverOk": true,
-                        "antennaOk": true,
-                        "coolingSysOk": true,
-                        "powerSupplyOk": true,
-                        "lastServiceDate": "2025-11-01",
-                        "nextServiceDate": "2026-05-01",
-                        "operatingHours": 1240,
-                        "serviceIntervalH": 500,
-                        "mtbfHours": 2000.0,
-                        "mttrHours": 4.0,
-                        "maintenanceNotes": "Routine check completed. All systems nominal."
-                    }
-                }
+                "range": 50000,
+                "status": "active"
             }
         },
         {

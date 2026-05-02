@@ -9,7 +9,6 @@
 #include <QMessageBox>
 #include <cmath>
 #include <QDockWidget>
-#include <QJsonArray>
 
 CVistarPlanner::CVistarPlanner(QWidget *parent)
     : QMainWindow(parent)
@@ -287,12 +286,6 @@ void CVistarPlanner::setupConnections()
             this, &CVistarPlanner::onRadarObjectPlaced);
     connect(ui->mapCanvas, &CMapCanvas::signalScenarioCleared,
             this, &CVistarPlanner::onScenarioObjectsCleared);
-    connect(ui->mapCanvas, &CMapCanvas::signalOpenRadarAttributes,
-            this, &CVistarPlanner::onOpenRadarAttributes);
-    connect(ui->mapCanvas, &CMapCanvas::signalRadarObjectAddedWithAttrs,
-            this, &CVistarPlanner::onRadarObjectAttrsLoaded);
-    connect(ui->mapCanvas, &CMapCanvas::signalRadarDetectionsUpdated,
-            this, &CVistarPlanner::onRadarDetectionsUpdated);
 }
 
 CVistarPlanner::~CVistarPlanner()
@@ -432,7 +425,6 @@ void CVistarPlanner::on_pushButton_SaveScenario_clicked()
     if(filePath.isEmpty())
         return;
 
-    syncRadarAttrsCache();
     bool success = ui->mapCanvas->saveCurrentScenario(filePath);
     if (success) {
         ui->statusBar->showMessage("Scenario saved successfully!", 3000);
@@ -805,16 +797,6 @@ QMenu::separator {
 //  Radar View
 // ============================================================
 
-void CVistarPlanner::syncRadarAttrsCache()
-{
-    _m_radarAttrsCache.clear();
-    for (const auto &radar : _m_radarManager->radars()) {
-        const QString &objId = radar.radarName; // radarName stores the object ID string
-        _m_radarAttrsCache.insert(objId, radar.attributes.toJson());
-    }
-    ui->mapCanvas->setRadarAttributesCache(_m_radarAttrsCache);
-}
-
 void CVistarPlanner::setupRadarView()
 {
     // Create the data manager (loads sample data automatically)
@@ -921,85 +903,6 @@ void CVistarPlanner::onRadarObjectPlaced(QString radarObjectId, double maxRangeK
     int id = _m_nextRadarIntId++;
     _m_radarObjectIdToIntId.insert(radarObjectId, id);
     _m_radarManager->addRadar(id, radarObjectId, maxRangeKm);
-}
-
-void CVistarPlanner::onRadarDetectionsUpdated(QString radarObjectId, QJsonArray detectionsJson)
-{
-    if (!_m_radarObjectIdToIntId.contains(radarObjectId)) {
-        // Auto-register radar if not yet known
-        int id = _m_nextRadarIntId++;
-        _m_radarObjectIdToIntId.insert(radarObjectId, id);
-        _m_radarManager->addRadar(id, radarObjectId, 150.0);
-    }
-
-    int radarId = _m_radarObjectIdToIntId.value(radarObjectId);
-    RadarView::Radar *radar = _m_radarManager->radarById(radarId);
-    if (!radar) return;
-
-    radar->detections.clear();
-    for (const QJsonValue &v : detectionsJson) {
-        QJsonObject d = v.toObject();
-        RadarView::Detection det;
-        det.trackId   = d["trackId"].toInt();
-        det.range     = d["range"].toDouble();
-        det.azimuth   = d["azimuth"].toDouble();
-        det.elevation = d["elevation"].toDouble();
-        radar->detections.append(det);
-    }
-
-    // Update live track count in operational attributes
-    radar->attributes.operational.currentTracks = radar->detections.size();
-
-    // Refresh open PPI dock
-    if (_m_radarDocks.contains(radarId)) {
-        _m_radarDocks[radarId]->updateRadar(*radar);
-    }
-    // Notify radar list panel of the updated track count
-    _m_radarManager->updateAttributes(radarId, radar->attributes);
-}
-
-void CVistarPlanner::onRadarObjectAttrsLoaded(QString radarObjectId, QJsonObject attrsJson)
-{
-    if (!_m_radarObjectIdToIntId.contains(radarObjectId))
-        return; // radar must already be registered via signalRadarObjectAdded
-
-    int radarId = _m_radarObjectIdToIntId.value(radarObjectId);
-    RadarView::RadarAttributes attrs = RadarView::RadarAttributes::fromJson(attrsJson);
-    _m_radarManager->updateAttributes(radarId, attrs);
-}
-
-void CVistarPlanner::onOpenRadarAttributes(QString radarObjectId)
-{
-    // Find the integer radar id for this object
-    if (!_m_radarObjectIdToIntId.contains(radarObjectId)) {
-        // Radar was not yet registered (edge case) – register with defaults first
-        int id = _m_nextRadarIntId++;
-        _m_radarObjectIdToIntId.insert(radarObjectId, id);
-        _m_radarManager->addRadar(id, radarObjectId, 150.0);
-    }
-
-    int radarId = _m_radarObjectIdToIntId.value(radarObjectId);
-    const RadarView::Radar *r = _m_radarManager->radarById(radarId);
-    if (!r) return;
-
-    auto *dlg = new RadarAttributesDialog(radarObjectId, r->attributes, this);
-    dlg->setWindowModality(Qt::ApplicationModal);
-
-    // Apply changes live whenever the user presses Apply or OK
-    connect(dlg, &RadarAttributesDialog::attributesApplied,
-            this, [this, radarId](RadarView::RadarAttributes attrs) {
-        _m_radarManager->updateAttributes(radarId, attrs);
-
-        // Refresh any open PPI dock for this radar
-        if (_m_radarDocks.contains(radarId)) {
-            const RadarView::Radar *updated = _m_radarManager->radarById(radarId);
-            if (updated)
-                _m_radarDocks[radarId]->updateRadar(*updated);
-        }
-    });
-
-    dlg->exec();
-    dlg->deleteLater();
 }
 
 void CVistarPlanner::onScenarioObjectsCleared()

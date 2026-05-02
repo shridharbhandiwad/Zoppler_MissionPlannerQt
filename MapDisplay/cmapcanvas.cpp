@@ -1214,22 +1214,6 @@ void CMapCanvas::slotUpdateObject(QJsonDocument doc) {
     qDebug()<<"sId="<<sId;
     CVistarObject *vistarObject = getVistarObjectById(sId);
     qDebug()<<vistarObject<<sId;
-    // Handle radar detection stream (no vistarObject needed)
-    if (sStream == "RadarDetection") {
-        QJsonArray detections = jsonObject["DETECTIONS"].toArray();
-        emit signalRadarDetectionsUpdated(sId, detections);
-        return;
-    }
-
-    // Handle radar attribute live-update stream
-    if (sStream == "RadarAttributes") {
-        QJsonObject attrsJson = jsonObject["ATTRIBUTES"].toObject();
-        if (!attrsJson.isEmpty()) {
-            emit signalRadarObjectAddedWithAttrs(sId, attrsJson);
-        }
-        return;
-    }
-
     if (vistarObject) {
         qDebug()<<"Data recvd1="<<sStream;
         if ( sStream.contains("create") || sStream.contains("update")) {
@@ -1269,12 +1253,6 @@ void CMapCanvas::showContextMenu(QPoint pos) {
 
             QAction* actionUpdate = menuObject->addAction("Update");
             actionUpdate->setObjectName(vistarObject->getObjectId());
-
-            // "Attributes" entry for RADAR objects
-            if (vistarObject->getClassAsString() == "RADAR") {
-                QAction* actionAttribs = menuObject->addAction("Attributes");
-                actionAttribs->setObjectName(vistarObject->getObjectId());
-            }
 
             for ( CVistarRoute *vistarRoute : _m_listVistarRoutes ) {
                 QAction* action = menuAttachRoute->addAction(vistarRoute->getObjectId());
@@ -1317,10 +1295,7 @@ void CMapCanvas::showContextMenu(QPoint pos) {
             qDebug()<<selected->text()<<selected->objectName();
             CVistarObject* object = getVistarObjectById(selected->objectName());
             if (object) {
-                if ( selected->text() == "Attributes") {
-                    emit signalOpenRadarAttributes(selected->objectName());
-                }
-                else if ( selected->text() == "Update") {
+                if ( selected->text() == "Update") {
                     _m_objUpdatePosition.setObjectId(selected->objectName());
                     QgsPointXYZ pt = object->getPointXYZ();
                     _m_objUpdatePosition.setPosition(pt.y(),pt.x(),pt.z());
@@ -1372,7 +1347,7 @@ void CMapCanvas::showContextMenu(QPoint pos) {
                         _m_objUpdateRoute.setObjectId(selected->objectName());
                         QList<QgsPointXYZ> listPoints = route->getPoints();
                         _m_objUpdateRoute.setPoints(listPoints);
-                        _m_objUpdateRoute.setManeuverTypes(route->getManeuverTypes());
+                        _m_objUpdateRoute.setMANEUVERs(route->getMANEUVERs());
                         _m_objUpdateRoute.show();
                     }
                     else if ( selected->text() == "Delete") {
@@ -1461,13 +1436,13 @@ Scenario CMapCanvas::createScenarioFromCurrentState() {
         route.name = vistarRoute->getObjectId();
         
         QList<QgsPointXYZ> points = vistarRoute->getPoints();
-        QStringList maneuverTypes = vistarRoute->getManeuverTypes();
+        QStringList MANEUVERs = vistarRoute->getMANEUVERs();
         for (int i = 0; i < points.size(); i++) {
             const QgsPointXYZ &pt = points.at(i);
             route.waypoints.append(QPointF(pt.y(), pt.x())); // lat, lon
             route.altitudes.append(pt.z());
-            if (i < maneuverTypes.size()) {
-                route.maneuverTypes.append(maneuverTypes.at(i));
+            if (i < MANEUVERs.size()) {
+                route.maneuverTypes.append(MANEUVERs.at(i));
             } else {
                 route.maneuverTypes.append("DIRECT");
             }
@@ -1500,11 +1475,6 @@ Scenario CMapCanvas::createScenarioFromCurrentState() {
         obj.additionalData["parent"] = vistarObject->getParent();
         obj.additionalData["childId"] = vistarObject->getChildId();
         obj.additionalData["attachedRoute"] = vistarObject->getAttachedRoute();
-
-        // Persist radar attributes if available
-        if (obj.type == "RADAR" && _m_radarAttrsCache.contains(obj.id)) {
-            obj.additionalData["radarAttributes"] = _m_radarAttrsCache.value(obj.id);
-        }
         
         scenario.objects.append(obj);
     }
@@ -1574,7 +1544,7 @@ void CMapCanvas::loadScenarioToCanvas(const Scenario &scenario) {
         
         // Set maneuver types
         if (!route.maneuverTypes.isEmpty()) {
-            vistarRoute->setManeuverTypes(route.maneuverTypes);
+            vistarRoute->setMANEUVERs(route.maneuverTypes);
         }
         
         _m_listVistarRoutes.insert(route.id, vistarRoute);
@@ -1611,12 +1581,6 @@ void CMapCanvas::loadScenarioToCanvas(const Scenario &scenario) {
             if (obj.additionalData.contains("range"))
                 rangeKm = obj.additionalData["range"].toDouble() / 1000.0; // metres → km
             emit signalRadarObjectAdded(obj.id, rangeKm);
-
-            if (obj.additionalData.contains("radarAttributes")) {
-                emit signalRadarObjectAddedWithAttrs(
-                    obj.id,
-                    obj.additionalData["radarAttributes"].toObject());
-            }
         }
         
         qDebug() << "Loaded object:" << obj.id << "at" << obj.latitude << "," << obj.longitude;

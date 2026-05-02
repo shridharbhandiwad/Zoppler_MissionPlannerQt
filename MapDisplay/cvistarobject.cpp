@@ -21,7 +21,7 @@ CVistarObject::CVistarObject(QgsMapCanvas *canvas) :
     _m_sParentObject = "";
     _m_bHighlight = false;
     _m_bRefresh = false;
-    
+
     // Initialize trajectory tracking
     _m_bTrajectoryEnabled = true;  // Enable trajectory by default
     _m_trajectoryColor = QColor(255, 165, 0, 200);  // Orange with some transparency
@@ -106,7 +106,7 @@ QRectF CVistarObject::boundingRect() const
         // Return the full canvas rect to ensure trajectory is always visible
         return _m_canvas->rect();
     }
-    
+
     // Each map canvas item must define a bounding rect in MAP COORDINATES
     //double halfSizePx = 1; // 10 pixel radius for example
     double halfSizeMap = 1.;//0.00001;//halfSizePx * _m_canvas->mapUnitsPerPixel();
@@ -116,7 +116,7 @@ QRectF CVistarObject::boundingRect() const
     double y = _m_dLat;
 
     QRectF rect = QRectF(x - halfSizeMap, y - halfSizeMap,
-           2 * halfSizeMap, 2 * halfSizeMap);
+                         2 * halfSizeMap, 2 * halfSizeMap);
     //qDebug()<<rect;
 
     return rect;
@@ -139,7 +139,7 @@ void CVistarObject::paint(QPainter *pPainter)
     // Draw trajectory line (path traveled) before drawing the object
     if (_m_bTrajectoryEnabled && _m_listTrajectoryPoints.size() > 0) {
         pPainter->save();
-        
+
         // Set up pen for trajectory with gradient effect
         QPen trajectoryPen;
         trajectoryPen.setColor(_m_trajectoryColor);
@@ -147,52 +147,52 @@ void CVistarObject::paint(QPainter *pPainter)
         trajectoryPen.setCapStyle(Qt::RoundCap);
         trajectoryPen.setJoinStyle(Qt::RoundJoin);
         pPainter->setPen(trajectoryPen);
-        
+
         // Draw trajectory segments with fading effect (older segments more transparent)
         int numPoints = _m_listTrajectoryPoints.size();
-        
+
         for (int i = 0; i < numPoints; i++) {
             QgsPointXYZ pt = _m_listTrajectoryPoints.at(i);
             QPointF ptScreenTraj = mapToPixel.transform(QgsPointXY(pt.x(), pt.y())).toQPointF();
-            
+
             if (i > 0) {
                 // Calculate alpha based on position in trajectory (older = more faded)
                 int alpha = qMin(255, 100 + (155 * i / numPoints));
                 QColor segmentColor = _m_trajectoryColor;
                 segmentColor.setAlpha(alpha);
-                
+
                 QPen segmentPen;
                 segmentPen.setColor(segmentColor);
                 segmentPen.setWidth(_m_nTrajectoryWidth);
                 segmentPen.setCapStyle(Qt::RoundCap);
                 pPainter->setPen(segmentPen);
-                
+
                 QgsPointXYZ ptPrev = _m_listTrajectoryPoints.at(i - 1);
                 QPointF ptScreenPrev = mapToPixel.transform(QgsPointXY(ptPrev.x(), ptPrev.y())).toQPointF();
                 pPainter->drawLine(ptScreenPrev, ptScreenTraj);
             }
-            
+
             // Draw small dots at waypoints for better visibility
             if (i > 0 && i < numPoints - 1) {
                 pPainter->setBrush(QBrush(_m_trajectoryColor));
                 pPainter->drawEllipse(ptScreenTraj, 3, 3);
             }
         }
-        
+
         // Draw line from last trajectory point to current position
         if (numPoints > 0) {
             QgsPointXYZ lastPt = _m_listTrajectoryPoints.last();
             QPointF lastPtScreen = mapToPixel.transform(QgsPointXY(lastPt.x(), lastPt.y())).toQPointF();
-            
+
             QPen currentPen;
             currentPen.setColor(_m_trajectoryColor);
             currentPen.setWidth(_m_nTrajectoryWidth);
             currentPen.setCapStyle(Qt::RoundCap);
             pPainter->setPen(currentPen);
-            
+
             pPainter->drawLine(lastPtScreen, ptScreen);
         }
-        
+
         pPainter->restore();
     }
 
@@ -289,7 +289,7 @@ void CVistarObject::UpdateLocation(double dLat,double dLon,double dAlt) {
             _m_listTrajectoryPoints.append(QgsPointXYZ(_m_dLon, _m_dLat, _m_dAlt));
         }
     }
-    
+
     _m_dLon = dLon;
     _m_dLat = dLat;
     _m_dAlt = dAlt;
@@ -333,7 +333,7 @@ void CVistarObject::UpdateObject( QJsonObject jsonObject ) {
     if (_m_bTrajectoryEnabled) {
         // Check if position has actually changed (to avoid trajectory points when stationary)
         bool positionChanged = (prevLon != _m_dLon || prevLat != _m_dLat);
-        
+
         if (positionChanged) {
             // Add the previous position to trajectory
             if (_m_listTrajectoryPoints.isEmpty() ||
@@ -443,7 +443,7 @@ QColor CVistarObject::getTrajectoryColor() const {
 }
 
 void CVistarObject::setTrajectoryWidth(int width) {
-    _m_nTrajectoryWidth = qBound(1, width, 10);  // Clamp between 1 and 10 pixels
+    _m_nTrajectoryWidth = qBound(1, width, 5);  // Clamp between 1 and 10 pixels
     refresh();
 }
 

@@ -6,14 +6,11 @@
 #include <QActionGroup>
 #include <QSettings>
 #include <QMap>
-#include <QJsonObject>
-#include <QJsonArray>
 #include "cnetworkinterface.h"
 #include "cpathsettingsdialog.h"
 #include "RadarView/radarmanager.h"
 #include "RadarView/radarlistpanel.h"
 #include "RadarView/radardockwidget.h"
-#include "RadarView/radarattributesdialog.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -57,12 +54,10 @@ private:
     RadarListPanel   *_m_radarListPanel;
     QDockWidget      *_m_radarListDock;
     QMap<int, RadarDockWidget*> _m_radarDocks;       // radarId → dock
-    QMap<QString, int>         _m_radarObjectIdToIntId;   // objectId → radarId
-    QMap<QString, QJsonObject> _m_radarAttrsCache;        // objectId → attrs JSON
+    QMap<QString, int> _m_radarObjectIdToIntId;      // objectId → radarId
     int               _m_nextRadarIntId = 1;
 
     void setupRadarView();
-    void syncRadarAttrsCache();
 
     // Menus for toolbar buttons
     QMenu *_m_scenarioMenu;
@@ -114,11 +109,5 @@ private slots :
     void onRadarObjectPlaced(QString radarObjectId, double maxRangeKm);
     // Called when the scenario is cleared/reset.
     void onScenarioObjectsCleared();
-    // Called when the user selects Attributes from a RADAR's context menu.
-    void onOpenRadarAttributes(QString radarObjectId);
-    // Called when a scenario with radarAttributes block is loaded from disk.
-    void onRadarObjectAttrsLoaded(QString radarObjectId, QJsonObject attrsJson);
-    // Called when a RadarDetection UDP message arrives.
-    void onRadarDetectionsUpdated(QString radarObjectId, QJsonArray detectionsJson);
 };
 #endif // CVISTARPLANNER_H

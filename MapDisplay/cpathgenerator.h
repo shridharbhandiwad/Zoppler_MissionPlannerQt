@@ -53,7 +53,7 @@ public:
         
         // Constructor with default values
         PathParameters() :
-            defaultAltitude(1000.0),
+            defaultAltitude(100.0),
             numWaypoints(50),
             curveFactor(0.6),
             spreadRadiusKm(15.0),

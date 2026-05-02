@@ -225,116 +225,34 @@ void RadarPPIWidget::paintEvent(QPaintEvent *)
                    QString("T%1").arg(ds.trackId));
     }
 
-    // ── 9. Radar title + stats + attribute panel ───────────────────────
+    // ── 9. Radar title + stats ─────────────────────────────────────────
     {
-        const auto &attr = m_radar.attributes;
-        const auto &des  = attr.design;
-        const auto &op   = attr.operational;
-        const auto &mnt  = attr.maintenance;
-
-        // ── 9a. Title ─────────────────────────────────────────────────
         QFont titleFont("Monospace", 9, QFont::Bold);
         p.setFont(titleFont);
         p.setPen(kLabelColor);
+
         QString title = QString("[R%1] %2").arg(m_radar.radarId).arg(m_radar.radarName);
         p.drawText(QPointF(8, 18), title);
 
-        // ── 9b. Quick-stats line ──────────────────────────────────────
+        QString stats = QString("Range: %1 km   Detections: %2")
+                            .arg(m_radar.maxRange)
+                            .arg(m_radar.detections.size());
         QFont statsFont("Monospace", 7);
         p.setFont(statsFont);
         p.setPen(kTextColor);
-        QString stats = QString("Range: %1 km  |  Detections: %2  |  %3")
-                            .arg(m_radar.maxRange)
-                            .arg(m_radar.detections.size())
-                            .arg(des.radarType);
         p.drawText(QPointF(8, 32), stats);
 
-        // ── 9c. Operational mode pill ─────────────────────────────────
-        QString statusTxt = op.operationalMode.toUpper();
-        QColor  statusCol;
-        if      (op.operationalMode == "Active")      statusCol = QColor("#00ff88");
-        else if (op.operationalMode == "Standby")     statusCol = QColor("#ffcc44");
-        else if (op.operationalMode == "Degraded")    statusCol = QColor("#ff8844");
-        else if (op.operationalMode == "Maintenance") statusCol = QColor("#44aaff");
-        else                                          statusCol = QColor("#ff4444");
-
+        // Status pill
+        QString statusTxt = m_radar.active ? "ACTIVE" : "INACTIVE";
+        QColor  statusCol = m_radar.active ? QColor("#00ff88") : QColor("#ff4444");
         p.setPen(Qt::NoPen);
-        p.setBrush(statusCol.darker(200));
-        QRect pill(width() - 98, 6, 90, 18);
+        p.setBrush(statusCol.darker(180));
+        QRect pill(width() - 80, 6, 72, 18);
         p.drawRoundedRect(pill, 4, 4);
         p.setPen(statusCol);
         QFont statusFont("Monospace", 7, QFont::Bold);
         p.setFont(statusFont);
         p.drawText(pill, Qt::AlignCenter, statusTxt);
-
-        // ── 9d. Attribute info panel (bottom-left corner) ─────────────
-        {
-            // Health colour
-            QColor healthCol;
-            if      (mnt.healthPct >= 80.0) healthCol = QColor("#00ff88");
-            else if (mnt.healthPct >= 50.0) healthCol = QColor("#ffcc44");
-            else                            healthCol = QColor("#ff4444");
-
-            QFont infoFont("Monospace", 7);
-            QFontMetrics fm(infoFont);
-            p.setFont(infoFont);
-
-            // Build lines
-            QStringList lines;
-            lines << QString("Freq  : %1 MHz").arg(des.frequencyMHz, 0, 'f', 0);
-            lines << QString("AzCov : %1°").arg(des.azimuthCovDeg, 0, 'f', 0);
-            lines << QString("ElCov : %1° – %2°").arg(des.elevationMinDeg, 0, 'f', 0).arg(des.elevationMaxDeg, 0, 'f', 0);
-            lines << QString("Tracks: %1 / %2").arg(op.currentTracks).arg(op.trackCapacity);
-            lines << QString("Power : %1 %  ").arg(op.transmitPowerPct, 0, 'f', 0);
-            lines << QString("IFF   : %1").arg(op.iffEnabled ? op.iffMode : "OFF");
-            lines << QString("Health: %1%").arg(mnt.healthPct, 0, 'f', 0);
-
-            // Panel geometry
-            int panW = 0;
-            for (const auto &ln : lines) panW = qMax(panW, fm.horizontalAdvance(ln));
-            panW += 14;
-            int lineH  = fm.height() + 2;
-            int panH   = lines.size() * lineH + 10;
-            int panX   = 6;
-            int panY   = height() - panH - 6;
-
-            // Background
-            p.setPen(Qt::NoPen);
-            p.setBrush(QColor("#0a1510cc"));
-            p.drawRoundedRect(QRect(panX, panY, panW, panH), 5, 5);
-            p.setPen(QColor("#003320"));
-            p.setBrush(Qt::NoBrush);
-            p.drawRoundedRect(QRect(panX, panY, panW, panH), 5, 5);
-
-            // Lines
-            int y = panY + fm.ascent() + 6;
-            for (int i = 0; i < lines.size(); ++i) {
-                QColor lineCol = (i == 6) ? healthCol : kTextColor;
-                p.setPen(lineCol);
-                p.drawText(QPointF(panX + 7, y), lines[i]);
-                y += lineH;
-            }
-
-            // EMCON / jamming warning badges
-            int badgeX = panX + panW + 4;
-            int badgeY = panY;
-            auto drawBadge = [&](const QString &txt, const QColor &col) {
-                QFont bf("Monospace", 6, QFont::Bold);
-                p.setFont(bf);
-                QFontMetrics bfm(bf);
-                int bw = bfm.horizontalAdvance(txt) + 10;
-                QRect br(badgeX, badgeY, bw, 16);
-                p.setPen(Qt::NoPen);
-                p.setBrush(col.darker(200));
-                p.drawRoundedRect(br, 3, 3);
-                p.setPen(col);
-                p.drawText(br, Qt::AlignCenter, txt);
-                badgeY += 20;
-            };
-
-            if (op.emconActive)      drawBadge("EMCON",  QColor("#ffcc44"));
-            if (op.jammingDetected)  drawBadge("JAM",    QColor("#ff4444"));
-        }
     }
 
     // ── 10. Hover tooltip box ──────────────────────────────────────────

@@ -23,14 +23,14 @@ public:
     bool isHighlighted();
     QList<QgsPointXYZ> getPoints();
     void UpdatePoints(QList<QgsPointXYZ> points);
-    void UpdatePoints(QList<QgsPointXYZ> points, QStringList maneuverTypes);
-    QStringList getManeuverTypes();
-    void setManeuverTypes(QStringList maneuverTypes);
+    void UpdatePoints(QList<QgsPointXYZ> points, QStringList MANEUVERs);
+    QStringList getMANEUVERs();
+    void setMANEUVERs(QStringList MANEUVERs);
 private :
     QgsMapCanvas *_m_canvas;
     QString _m_sObjectID;
     QList<QgsPointXYZ> _m_listPoints;
-    QStringList _m_listManeuverTypes;
+    QStringList _m_listMANEUVERs;
     bool _m_bHighlight;
 
     QImage _m_Image;

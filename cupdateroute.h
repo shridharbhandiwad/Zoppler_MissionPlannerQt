@@ -18,12 +18,12 @@ public:
     ~CUpdateRoute();
 
     void setPoints(QList<QgsPointXYZ> listPoints);
-    void setManeuverTypes(QStringList maneuverTypes);
+    void setMANEUVERs(QStringList MANEUVERs);
 
     void setObjectId(QString sObjectId);
     
     // Maneuver type options
-    static QStringList getManeuverTypeOptions();
+    static QStringList getMANEUVEROptions();
 private:
     Ui::CUpdateRoute *ui;
 

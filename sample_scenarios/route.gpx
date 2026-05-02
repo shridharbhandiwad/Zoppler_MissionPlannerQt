@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="VistarPlanner"
+     xmlns="http://www.topografix.com/GPX/1/1"
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:schemaLocation="http://www.topografix.com/GPX/1/1
+                         http://www.topografix.com/GPX/1/1/gpx.xsd">
+
+  <metadata>
+    <name>Sample GPX Mission</name>
+    <desc>A sample mission with waypoints, a patrol track and a route for VistarPlanner GPX import testing</desc>
+    <author>
+      <name>System</name>
+    </author>
+    <time>2026-04-03T00:00:00Z</time>
+  </metadata>
+
+  <!-- Track – loaded as ScenarioRoute (gpxType = "track") -->
+  <trk>
+    <name>CAP Route Alpha</name>
+    <type>patrol</type>
+    <trkseg>
+      <trkpt lat="28.4500" lon="77.1500">
+        <ele>5000.0</ele>
+      </trkpt>
+      <trkpt lat="28.5500" lon="77.1500">
+        <ele>5000.0</ele>
+      </trkpt>
+      <trkpt lat="28.5500" lon="77.2500">
+        <ele>5000.0</ele>
+      </trkpt>
+      <trkpt lat="28.4500" lon="77.2500">
+        <ele>5000.0</ele>
+      </trkpt>
+      <trkpt lat="28.4500" lon="77.1500">
+        <ele>5000.0</ele>
+      </trkpt>
+    </trkseg>
+  </trk>
+
+</gpx>

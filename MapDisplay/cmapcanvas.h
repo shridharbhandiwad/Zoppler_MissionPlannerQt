@@ -15,7 +15,6 @@
 #include "../cupdateposition.h"
 #include "../cupdateroute.h"
 #include "../cscenariomanager.h"
-#include <QJsonArray>
 
 class CMapCanvas : public QgsMapCanvas
 {
@@ -83,13 +82,6 @@ public:
     double getSpreadRadiusKm() const;
 
     QTimer timerUpdate;
-
-    // Radar attribute blobs injected by CVistarPlanner before every save.
-    // Key = objectId (e.g. "RADAR_1"), value = RadarAttributes::toJson() output.
-    void setRadarAttributesCache(const QMap<QString, QJsonObject> &cache) {
-        _m_radarAttrsCache = cache;
-    }
-
 private:
 
     QProcess* m_translateProcess = nullptr;
@@ -123,7 +115,6 @@ private:
     bool isVistarObjectByIdExists(QString sObjectId);
     bool isVistarRouteByIdExists(QString sObjectId);
 
-    QMap<QString, QJsonObject> _m_radarAttrsCache;
     QList<QString> _m_listVistarObjectIds;
     QHash<QString,CVistarObject*> _m_listVistarObjects;
     QHash<QString,CVistarRoute*> _m_listVistarRoutes;
@@ -161,16 +152,8 @@ signals:
     // radarObjectId – the object's string ID (e.g. "RADAR_1")
     // maxRangeKm    – parsed range from additionalData, or 0 if not present
     void signalRadarObjectAdded(QString radarObjectId, double maxRangeKm);
-    // Emitted alongside signalRadarObjectAdded when radarAttributes block is present.
-    void signalRadarObjectAddedWithAttrs(QString radarObjectId, QJsonObject radarAttrsJson);
     // Emitted when all objects are cleared (scenario reset).
     void signalScenarioCleared();
-    // Emitted when the user selects "Attributes" from the RADAR context menu.
-    void signalOpenRadarAttributes(QString radarObjectId);
-    // Emitted when a RadarDetection message arrives over the network.
-    // radarId      – radar object ID (e.g. "RADAR_1")
-    // detectionsJson – JSON array of detection objects
-    void signalRadarDetectionsUpdated(QString radarObjectId, QJsonArray detectionsJson);
 public slots:
     void slotUpdateObject(QJsonDocument doc);
     void slotUpdatePosition(QString, double dLat, double dLon, double dAlt);

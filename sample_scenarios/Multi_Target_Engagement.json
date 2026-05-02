@@ -10,60 +10,7 @@
             "longitude": 77.2,
             "altitude": 100.0,
             "additionalData": {
-                "range": 400000,
-                "type": "long-range",
-                "radarAttributes": {
-                    "design": {
-                        "radarType": "Surveillance",
-                        "manufacturer": "BEL",
-                        "modelDesignation": "Rajendra-LR",
-                        "frequencyMHz": 1300.0,
-                        "bandwidthMHz": 5.0,
-                        "polarization": "Linear",
-                        "maxRangeKm": 400.0,
-                        "minRangeKm": 5.0,
-                        "azimuthCovDeg": 360.0,
-                        "elevationMinDeg": 0.0,
-                        "elevationMaxDeg": 45.0,
-                        "peakPowerKw": 600.0,
-                        "rangeResolutionM": 200.0,
-                        "azimuthResolutionDeg": 0.8,
-                        "antennaHeightM": 25.0,
-                        "weightKg": 8500.0,
-                        "mountingType": "Fixed"
-                    },
-                    "operational": {
-                        "operationalMode": "Active",
-                        "assignedMission": "Long Range Air Surveillance",
-                        "trackCapacity": 500,
-                        "currentTracks": 7,
-                        "emconActive": false,
-                        "transmitPowerPct": 100.0,
-                        "scanRateDegPerSec": 3.0,
-                        "sectorStartDeg": 0.0,
-                        "sectorEndDeg": 360.0,
-                        "iffEnabled": true,
-                        "iffMode": "Mode-S",
-                        "jammingDetected": false,
-                        "jamSignalDbm": -999.0
-                    },
-                    "maintenance": {
-                        "systemHealth": "Nominal",
-                        "healthPct": 95.0,
-                        "transmitterOk": true,
-                        "receiverOk": true,
-                        "antennaOk": true,
-                        "coolingSysOk": true,
-                        "powerSupplyOk": true,
-                        "lastServiceDate": "2025-10-15",
-                        "nextServiceDate": "2026-04-15",
-                        "operatingHours": 3200,
-                        "serviceIntervalH": 500,
-                        "mtbfHours": 3000.0,
-                        "mttrHours": 6.0,
-                        "maintenanceNotes": "Transmitter power dip observed – monitoring required."
-                    }
-                }
+                "type": "long-range"
             }
         },
         {
@@ -73,60 +20,7 @@
             "longitude": 77.3,
             "altitude": 100.0,
             "additionalData": {
-                "range": 100000,
-                "type": "medium-range",
-                "radarAttributes": {
-                    "design": {
-                        "radarType": "Fire Control",
-                        "manufacturer": "DRDO",
-                        "modelDesignation": "Rajendra-FC",
-                        "frequencyMHz": 9500.0,
-                        "bandwidthMHz": 50.0,
-                        "polarization": "Circular",
-                        "maxRangeKm": 100.0,
-                        "minRangeKm": 0.3,
-                        "azimuthCovDeg": 90.0,
-                        "elevationMinDeg": -5.0,
-                        "elevationMaxDeg": 80.0,
-                        "peakPowerKw": 150.0,
-                        "rangeResolutionM": 15.0,
-                        "azimuthResolutionDeg": 0.2,
-                        "antennaHeightM": 8.0,
-                        "weightKg": 1800.0,
-                        "mountingType": "Mobile"
-                    },
-                    "operational": {
-                        "operationalMode": "Standby",
-                        "assignedMission": "Akash Battery Fire Control",
-                        "trackCapacity": 64,
-                        "currentTracks": 0,
-                        "emconActive": true,
-                        "transmitPowerPct": 0.0,
-                        "scanRateDegPerSec": 0.0,
-                        "sectorStartDeg": 270.0,
-                        "sectorEndDeg": 360.0,
-                        "iffEnabled": true,
-                        "iffMode": "Mode-2",
-                        "jammingDetected": false,
-                        "jamSignalDbm": -999.0
-                    },
-                    "maintenance": {
-                        "systemHealth": "Nominal",
-                        "healthPct": 100.0,
-                        "transmitterOk": true,
-                        "receiverOk": true,
-                        "antennaOk": true,
-                        "coolingSysOk": true,
-                        "powerSupplyOk": true,
-                        "lastServiceDate": "2025-12-01",
-                        "nextServiceDate": "2026-06-01",
-                        "operatingHours": 420,
-                        "serviceIntervalH": 500,
-                        "mtbfHours": 1800.0,
-                        "mttrHours": 3.0,
-                        "maintenanceNotes": ""
-                    }
-                }
+                "type": "medium-range"
             }
         },
         {

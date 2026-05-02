@@ -5,7 +5,6 @@
 #include <QVector>
 #include <QPointF>
 #include "radarmanager.h"
-#include "radarattributes.h"
 
 class RadarPPIWidget : public QWidget
 {

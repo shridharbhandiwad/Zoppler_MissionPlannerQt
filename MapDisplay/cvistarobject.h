@@ -28,7 +28,7 @@ public:
     QString getParent();
     int getChildId();
     QString getAttachedRoute();
-    
+
     // Trajectory methods
     void setTrajectoryEnabled(bool enabled);
     bool isTrajectoryEnabled() const;
@@ -39,7 +39,7 @@ public:
     void setTrajectoryWidth(int width);
     int getTrajectoryWidth() const;
     void addTrajectoryPoint(double dLon, double dLat, double dAlt);
-    
+
 private :
     QgsMapCanvas *_m_canvas;
     QString _m_sObjectID;
@@ -60,7 +60,7 @@ private :
     int _m_nChildId;
     QString _m_sParentObject;
     QString _m_sAttachedRoute;
-    
+
     // Trajectory tracking
     bool _m_bTrajectoryEnabled;
     QList<QgsPointXYZ> _m_listTrajectoryPoints;

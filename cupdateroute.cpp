@@ -35,15 +35,15 @@ CUpdateRoute::CUpdateRoute(QWidget *parent)
         QLineEdit *leAlt = new QLineEdit(this);
         leAlt->setValidator(&altValidator);
         
-        // Create ManeuverType dropdown
-        QComboBox *cbManeuverType = new QComboBox(this);
-        cbManeuverType->addItems(getManeuverTypeOptions());
-        cbManeuverType->setCurrentIndex(0); // Default to "DIRECT"
+        // Create MANEUVER dropdown
+        QComboBox *cbMANEUVER = new QComboBox(this);
+        cbMANEUVER->addItems(getMANEUVEROptions());
+        cbMANEUVER->setCurrentIndex(0); // Default to "DIRECT"
 
         ui->tableWidget->setCellWidget(i,0,leLat);
         ui->tableWidget->setCellWidget(i,1,leLon);
         ui->tableWidget->setCellWidget(i,2,leAlt);
-        ui->tableWidget->setCellWidget(i,3,cbManeuverType);
+        ui->tableWidget->setCellWidget(i,3,cbMANEUVER);
     }
 
     this->setWindowFlags(Qt::WindowTitleHint | Qt::WindowStaysOnTopHint);
@@ -63,7 +63,7 @@ void CUpdateRoute::setPoints(QList<QgsPointXYZ> listPoints)
         QLineEdit *leLat = static_cast<QLineEdit*>(ui->tableWidget->cellWidget(i,0));
         QLineEdit *leLon = static_cast<QLineEdit*>(ui->tableWidget->cellWidget(i,1));
         QLineEdit *leAlt = static_cast<QLineEdit*>(ui->tableWidget->cellWidget(i,2));
-        QComboBox *cbManeuverType = static_cast<QComboBox*>(ui->tableWidget->cellWidget(i,3));
+        QComboBox *cbMANEUVER = static_cast<QComboBox*>(ui->tableWidget->cellWidget(i,3));
 
         if ( i < listPoints.size() ) {
             QgsPointXYZ pt = listPoints.at(i);
@@ -77,8 +77,8 @@ void CUpdateRoute::setPoints(QList<QgsPointXYZ> listPoints)
             if (leAlt) {
                 leAlt->setText(QString::number(pt.z(),'f',2));
             }
-            if (cbManeuverType) {
-                cbManeuverType->setCurrentIndex(0); // Default to "DIRECT"
+            if (cbMANEUVER) {
+                cbMANEUVER->setCurrentIndex(0); // Default to "DIRECT"
             }
         }
         else {
@@ -91,29 +91,29 @@ void CUpdateRoute::setPoints(QList<QgsPointXYZ> listPoints)
             if (leAlt) {
                 leAlt->clear();
             }
-            if (cbManeuverType) {
-                cbManeuverType->setCurrentIndex(0); // Default to "DIRECT"
+            if (cbMANEUVER) {
+                cbMANEUVER->setCurrentIndex(0); // Default to "DIRECT"
             }
         }
     }
 }
 
-void CUpdateRoute::setManeuverTypes(QStringList maneuverTypes)
+void CUpdateRoute::setMANEUVERs(QStringList MANEUVERs)
 {
     for ( int i = 0; i < ui->tableWidget->rowCount(); i++ ) {
-        QComboBox *cbManeuverType = static_cast<QComboBox*>(ui->tableWidget->cellWidget(i,3));
-        if (cbManeuverType && i < maneuverTypes.size()) {
-            int index = cbManeuverType->findText(maneuverTypes.at(i));
+        QComboBox *cbMANEUVER = static_cast<QComboBox*>(ui->tableWidget->cellWidget(i,3));
+        if (cbMANEUVER && i < MANEUVERs.size()) {
+            int index = cbMANEUVER->findText(MANEUVERs.at(i));
             if (index >= 0) {
-                cbManeuverType->setCurrentIndex(index);
+                cbMANEUVER->setCurrentIndex(index);
             } else {
-                cbManeuverType->setCurrentIndex(0); // Default to "DIRECT"
+                cbMANEUVER->setCurrentIndex(0); // Default to "DIRECT"
             }
         }
     }
 }
 
-QStringList CUpdateRoute::getManeuverTypeOptions()
+QStringList CUpdateRoute::getMANEUVEROptions()
 {
     return QStringList() << "DIRECT" << "S_CURVE" << "HIGH_G_TURN" << "COBRA" 
                          << "BARREL_ROLL" << "IMMELMAN" << "SPLIT_S" 
@@ -129,14 +129,14 @@ void CUpdateRoute::setObjectId(QString sObjectId)
 void CUpdateRoute::on_pushButton_update_clicked()
 {
     QList<QgsPointXYZ> points;
-    QStringList maneuverTypes;
+    QStringList MANEUVERs;
 
     for ( int i = 0; i < ui->tableWidget->rowCount(); i++ ) {
         QLineEdit *leLat = static_cast<QLineEdit*>(ui->tableWidget->cellWidget(i,0));
         QLineEdit *leLon = static_cast<QLineEdit*>(ui->tableWidget->cellWidget(i,1));
         QLineEdit *leAlt = static_cast<QLineEdit*>(ui->tableWidget->cellWidget(i,2));
-        QComboBox *cbManeuverType = static_cast<QComboBox*>(ui->tableWidget->cellWidget(i,3));
-        if (leLat && leLon && leAlt && cbManeuverType) {
+        QComboBox *cbMANEUVER = static_cast<QComboBox*>(ui->tableWidget->cellWidget(i,3));
+        if (leLat && leLon && leAlt && cbMANEUVER) {
             if ( leLat->text().isEmpty() && leLon->text().isEmpty() &&
                 leLon->text().isEmpty() ) {
 
@@ -147,7 +147,7 @@ void CUpdateRoute::on_pushButton_update_clicked()
             }
             else {
                 points<<QgsPointXYZ(leLon->text().toDouble(),leLat->text().toDouble(),leAlt->text().toDouble());
-                maneuverTypes<<cbManeuverType->currentText();
+                MANEUVERs<<cbMANEUVER->currentText();
             }
         }
         else {
@@ -158,7 +158,7 @@ void CUpdateRoute::on_pushButton_update_clicked()
 
     if ( points.size() > 0 ) {
         qDebug()<<"New Route Points "<<points.size();
-        emit signalUpdatePoints(_m_sObjectId,points,maneuverTypes);
+        emit signalUpdatePoints(_m_sObjectId,points,MANEUVERs);
     }
 }
 

@@ -69,7 +69,7 @@ QScrollArea {
     background-color: transparent;
     border: none;
 }
-QScrollArea > QWidget > QWidget {
+QScrollArea &gt; QWidget &gt; QWidget {
     background-color: transparent;
 }
 QScrollBar:vertical {
@@ -183,8 +183,8 @@ QPushButton#pushButton_SaveAsDefaults:pressed {
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>456</width>
-        <height>720</height>
+        <width>444</width>
+        <height>942</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
@@ -209,12 +209,6 @@ QPushButton#pushButton_SaveAsDefaults:pressed {
           <string>General Parameters</string>
          </property>
          <layout class="QGridLayout" name="gridLayout">
-          <property name="horizontalSpacing">
-           <number>10</number>
-          </property>
-          <property name="verticalSpacing">
-           <number>6</number>
-          </property>
           <property name="leftMargin">
            <number>10</number>
           </property>
@@ -227,13 +221,19 @@ QPushButton#pushButton_SaveAsDefaults:pressed {
           <property name="bottomMargin">
            <number>10</number>
           </property>
+          <property name="horizontalSpacing">
+           <number>10</number>
+          </property>
+          <property name="verticalSpacing">
+           <number>6</number>
+          </property>
           <item row="0" column="0">
            <widget class="QLabel" name="label_NumWaypoints">
-            <property name="text">
-             <string>Number of Waypoints:</string>
-            </property>
             <property name="toolTip">
              <string>Number of intermediate waypoints to generate in the path (2-100)</string>
+            </property>
+            <property name="text">
+             <string>Number of Waypoints:</string>
             </property>
            </widget>
           </item>
@@ -252,16 +252,19 @@ QPushButton#pushButton_SaveAsDefaults:pressed {
           </item>
           <item row="1" column="0">
            <widget class="QLabel" name="label_Altitude">
-            <property name="text">
-             <string>Default Altitude (m):</string>
-            </property>
             <property name="toolTip">
              <string>Default altitude in meters for generated waypoints</string>
+            </property>
+            <property name="text">
+             <string>Default Altitude (m):</string>
             </property>
            </widget>
           </item>
           <item row="1" column="1">
            <widget class="QDoubleSpinBox" name="doubleSpinBox_Altitude">
+            <property name="suffix">
+             <string> m</string>
+            </property>
             <property name="decimals">
              <number>1</number>
             </property>
@@ -275,10 +278,7 @@ QPushButton#pushButton_SaveAsDefaults:pressed {
              <double>100.000000000000000</double>
             </property>
             <property name="value">
-             <double>1000.000000000000000</double>
-            </property>
-            <property name="suffix">
-             <string> m</string>
+             <double>100.000000000000000</double>
             </property>
            </widget>
           </item>
@@ -291,12 +291,6 @@ QPushButton#pushButton_SaveAsDefaults:pressed {
           <string>Curve &amp; Spread Parameters</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_2">
-          <property name="horizontalSpacing">
-           <number>10</number>
-          </property>
-          <property name="verticalSpacing">
-           <number>6</number>
-          </property>
           <property name="leftMargin">
            <number>10</number>
           </property>
@@ -309,13 +303,19 @@ QPushButton#pushButton_SaveAsDefaults:pressed {
           <property name="bottomMargin">
            <number>10</number>
           </property>
+          <property name="horizontalSpacing">
+           <number>10</number>
+          </property>
+          <property name="verticalSpacing">
+           <number>6</number>
+          </property>
           <item row="0" column="0">
            <widget class="QLabel" name="label_CurveFactor">
-            <property name="text">
-             <string>Curve Factor:</string>
-            </property>
             <property name="toolTip">
              <string>Controls curve intensity (0.0 = straight, 1.0 = maximum curve)</string>
+            </property>
+            <property name="text">
+             <string>Curve Factor:</string>
             </property>
            </widget>
           </item>
@@ -340,16 +340,19 @@ QPushButton#pushButton_SaveAsDefaults:pressed {
           </item>
           <item row="1" column="0">
            <widget class="QLabel" name="label_MaxTurnRadius">
-            <property name="text">
-             <string>Max Turn Radius (°):</string>
-            </property>
             <property name="toolTip">
              <string>Maximum turn radius in degrees for L-curve paths</string>
+            </property>
+            <property name="text">
+             <string>Max Turn Radius (°):</string>
             </property>
            </widget>
           </item>
           <item row="1" column="1">
            <widget class="QDoubleSpinBox" name="doubleSpinBox_MaxTurnRadius">
+            <property name="suffix">
+             <string>°</string>
+            </property>
             <property name="decimals">
              <number>3</number>
             </property>
@@ -365,23 +368,23 @@ QPushButton#pushButton_SaveAsDefaults:pressed {
             <property name="value">
              <double>0.100000000000000</double>
             </property>
-            <property name="suffix">
-             <string>°</string>
-            </property>
            </widget>
           </item>
           <item row="2" column="0">
            <widget class="QLabel" name="label_SpreadRadius">
-            <property name="text">
-             <string>Spread Radius (km):</string>
-            </property>
             <property name="toolTip">
              <string>Maximum lateral spread of the trajectory from the main path in kilometers</string>
+            </property>
+            <property name="text">
+             <string>Spread Radius (km):</string>
             </property>
            </widget>
           </item>
           <item row="2" column="1">
            <widget class="QDoubleSpinBox" name="doubleSpinBox_SpreadRadius">
+            <property name="suffix">
+             <string> km</string>
+            </property>
             <property name="decimals">
              <number>1</number>
             </property>
@@ -397,9 +400,6 @@ QPushButton#pushButton_SaveAsDefaults:pressed {
             <property name="value">
              <double>15.000000000000000</double>
             </property>
-            <property name="suffix">
-             <string> km</string>
-            </property>
            </widget>
           </item>
          </layout>
@@ -411,12 +411,6 @@ QPushButton#pushButton_SaveAsDefaults:pressed {
           <string>Spiral Parameters</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_5">
-          <property name="horizontalSpacing">
-           <number>10</number>
-          </property>
-          <property name="verticalSpacing">
-           <number>6</number>
-          </property>
           <property name="leftMargin">
            <number>10</number>
           </property>
@@ -429,13 +423,19 @@ QPushButton#pushButton_SaveAsDefaults:pressed {
           <property name="bottomMargin">
            <number>10</number>
           </property>
+          <property name="horizontalSpacing">
+           <number>10</number>
+          </property>
+          <property name="verticalSpacing">
+           <number>6</number>
+          </property>
           <item row="0" column="0">
            <widget class="QLabel" name="label_SpiralTurns">
-            <property name="text">
-             <string>Spiral Turns:</string>
-            </property>
             <property name="toolTip">
              <string>Number of spiral rotations (1-10)</string>
+            </property>
+            <property name="text">
+             <string>Spiral Turns:</string>
             </property>
            </widget>
           </item>
@@ -460,11 +460,11 @@ QPushButton#pushButton_SaveAsDefaults:pressed {
           </item>
           <item row="1" column="0">
            <widget class="QLabel" name="label_SpiralExpansion">
-            <property name="text">
-             <string>Expansion Rate:</string>
-            </property>
             <property name="toolTip">
              <string>How fast the spiral expands outward (0.1 = slow, 2.0 = fast)</string>
+            </property>
+            <property name="text">
+             <string>Expansion Rate:</string>
             </property>
            </widget>
           </item>
@@ -489,11 +489,11 @@ QPushButton#pushButton_SaveAsDefaults:pressed {
           </item>
           <item row="2" column="0">
            <widget class="QLabel" name="label_SpiralTightness">
-            <property name="text">
-             <string>Tightness:</string>
-            </property>
             <property name="toolTip">
              <string>How tight the spiral is (0.0 = loose, 1.0 = tight)</string>
+            </property>
+            <property name="text">
+             <string>Tightness:</string>
             </property>
            </widget>
           </item>
@@ -518,11 +518,11 @@ QPushButton#pushButton_SaveAsDefaults:pressed {
           </item>
           <item row="3" column="0">
            <widget class="QLabel" name="label_SpiralClockwise">
-            <property name="text">
-             <string>Clockwise:</string>
-            </property>
             <property name="toolTip">
              <string>Spiral rotation direction (clockwise or counter-clockwise)</string>
+            </property>
+            <property name="text">
+             <string>Clockwise:</string>
             </property>
            </widget>
           </item>
@@ -545,12 +545,6 @@ QPushButton#pushButton_SaveAsDefaults:pressed {
           <string>Zigzag Parameters</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_3">
-          <property name="horizontalSpacing">
-           <number>10</number>
-          </property>
-          <property name="verticalSpacing">
-           <number>6</number>
-          </property>
           <property name="leftMargin">
            <number>10</number>
           </property>
@@ -563,13 +557,19 @@ QPushButton#pushButton_SaveAsDefaults:pressed {
           <property name="bottomMargin">
            <number>10</number>
           </property>
+          <property name="horizontalSpacing">
+           <number>10</number>
+          </property>
+          <property name="verticalSpacing">
+           <number>6</number>
+          </property>
           <item row="0" column="0">
            <widget class="QLabel" name="label_ZigzagAmplitude">
-            <property name="text">
-             <string>Zigzag Amplitude:</string>
-            </property>
             <property name="toolTip">
              <string>Amplitude of zigzag as fraction of total distance (0.05-0.5)</string>
+            </property>
+            <property name="text">
+             <string>Zigzag Amplitude:</string>
             </property>
            </widget>
           </item>
@@ -594,11 +594,11 @@ QPushButton#pushButton_SaveAsDefaults:pressed {
           </item>
           <item row="1" column="0">
            <widget class="QLabel" name="label_ZigzagFrequency">
-            <property name="text">
-             <string>Zigzag Frequency:</string>
-            </property>
             <property name="toolTip">
              <string>Number of zigzag oscillations (2-20)</string>
+            </property>
+            <property name="text">
+             <string>Zigzag Frequency:</string>
             </property>
            </widget>
           </item>
@@ -624,12 +624,6 @@ QPushButton#pushButton_SaveAsDefaults:pressed {
           <string>Randomness &amp; Noise Parameters</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_4">
-          <property name="horizontalSpacing">
-           <number>10</number>
-          </property>
-          <property name="verticalSpacing">
-           <number>6</number>
-          </property>
           <property name="leftMargin">
            <number>10</number>
           </property>
@@ -642,13 +636,19 @@ QPushButton#pushButton_SaveAsDefaults:pressed {
           <property name="bottomMargin">
            <number>10</number>
           </property>
+          <property name="horizontalSpacing">
+           <number>10</number>
+          </property>
+          <property name="verticalSpacing">
+           <number>6</number>
+          </property>
           <item row="0" column="0">
            <widget class="QLabel" name="label_RandomnessLevel">
-            <property name="text">
-             <string>Randomness Level:</string>
-            </property>
             <property name="toolTip">
              <string>Global randomness multiplier for ALL path types (0.0 = deterministic, 1.0 = maximum randomness)</string>
+            </property>
+            <property name="text">
+             <string>Randomness Level:</string>
             </property>
            </widget>
           </item>
@@ -673,11 +673,11 @@ QPushButton#pushButton_SaveAsDefaults:pressed {
           </item>
           <item row="1" column="0">
            <widget class="QLabel" name="label_RandomVariance">
-            <property name="text">
-             <string>Random Variance:</string>
-            </property>
             <property name="toolTip">
              <string>Variance factor for random path generation (0.05-1.0)</string>
+            </property>
+            <property name="text">
+             <string>Random Variance:</string>
             </property>
            </widget>
           </item>
@@ -702,11 +702,11 @@ QPushButton#pushButton_SaveAsDefaults:pressed {
           </item>
           <item row="2" column="0">
            <widget class="QLabel" name="label_NoiseScale">
-            <property name="text">
-             <string>Noise Scale:</string>
-            </property>
             <property name="toolTip">
              <string>Scale of organic noise added to paths (0.0 = smooth, 1.0 = noisy)</string>
+            </property>
+            <property name="text">
+             <string>Noise Scale:</string>
             </property>
            </widget>
           </item>
@@ -731,16 +731,19 @@ QPushButton#pushButton_SaveAsDefaults:pressed {
           </item>
           <item row="3" column="0">
            <widget class="QLabel" name="label_AltitudeVariation">
-            <property name="text">
-             <string>Altitude Variation (m):</string>
-            </property>
             <property name="toolTip">
              <string>Maximum altitude variation in meters from the base altitude</string>
+            </property>
+            <property name="text">
+             <string>Altitude Variation (m):</string>
             </property>
            </widget>
           </item>
           <item row="3" column="1">
            <widget class="QDoubleSpinBox" name="doubleSpinBox_AltitudeVariation">
+            <property name="suffix">
+             <string> m</string>
+            </property>
             <property name="decimals">
              <number>0</number>
             </property>
@@ -756,18 +759,15 @@ QPushButton#pushButton_SaveAsDefaults:pressed {
             <property name="value">
              <double>150.000000000000000</double>
             </property>
-            <property name="suffix">
-             <string> m</string>
-            </property>
            </widget>
           </item>
           <item row="4" column="0">
            <widget class="QLabel" name="label_WobbleIntensity">
-            <property name="text">
-             <string>Wobble Intensity:</string>
-            </property>
             <property name="toolTip">
              <string>Intensity of path wobble/oscillation (0.0 = none, 1.0 = maximum)</string>
+            </property>
+            <property name="text">
+             <string>Wobble Intensity:</string>
             </property>
            </widget>
           </item>
@@ -792,11 +792,11 @@ QPushButton#pushButton_SaveAsDefaults:pressed {
           </item>
           <item row="5" column="0">
            <widget class="QLabel" name="label_PathAsymmetry">
-            <property name="text">
-             <string>Path Asymmetry:</string>
-            </property>
             <property name="toolTip">
              <string>How asymmetric paths can be (0.0 = symmetric, 1.0 = highly asymmetric)</string>
+            </property>
+            <property name="text">
+             <string>Path Asymmetry:</string>
             </property>
            </widget>
           </item>
@@ -821,11 +821,11 @@ QPushButton#pushButton_SaveAsDefaults:pressed {
           </item>
           <item row="6" column="0">
            <widget class="QLabel" name="label_ClusterTendency">
-            <property name="text">
-             <string>Cluster Tendency:</string>
-            </property>
             <property name="toolTip">
              <string>Tendency to cluster waypoints together (0.0 = spread out, 1.0 = clustered)</string>
+            </property>
+            <property name="text">
+             <string>Cluster Tendency:</string>
             </property>
            </widget>
           </item>
@@ -875,21 +875,21 @@ QPushButton#pushButton_SaveAsDefaults:pressed {
      </property>
      <item>
       <widget class="QPushButton" name="pushButton_ResetDefaults">
-       <property name="text">
-        <string>Reset Defaults</string>
-       </property>
        <property name="toolTip">
         <string>Reset to saved default values</string>
+       </property>
+       <property name="text">
+        <string>Reset Defaults</string>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QPushButton" name="pushButton_SaveAsDefaults">
-       <property name="text">
-        <string>Save as Defaults</string>
-       </property>
        <property name="toolTip">
         <string>Save current settings as new defaults</string>
+       </property>
+       <property name="text">
+        <string>Save as Defaults</string>
        </property>
       </widget>
      </item>
