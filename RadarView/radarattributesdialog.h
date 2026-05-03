@@ -15,12 +15,13 @@
 // RadarAttributesDialog
 //
 // A tabbed attribute-table editor that opens when the user right-clicks a
-// RADAR object on the map and selects "Attributes".
+// RADAR object on the map and selects "Design Parameters".
 //
 // Layout:
 //   Tab 1 – Design Attributes      (static / HW parameters)
 //   Tab 2 – Operational Attributes (live / mission-time parameters)
 //   Tab 3 – Maintenance Attributes (health / logistics)
+//   Tab 4 – Physics Parameters     (RF/signal-processing / radar-equation values)
 //
 // Each tab contains a QTableWidget with two columns:
 //   Column 0 – Attribute name  (read-only)
@@ -57,11 +58,13 @@ private:
     QWidget *buildDesignTab();
     QWidget *buildOperationalTab();
     QWidget *buildMaintenanceTab();
+    QWidget *buildPhysicsTab();
 
     // Helpers to read values back from the table widgets
-    RadarView::DesignAttributes      readDesign()      const;
-    RadarView::OperationalAttributes readOperational() const;
-    RadarView::MaintenanceAttributes readMaintenance() const;
+    RadarView::DesignAttributes        readDesign()      const;
+    RadarView::OperationalAttributes   readOperational() const;
+    RadarView::MaintenanceAttributes   readMaintenance() const;
+    RadarView::RadarPhysicsParameters  readPhysics()     const;
 
     // Generic helper: add a row with name + value to a table
     static void addRow(QTableWidget *tbl, const QString &name,
@@ -79,6 +82,7 @@ private:
     QTableWidget  *m_tblDesign;
     QTableWidget  *m_tblOp;
     QTableWidget  *m_tblMaint;
+    QTableWidget  *m_tblPhysics;
 
     QPushButton   *m_btnOk;
     QPushButton   *m_btnApply;

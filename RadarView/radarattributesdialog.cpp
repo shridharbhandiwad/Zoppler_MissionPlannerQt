@@ -180,6 +180,7 @@ RadarAttributesDialog::RadarAttributesDialog(const QString &radarName,
     m_tabs->addTab(buildDesignTab(),      "  Design  ");
     m_tabs->addTab(buildOperationalTab(), "  Operational  ");
     m_tabs->addTab(buildMaintenanceTab(), "  Maintenance  ");
+    m_tabs->addTab(buildPhysicsTab(),     "  Physics  ");
     root->addWidget(m_tabs, 1);
 
     // Button row
@@ -297,7 +298,40 @@ QWidget *RadarAttributesDialog::buildMaintenanceTab()
     return w;
 }
 
-// ─── collect edits from all three tables ─────────────────────────────────────
+// ─── Physics tab ──────────────────────────────────────────────────────────────
+QWidget *RadarAttributesDialog::buildPhysicsTab()
+{
+    auto *w = new QWidget;
+    auto *l = new QVBoxLayout(w);
+    l->setContentsMargins(4, 4, 4, 4);
+
+    m_tblPhysics = makeTable(w);
+    const auto &p = m_attrs.physics;
+
+    addRow(m_tblPhysics, "Pd",            p.Pd,            "",    "Probability of detection (0–1)");
+    addRow(m_tblPhysics, "Pfa",           p.Pfa,           "",    "Probability of false alarm (e.g. 1e-6)");
+    addRow(m_tblPhysics, "Beamwidth Az",  p.beamwidth_az,  "°",   "Azimuth beamwidth (degrees)");
+    addRow(m_tblPhysics, "Beamwidth El",  p.beamwidth_el,  "°",   "Elevation beamwidth (degrees)");
+    addRow(m_tblPhysics, "Tx Power",      p.tx_power,      "W",   "Transmit power (watts)");
+    addRow(m_tblPhysics, "Pulse Width",   p.pulse_width,   "s",   "Pulse width (seconds, e.g. 100e-6)");
+    addRow(m_tblPhysics, "Bandwidth",     p.bandwidth,     "Hz",  "Signal bandwidth (Hz, e.g. 5e6)");
+    addRow(m_tblPhysics, "Freq Min",      p.freq_min,      "Hz",  "Minimum frequency (Hz, e.g. 10.0e9)");
+    addRow(m_tblPhysics, "Freq Max",      p.freq_max,      "Hz",  "Maximum frequency (Hz, e.g. 10.5e9)");
+    addRow(m_tblPhysics, "Freq Center",   p.freq_center,   "Hz",  "Centre frequency – auto-computed as (Freq Min + Freq Max) / 2");
+    addRow(m_tblPhysics, "Desired SNR",   p.desired_snr,   "dB",  "Required SNR at detection threshold");
+    addRow(m_tblPhysics, "Noise Figure",  p.noise_figure,  "dB",  "Receiver noise figure");
+    addRow(m_tblPhysics, "System Temp",   p.system_temp,   "K",   "System noise temperature (Kelvin)");
+    addRow(m_tblPhysics, "Receiver Gain", p.receiver_gain, "dB",  "Receiver gain");
+    addRow(m_tblPhysics, "PRF",           p.prf,           "Hz",  "Pulse repetition frequency");
+    addRow(m_tblPhysics, "Scan Time",     p.scan_time,     "s",   "Time for one full scan (seconds)");
+    addRow(m_tblPhysics, "RCS",           p.rcs,           "m²",  "Reference target radar cross-section");
+    addRow(m_tblPhysics, "Loss",          p.loss,          "dB",  "Total system loss");
+
+    l->addWidget(m_tblPhysics);
+    return w;
+}
+
+// ─── collect edits from all four tables ──────────────────────────────────────
 static QString cellText(QTableWidget *tbl, int row)
 {
     auto *it = tbl->item(row, 1);
@@ -366,11 +400,39 @@ RadarView::MaintenanceAttributes RadarAttributesDialog::readMaintenance() const
     return m;
 }
 
+RadarView::RadarPhysicsParameters RadarAttributesDialog::readPhysics() const
+{
+    RadarView::RadarPhysicsParameters p;
+    p.Pd            = cellText(m_tblPhysics,  0).toDouble();
+    p.Pfa           = cellText(m_tblPhysics,  1).toDouble();
+    p.beamwidth_az  = cellText(m_tblPhysics,  2).toDouble();
+    p.beamwidth_el  = cellText(m_tblPhysics,  3).toDouble();
+    p.tx_power      = cellText(m_tblPhysics,  4).toDouble();
+    p.pulse_width   = cellText(m_tblPhysics,  5).toDouble();
+    p.bandwidth     = cellText(m_tblPhysics,  6).toDouble();
+    p.freq_min      = cellText(m_tblPhysics,  7).toDouble();
+    p.freq_max      = cellText(m_tblPhysics,  8).toDouble();
+    // Row 9 (Freq Center) is derived; recompute rather than trust user input
+    p.freq_center   = (p.freq_min + p.freq_max) / 2.0;
+    p.desired_snr   = cellText(m_tblPhysics, 10).toDouble();
+    p.noise_figure  = cellText(m_tblPhysics, 11).toDouble();
+    p.system_temp   = cellText(m_tblPhysics, 12).toDouble();
+    p.receiver_gain = cellText(m_tblPhysics, 13).toDouble();
+    p.prf           = cellText(m_tblPhysics, 14).toDouble();
+    p.scan_time     = cellText(m_tblPhysics, 15).toDouble();
+    p.rcs           = cellText(m_tblPhysics, 16).toDouble();
+    p.loss          = cellText(m_tblPhysics, 17).toDouble();
+    return p;
+}
+
 void RadarAttributesDialog::collectEdits()
 {
     m_attrs.design      = readDesign();
     m_attrs.operational = readOperational();
     m_attrs.maintenance = readMaintenance();
+    m_attrs.physics     = readPhysics();
+    // Keep freq_center consistent after a manual freq_min/freq_max edit
+    m_attrs.physics.updateDerivedFields();
 }
 
 // ─── button handlers ─────────────────────────────────────────────────────────
@@ -401,6 +463,7 @@ void RadarAttributesDialog::onReset()
     const auto &d  = m_attrs.design;
     const auto &op = m_attrs.operational;
     const auto &ma = m_attrs.maintenance;
+    const auto &ph = m_attrs.physics;
 
     // Design
     setCell(m_tblDesign,  0, d.radarType);
@@ -451,4 +514,24 @@ void RadarAttributesDialog::onReset()
     setCell(m_tblMaint, 11, QString::number(ma.mtbfHours));
     setCell(m_tblMaint, 12, QString::number(ma.mttrHours));
     setCell(m_tblMaint, 13, ma.maintenanceNotes);
+
+    // Physics
+    setCell(m_tblPhysics,  0, QString::number(ph.Pd));
+    setCell(m_tblPhysics,  1, QString::number(ph.Pfa));
+    setCell(m_tblPhysics,  2, QString::number(ph.beamwidth_az));
+    setCell(m_tblPhysics,  3, QString::number(ph.beamwidth_el));
+    setCell(m_tblPhysics,  4, QString::number(ph.tx_power));
+    setCell(m_tblPhysics,  5, QString::number(ph.pulse_width));
+    setCell(m_tblPhysics,  6, QString::number(ph.bandwidth));
+    setCell(m_tblPhysics,  7, QString::number(ph.freq_min));
+    setCell(m_tblPhysics,  8, QString::number(ph.freq_max));
+    setCell(m_tblPhysics,  9, QString::number((ph.freq_min + ph.freq_max) / 2.0));
+    setCell(m_tblPhysics, 10, QString::number(ph.desired_snr));
+    setCell(m_tblPhysics, 11, QString::number(ph.noise_figure));
+    setCell(m_tblPhysics, 12, QString::number(ph.system_temp));
+    setCell(m_tblPhysics, 13, QString::number(ph.receiver_gain));
+    setCell(m_tblPhysics, 14, QString::number(ph.prf));
+    setCell(m_tblPhysics, 15, QString::number(ph.scan_time));
+    setCell(m_tblPhysics, 16, QString::number(ph.rcs));
+    setCell(m_tblPhysics, 17, QString::number(ph.loss));
 }
