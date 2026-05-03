@@ -936,10 +936,8 @@ void CVistarPlanner::onScenarioObjectsCleared()
 
 void CVistarPlanner::onRadarAttributesChanged(QString radarObjectId, RadarView::RadarAttributes attrs)
 {
-    // Propagate design.maxRangeKm to the RadarManager (and therefore the PPI widget)
     if (_m_radarObjectIdToIntId.contains(radarObjectId)) {
         int intId = _m_radarObjectIdToIntId[radarObjectId];
-        _m_radarManager->updateRadarRange(intId, attrs.design.maxRangeKm);
 
         // If the PPI dock for this radar is open, refresh it
         if (_m_radarDocks.contains(intId)) {

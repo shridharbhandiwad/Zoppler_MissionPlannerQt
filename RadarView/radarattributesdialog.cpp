@@ -17,31 +17,6 @@ QDialog {
     font-family: 'Segoe UI', Arial, sans-serif;
     font-size: 12px;
 }
-QTabWidget::pane {
-    border: 1px solid #3a4560;
-    border-radius: 4px;
-    background-color: #1e2430;
-}
-QTabBar::tab {
-    background-color: #2a3550;
-    color: #8a9abc;
-    padding: 8px 20px;
-    border: 1px solid #3a4560;
-    border-bottom: none;
-    border-top-left-radius: 4px;
-    border-top-right-radius: 4px;
-    min-width: 140px;
-    font-weight: bold;
-}
-QTabBar::tab:selected {
-    background-color: #334070;
-    color: #e0e8ff;
-    border-bottom: 2px solid #4a90d9;
-}
-QTabBar::tab:hover:!selected {
-    background-color: #2f3d60;
-    color: #c0cce0;
-}
 QTableWidget {
     background-color: #1a2035;
     alternate-background-color: #1e263c;
@@ -159,7 +134,7 @@ RadarAttributesDialog::RadarAttributesDialog(const QString &radarName,
     , m_attrs(attrs)
     , m_originalAttrs(attrs)
 {
-    setWindowTitle(QString("Radar Attributes – %1").arg(radarName));
+    setWindowTitle(QString("Radar Parameters – %1").arg(radarName));
     setMinimumSize(720, 580);
     setStyleSheet(kDialogStyle);
     setAttribute(Qt::WA_DeleteOnClose, false);
@@ -170,18 +145,13 @@ RadarAttributesDialog::RadarAttributesDialog(const QString &radarName,
 
     // Title bar
     auto *title = new QLabel(
-        QString("<b>Radar Attributes</b>  <span style='color:#8ab4e0; font-size:12px;'>%1</span>")
+        QString("<b>Radar Parameters</b>  <span style='color:#8ab4e0; font-size:12px;'>%1</span>")
             .arg(radarName), this);
     title->setObjectName("titleLabel");
     root->addWidget(title);
 
-    // Tabs
-    m_tabs = new QTabWidget(this);
-    m_tabs->addTab(buildDesignTab(),      "  Design  ");
-    m_tabs->addTab(buildOperationalTab(), "  Operational  ");
-    m_tabs->addTab(buildMaintenanceTab(), "  Maintenance  ");
-    m_tabs->addTab(buildPhysicsTab(),     "  Physics  ");
-    root->addWidget(m_tabs, 1);
+    // Radar Parameters table (no tabs – single view)
+    root->addWidget(buildRadarParametersTab(), 1);
 
     // Button row
     auto *btnRow = new QHBoxLayout;
@@ -209,97 +179,8 @@ RadarAttributesDialog::RadarAttributesDialog(const QString &radarName,
     connect(m_btnReset,  &QPushButton::clicked, this, &RadarAttributesDialog::onReset);
 }
 
-// ─── Design tab ───────────────────────────────────────────────────────────────
-QWidget *RadarAttributesDialog::buildDesignTab()
-{
-    auto *w = new QWidget;
-    auto *l = new QVBoxLayout(w);
-    l->setContentsMargins(4, 4, 4, 4);
-
-    m_tblDesign = makeTable(w);
-    const auto &d = m_attrs.design;
-
-    addRow(m_tblDesign, "Radar Type",          d.radarType,            "",     "Surveillance | Fire Control | Weather | SAR | Tracking");
-    addRow(m_tblDesign, "Manufacturer",         d.manufacturer);
-    addRow(m_tblDesign, "Model Designation",    d.modelDesignation);
-    addRow(m_tblDesign, "Frequency",            d.frequencyMHz,         "MHz",  "Centre operating frequency");
-    addRow(m_tblDesign, "Bandwidth",            d.bandwidthMHz,         "MHz");
-    addRow(m_tblDesign, "Polarization",         d.polarization,         "",     "Linear | Circular | Dual");
-    addRow(m_tblDesign, "Max Range",            d.maxRangeKm,           "km");
-    addRow(m_tblDesign, "Min Range",            d.minRangeKm,           "km");
-    addRow(m_tblDesign, "Azimuth Coverage",     d.azimuthCovDeg,        "°",    "360 = full omnidirectional");
-    addRow(m_tblDesign, "Elevation Min",        d.elevationMinDeg,      "°");
-    addRow(m_tblDesign, "Elevation Max",        d.elevationMaxDeg,      "°");
-    addRow(m_tblDesign, "Peak Power",           d.peakPowerKw,          "kW");
-    addRow(m_tblDesign, "Range Resolution",     d.rangeResolutionM,     "m");
-    addRow(m_tblDesign, "Azimuth Resolution",   d.azimuthResolutionDeg, "°");
-    addRow(m_tblDesign, "Antenna Height",       d.antennaHeightM,       "m");
-    addRow(m_tblDesign, "Weight",               d.weightKg,             "kg");
-    addRow(m_tblDesign, "Mounting Type",        d.mountingType,         "",     "Fixed | Mobile | Ship-borne | Airborne");
-
-    l->addWidget(m_tblDesign);
-    return w;
-}
-
-// ─── Operational tab ──────────────────────────────────────────────────────────
-QWidget *RadarAttributesDialog::buildOperationalTab()
-{
-    auto *w = new QWidget;
-    auto *l = new QVBoxLayout(w);
-    l->setContentsMargins(4, 4, 4, 4);
-
-    m_tblOp = makeTable(w);
-    const auto &op = m_attrs.operational;
-
-    addRow(m_tblOp, "Operational Mode",    op.operationalMode,    "",  "Standby | Active | Maintenance | Degraded | Off");
-    addRow(m_tblOp, "Assigned Mission",    op.assignedMission);
-    addRow(m_tblOp, "Track Capacity",      op.trackCapacity,      "tracks");
-    addRow(m_tblOp, "Current Tracks",      op.currentTracks,      "tracks");
-    addRow(m_tblOp, "EMCON Active",        op.emconActive ? "true" : "false", "", "Emission control (silent mode)");
-    addRow(m_tblOp, "Transmit Power",      op.transmitPowerPct,   "%");
-    addRow(m_tblOp, "Scan Rate",           op.scanRateDegPerSec,  "°/s");
-    addRow(m_tblOp, "Sector Start",        op.sectorStartDeg,     "°");
-    addRow(m_tblOp, "Sector End",          op.sectorEndDeg,       "°");
-    addRow(m_tblOp, "IFF Enabled",         op.iffEnabled ? "true" : "false");
-    addRow(m_tblOp, "IFF Mode",            op.iffMode,            "",  "Mode-1 | Mode-2 | Mode-3 | Mode-S");
-    addRow(m_tblOp, "Jamming Detected",    op.jammingDetected ? "true" : "false");
-    addRow(m_tblOp, "Jam Signal",          op.jamSignalDbm,       "dBm");
-
-    l->addWidget(m_tblOp);
-    return w;
-}
-
-// ─── Maintenance tab ──────────────────────────────────────────────────────────
-QWidget *RadarAttributesDialog::buildMaintenanceTab()
-{
-    auto *w = new QWidget;
-    auto *l = new QVBoxLayout(w);
-    l->setContentsMargins(4, 4, 4, 4);
-
-    m_tblMaint = makeTable(w);
-    const auto &m = m_attrs.maintenance;
-
-    addRow(m_tblMaint, "System Health",       m.systemHealth,    "",  "Nominal | Degraded | Critical | Failed");
-    addRow(m_tblMaint, "Health",              m.healthPct,       "%");
-    addRow(m_tblMaint, "Transmitter OK",      m.transmitterOk  ? "true" : "false");
-    addRow(m_tblMaint, "Receiver OK",         m.receiverOk     ? "true" : "false");
-    addRow(m_tblMaint, "Antenna OK",          m.antennaOk      ? "true" : "false");
-    addRow(m_tblMaint, "Cooling System OK",   m.coolingSysOk   ? "true" : "false");
-    addRow(m_tblMaint, "Power Supply OK",     m.powerSupplyOk  ? "true" : "false");
-    addRow(m_tblMaint, "Last Service Date",   m.lastServiceDate);
-    addRow(m_tblMaint, "Next Service Date",   m.nextServiceDate);
-    addRow(m_tblMaint, "Operating Hours",     m.operatingHours,  "h");
-    addRow(m_tblMaint, "Service Interval",    m.serviceIntervalH,"h");
-    addRow(m_tblMaint, "MTBF",                m.mtbfHours,       "h");
-    addRow(m_tblMaint, "MTTR",                m.mttrHours,       "h");
-    addRow(m_tblMaint, "Notes",               m.maintenanceNotes);
-
-    l->addWidget(m_tblMaint);
-    return w;
-}
-
-// ─── Physics tab ──────────────────────────────────────────────────────────────
-QWidget *RadarAttributesDialog::buildPhysicsTab()
+// ─── Radar Parameters table ───────────────────────────────────────────────────
+QWidget *RadarAttributesDialog::buildRadarParametersTab()
 {
     auto *w = new QWidget;
     auto *l = new QVBoxLayout(w);
@@ -331,73 +212,11 @@ QWidget *RadarAttributesDialog::buildPhysicsTab()
     return w;
 }
 
-// ─── collect edits from all four tables ──────────────────────────────────────
+// ─── collect edits from table ─────────────────────────────────────────────────
 static QString cellText(QTableWidget *tbl, int row)
 {
     auto *it = tbl->item(row, 1);
     return it ? it->text().trimmed() : QString();
-}
-
-RadarView::DesignAttributes RadarAttributesDialog::readDesign() const
-{
-    RadarView::DesignAttributes d;
-    d.radarType            = cellText(m_tblDesign,  0);
-    d.manufacturer         = cellText(m_tblDesign,  1);
-    d.modelDesignation     = cellText(m_tblDesign,  2);
-    d.frequencyMHz         = cellText(m_tblDesign,  3).toDouble();
-    d.bandwidthMHz         = cellText(m_tblDesign,  4).toDouble();
-    d.polarization         = cellText(m_tblDesign,  5);
-    d.maxRangeKm           = cellText(m_tblDesign,  6).toDouble();
-    d.minRangeKm           = cellText(m_tblDesign,  7).toDouble();
-    d.azimuthCovDeg        = cellText(m_tblDesign,  8).toDouble();
-    d.elevationMinDeg      = cellText(m_tblDesign,  9).toDouble();
-    d.elevationMaxDeg      = cellText(m_tblDesign, 10).toDouble();
-    d.peakPowerKw          = cellText(m_tblDesign, 11).toDouble();
-    d.rangeResolutionM     = cellText(m_tblDesign, 12).toDouble();
-    d.azimuthResolutionDeg = cellText(m_tblDesign, 13).toDouble();
-    d.antennaHeightM       = cellText(m_tblDesign, 14).toDouble();
-    d.weightKg             = cellText(m_tblDesign, 15).toDouble();
-    d.mountingType         = cellText(m_tblDesign, 16);
-    return d;
-}
-
-RadarView::OperationalAttributes RadarAttributesDialog::readOperational() const
-{
-    RadarView::OperationalAttributes op;
-    op.operationalMode  = cellText(m_tblOp,  0);
-    op.assignedMission  = cellText(m_tblOp,  1);
-    op.trackCapacity    = cellText(m_tblOp,  2).toInt();
-    op.currentTracks    = cellText(m_tblOp,  3).toInt();
-    op.emconActive      = (cellText(m_tblOp, 4).toLower() == "true");
-    op.transmitPowerPct = cellText(m_tblOp,  5).toDouble();
-    op.scanRateDegPerSec= cellText(m_tblOp,  6).toDouble();
-    op.sectorStartDeg   = cellText(m_tblOp,  7).toDouble();
-    op.sectorEndDeg     = cellText(m_tblOp,  8).toDouble();
-    op.iffEnabled       = (cellText(m_tblOp, 9).toLower() == "true");
-    op.iffMode          = cellText(m_tblOp, 10);
-    op.jammingDetected  = (cellText(m_tblOp,11).toLower() == "true");
-    op.jamSignalDbm     = cellText(m_tblOp, 12).toDouble();
-    return op;
-}
-
-RadarView::MaintenanceAttributes RadarAttributesDialog::readMaintenance() const
-{
-    RadarView::MaintenanceAttributes m;
-    m.systemHealth     = cellText(m_tblMaint,  0);
-    m.healthPct        = cellText(m_tblMaint,  1).toDouble();
-    m.transmitterOk    = (cellText(m_tblMaint, 2).toLower() == "true");
-    m.receiverOk       = (cellText(m_tblMaint, 3).toLower() == "true");
-    m.antennaOk        = (cellText(m_tblMaint, 4).toLower() == "true");
-    m.coolingSysOk     = (cellText(m_tblMaint, 5).toLower() == "true");
-    m.powerSupplyOk    = (cellText(m_tblMaint, 6).toLower() == "true");
-    m.lastServiceDate  = cellText(m_tblMaint,  7);
-    m.nextServiceDate  = cellText(m_tblMaint,  8);
-    m.operatingHours   = cellText(m_tblMaint,  9).toInt();
-    m.serviceIntervalH = cellText(m_tblMaint, 10).toInt();
-    m.mtbfHours        = cellText(m_tblMaint, 11).toDouble();
-    m.mttrHours        = cellText(m_tblMaint, 12).toDouble();
-    m.maintenanceNotes = cellText(m_tblMaint, 13);
-    return m;
 }
 
 RadarView::RadarPhysicsParameters RadarAttributesDialog::readPhysics() const
@@ -427,10 +246,7 @@ RadarView::RadarPhysicsParameters RadarAttributesDialog::readPhysics() const
 
 void RadarAttributesDialog::collectEdits()
 {
-    m_attrs.design      = readDesign();
-    m_attrs.operational = readOperational();
-    m_attrs.maintenance = readMaintenance();
-    m_attrs.physics     = readPhysics();
+    m_attrs.physics = readPhysics();
     // Keep freq_center consistent after a manual freq_min/freq_max edit
     m_attrs.physics.updateDerivedFields();
 }
@@ -453,69 +269,12 @@ void RadarAttributesDialog::onReset()
 {
     m_attrs = RadarView::RadarAttributes::defaults();
 
-    // Rebuild each tab to reflect defaults
-    // Easier: close & re-open the dialog in reset state.
-    // We instead update each cell directly.
     auto setCell = [](QTableWidget *tbl, int row, const QString &val) {
         if (auto *it = tbl->item(row, 1)) it->setText(val);
     };
 
-    const auto &d  = m_attrs.design;
-    const auto &op = m_attrs.operational;
-    const auto &ma = m_attrs.maintenance;
     const auto &ph = m_attrs.physics;
 
-    // Design
-    setCell(m_tblDesign,  0, d.radarType);
-    setCell(m_tblDesign,  1, d.manufacturer);
-    setCell(m_tblDesign,  2, d.modelDesignation);
-    setCell(m_tblDesign,  3, QString::number(d.frequencyMHz));
-    setCell(m_tblDesign,  4, QString::number(d.bandwidthMHz));
-    setCell(m_tblDesign,  5, d.polarization);
-    setCell(m_tblDesign,  6, QString::number(d.maxRangeKm));
-    setCell(m_tblDesign,  7, QString::number(d.minRangeKm));
-    setCell(m_tblDesign,  8, QString::number(d.azimuthCovDeg));
-    setCell(m_tblDesign,  9, QString::number(d.elevationMinDeg));
-    setCell(m_tblDesign, 10, QString::number(d.elevationMaxDeg));
-    setCell(m_tblDesign, 11, QString::number(d.peakPowerKw));
-    setCell(m_tblDesign, 12, QString::number(d.rangeResolutionM));
-    setCell(m_tblDesign, 13, QString::number(d.azimuthResolutionDeg));
-    setCell(m_tblDesign, 14, QString::number(d.antennaHeightM));
-    setCell(m_tblDesign, 15, QString::number(d.weightKg));
-    setCell(m_tblDesign, 16, d.mountingType);
-
-    // Operational
-    setCell(m_tblOp,  0, op.operationalMode);
-    setCell(m_tblOp,  1, op.assignedMission);
-    setCell(m_tblOp,  2, QString::number(op.trackCapacity));
-    setCell(m_tblOp,  3, QString::number(op.currentTracks));
-    setCell(m_tblOp,  4, op.emconActive    ? "true" : "false");
-    setCell(m_tblOp,  5, QString::number(op.transmitPowerPct));
-    setCell(m_tblOp,  6, QString::number(op.scanRateDegPerSec));
-    setCell(m_tblOp,  7, QString::number(op.sectorStartDeg));
-    setCell(m_tblOp,  8, QString::number(op.sectorEndDeg));
-    setCell(m_tblOp,  9, op.iffEnabled    ? "true" : "false");
-    setCell(m_tblOp, 10, op.iffMode);
-    setCell(m_tblOp, 11, op.jammingDetected ? "true" : "false");
-    setCell(m_tblOp, 12, QString::number(op.jamSignalDbm));
-
-    // Maintenance
-    setCell(m_tblMaint,  0, ma.systemHealth);
-    setCell(m_tblMaint,  1, QString::number(ma.healthPct));
-    setCell(m_tblMaint,  2, ma.transmitterOk  ? "true" : "false");
-    setCell(m_tblMaint,  3, ma.receiverOk     ? "true" : "false");
-    setCell(m_tblMaint,  4, ma.antennaOk      ? "true" : "false");
-    setCell(m_tblMaint,  5, ma.coolingSysOk   ? "true" : "false");
-    setCell(m_tblMaint,  6, ma.powerSupplyOk  ? "true" : "false");
-    setCell(m_tblMaint,  7, ma.lastServiceDate);
-    setCell(m_tblMaint,  8, ma.nextServiceDate);
-    setCell(m_tblMaint,  9, QString::number(ma.operatingHours));
-    setCell(m_tblMaint, 10, QString::number(ma.serviceIntervalH));
-    setCell(m_tblMaint, 11, QString::number(ma.mtbfHours));
-    setCell(m_tblMaint, 12, QString::number(ma.mttrHours));
-    setCell(m_tblMaint, 13, ma.maintenanceNotes);
-
-    // Physics
     setCell(m_tblPhysics,  0, QString::number(ph.Pd));
     setCell(m_tblPhysics,  1, QString::number(ph.Pfa));
     setCell(m_tblPhysics,  2, QString::number(ph.beamwidth_az));
