@@ -72,10 +72,6 @@ public:
     void setClutterParams(const ClutterParams &params);
     ClutterParams clutterParams() const;
 
-    // Clutter density parameters
-    void setClutterDensityParams(const ClutterDensityParams &params);
-    ClutterDensityParams clutterDensityParams() const;
-
     // RF Detector parameters
     void setRFDetectorParams(const RFDetectorParams &params);
     RFDetectorParams rfDetectorParams() const;
@@ -113,7 +109,6 @@ private :
     // New object-type parameters
     JammerParams         _m_jammerParams;
     ClutterParams        _m_clutterParams;
-    ClutterDensityParams _m_clutterDensityParams;
     RFDetectorParams     _m_rfDetectorParams;
 
 protected :

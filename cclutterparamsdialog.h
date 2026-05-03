@@ -24,15 +24,6 @@ struct ClutterParams {
     double  dopplerSpreadMs = 0.5;
 };
 
-// Parameters for Clutter Density object
-struct ClutterDensityParams {
-    QString preset       = "SPARSE";  // SPARSE | LOW | MEDIUM | HIGH | EXTREME
-    int     groundPatches = -1;
-    int     rainPatches   = -1;
-    double  cellsScale    = -1.0;
-    double  pfa           = -1.0;
-};
-
 class CClutterParamsDialog : public QDialog
 {
     Q_OBJECT
@@ -40,11 +31,9 @@ public:
     explicit CClutterParamsDialog(QWidget *parent = nullptr);
 
     ClutterParams        getClutterParams()        const;
-    ClutterDensityParams getClutterDensityParams() const;
 
 private:
     void buildClutterTab(QWidget *tab);
-    void buildDensityTab(QWidget *tab);
 
     // Clutter controls
     QComboBox       *_cmbType;
@@ -56,13 +45,6 @@ private:
     QDoubleSpinBox  *_spnWindSpeed;
     QDoubleSpinBox  *_spnWindDir;
     QDoubleSpinBox  *_spnDoppler;
-
-    // Density controls
-    QComboBox       *_cmbPreset;
-    QSpinBox        *_spnGroundPatches;
-    QSpinBox        *_spnRainPatches;
-    QDoubleSpinBox  *_spnCellsScale;
-    QDoubleSpinBox  *_spnPfa;
 };
 
 #endif // CCLUTTERPARAMSDIALOG_H

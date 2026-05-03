@@ -1,5 +1,4 @@
 #include "cclutterparamsdialog.h"
-#include <QTabWidget>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QFormLayout>
@@ -70,15 +69,8 @@ CClutterParamsDialog::CClutterParamsDialog(QWidget *parent)
     setStyleSheet(kStyle);
     setMinimumWidth(380);
 
-    QTabWidget *tabs = new QTabWidget(this);
-
     QWidget *clutterTab  = new QWidget;
-    QWidget *densityTab  = new QWidget;
     buildClutterTab(clutterTab);
-    buildDensityTab(densityTab);
-
-    tabs->addTab(clutterTab, "Clutter");
-    tabs->addTab(densityTab, "Clutter Density");
 
     QDialogButtonBox *bbox = new QDialogButtonBox(
         QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
@@ -86,7 +78,7 @@ CClutterParamsDialog::CClutterParamsDialog(QWidget *parent)
     connect(bbox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
-    mainLayout->addWidget(tabs);
+    mainLayout->addWidget(clutterTab);
     mainLayout->addWidget(bbox);
     setLayout(mainLayout);
 }
@@ -151,44 +143,6 @@ void CClutterParamsDialog::buildClutterTab(QWidget *tab)
     tab->setLayout(form);
 }
 
-void CClutterParamsDialog::buildDensityTab(QWidget *tab)
-{
-    QFormLayout *form = new QFormLayout(tab);
-    form->setSpacing(8);
-
-    _cmbPreset = new QComboBox(tab);
-    _cmbPreset->addItems({"SPARSE", "LOW", "MEDIUM", "HIGH", "EXTREME"});
-    form->addRow("Preset:", _cmbPreset);
-
-    _spnGroundPatches = new QSpinBox(tab);
-    _spnGroundPatches->setRange(-1, 10000);
-    _spnGroundPatches->setValue(-1);
-    _spnGroundPatches->setToolTip("-1 = auto (driven by preset)");
-    form->addRow("Ground Patches:", _spnGroundPatches);
-
-    _spnRainPatches = new QSpinBox(tab);
-    _spnRainPatches->setRange(-1, 10000);
-    _spnRainPatches->setValue(-1);
-    _spnRainPatches->setToolTip("-1 = auto");
-    form->addRow("Rain Patches:", _spnRainPatches);
-
-    _spnCellsScale = new QDoubleSpinBox(tab);
-    _spnCellsScale->setRange(-1.0, 100.0);
-    _spnCellsScale->setValue(-1.0);
-    _spnCellsScale->setDecimals(2);
-    _spnCellsScale->setToolTip("-1 = auto");
-    form->addRow("Cells Scale:", _spnCellsScale);
-
-    _spnPfa = new QDoubleSpinBox(tab);
-    _spnPfa->setRange(-1.0, 1.0);
-    _spnPfa->setValue(-1.0);
-    _spnPfa->setDecimals(4);
-    _spnPfa->setToolTip("-1 = auto");
-    form->addRow("PFA:", _spnPfa);
-
-    tab->setLayout(form);
-}
-
 ClutterParams CClutterParamsDialog::getClutterParams() const
 {
     ClutterParams p;
@@ -204,13 +158,3 @@ ClutterParams CClutterParamsDialog::getClutterParams() const
     return p;
 }
 
-ClutterDensityParams CClutterParamsDialog::getClutterDensityParams() const
-{
-    ClutterDensityParams p;
-    p.preset        = _cmbPreset->currentText();
-    p.groundPatches = _spnGroundPatches->value();
-    p.rainPatches   = _spnRainPatches->value();
-    p.cellsScale    = _spnCellsScale->value();
-    p.pfa           = _spnPfa->value();
-    return p;
-}

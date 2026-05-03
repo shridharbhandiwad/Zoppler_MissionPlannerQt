@@ -62,7 +62,6 @@ void CVistarPlanner::setupObjectActions()
     _m_objectActionGroup->addAction(ui->action_AddRoute);
     _m_objectActionGroup->addAction(ui->action_AddJammer);
     _m_objectActionGroup->addAction(ui->action_AddClutter);
-    _m_objectActionGroup->addAction(ui->action_AddClutterDensity);
     _m_objectActionGroup->addAction(ui->action_AddRFDetector);
     
     // Connect action group triggered signal
@@ -355,11 +354,8 @@ void CVistarPlanner::onAddObjectTriggered(QAction *action)
     } else if (action == ui->action_AddClutter) {
         objectType = 10; // CLUTTER index
         typeName = "Clutter";
-    } else if (action == ui->action_AddClutterDensity) {
-        objectType = 11; // CLUTTER_DENSITY index
-        typeName = "Clutter Density";
     } else if (action == ui->action_AddRFDetector) {
-        objectType = 12; // RF_DETECTOR index
+        objectType = 11; // RF_DETECTOR index
         typeName = "RF Detector";
     }
     
