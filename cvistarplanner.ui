@@ -216,7 +216,6 @@ QStatusBar {
    <addaction name="action_AddRoute"/>
    <addaction name="action_AddJammer"/>
    <addaction name="action_AddClutter"/>
-   <addaction name="action_AddClutterDensity"/>
    <addaction name="action_AddRFDetector"/>
    <addaction name="separator"/>
    <addaction name="action_Initialize"/>
@@ -482,21 +481,6 @@ QStatusBar {
    </property>
    <property name="toolTip">
     <string>Add Clutter</string>
-   </property>
-  </action>
-  <action name="action_AddClutterDensity">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="icon">
-    <iconset resource="myRes.qrc">
-     <normaloff>:/icons/clutter_density.png</normaloff>:/icons/clutter_density.png</iconset>
-   </property>
-   <property name="text">
-    <string>Clutter Density</string>
-   </property>
-   <property name="toolTip">
-    <string>Add Clutter Density</string>
    </property>
   </action>
   <action name="action_AddRFDetector">

@@ -61,8 +61,6 @@ CVistarObject::CVistarObject(QgsMapCanvas *canvas,QString sObjectID,
         break;
     case VISTAR_CLASS_CLUTTER : strPath = ":/icons/cursor/clutter.png"; nSize = 44; _m_dAlt = 0;
         break;
-    case VISTAR_CLASS_CLUTTER_DENSITY : strPath = ":/icons/cursor/clutter_density.png"; nSize = 44; _m_dAlt = 0;
-        break;
     case VISTAR_CLASS_RF_DETECTOR : strPath = ":/icons/cursor/rf_detector.png"; nSize = 44; _m_dAlt = 0;
         break;
     }
@@ -288,8 +286,6 @@ QString CVistarObject::getClassAsString() {
         break;
     case VISTAR_CLASS_CLUTTER : sClass = "clutter";
         break;
-    case VISTAR_CLASS_CLUTTER_DENSITY : sClass = "clutter_density";
-        break;
     case VISTAR_CLASS_RF_DETECTOR : sClass = "rf_detector";
         break;
     }
@@ -451,17 +447,6 @@ void CVistarObject::TransmitSelfInfo() {
         jsonRoot["parameters"] = params;
     }
 
-    // Clutter Density parameters
-    if (_m_nClass == VISTAR_CLASS_CLUTTER_DENSITY) {
-        QJsonObject params;
-        params["preset"]         = _m_clutterDensityParams.preset;
-        params["ground_patches"] = _m_clutterDensityParams.groundPatches;
-        params["rain_patches"]   = _m_clutterDensityParams.rainPatches;
-        params["cells_scale"]    = _m_clutterDensityParams.cellsScale;
-        params["pfa"]            = _m_clutterDensityParams.pfa;
-        jsonRoot["parameters"] = params;
-    }
-
     // RF Detector parameters
     if (_m_nClass == VISTAR_CLASS_RF_DETECTOR) {
         if (!_m_rfDetectorParams.parentId.isEmpty()) {
@@ -543,9 +528,6 @@ JammerParams CVistarObject::jammerParams() const                       { return 
 
 void CVistarObject::setClutterParams(const ClutterParams &params)      { _m_clutterParams = params; }
 ClutterParams CVistarObject::clutterParams() const                     { return _m_clutterParams; }
-
-void CVistarObject::setClutterDensityParams(const ClutterDensityParams &params) { _m_clutterDensityParams = params; }
-ClutterDensityParams CVistarObject::clutterDensityParams() const               { return _m_clutterDensityParams; }
 
 void CVistarObject::setRFDetectorParams(const RFDetectorParams &params) { _m_rfDetectorParams = params; }
 RFDetectorParams CVistarObject::rfDetectorParams() const                { return _m_rfDetectorParams; }
