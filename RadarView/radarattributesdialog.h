@@ -2,7 +2,6 @@
 #define RADARATTRIBUTESDIALOG_H
 
 #include <QDialog>
-#include <QTabWidget>
 #include <QTableWidget>
 #include <QPushButton>
 #include <QVBoxLayout>
@@ -14,18 +13,11 @@
 // ---------------------------------------------------------------------------
 // RadarAttributesDialog
 //
-// A tabbed attribute-table editor that opens when the user right-clicks a
-// RADAR object on the map and selects "Design Parameters".
+// An attribute-table editor that opens when the user right-clicks a RADAR
+// object on the map and selects "Radar Parameters".
 //
-// Layout:
-//   Tab 1 – Design Attributes      (static / HW parameters)
-//   Tab 2 – Operational Attributes (live / mission-time parameters)
-//   Tab 3 – Maintenance Attributes (health / logistics)
-//   Tab 4 – Physics Parameters     (RF/signal-processing / radar-equation values)
-//
-// Each tab contains a QTableWidget with two columns:
-//   Column 0 – Attribute name  (read-only)
-//   Column 1 – Value           (editable)
+// Contains a single QTableWidget (Attribute / Value / Unit) displaying only
+// the RadarPhysicsParameters (RF/signal-processing / radar-equation values).
 //
 // The dialog works entirely in "edit mode": all value cells are editable
 // from the moment it opens.  Changes are committed with OK / Apply, or
@@ -54,17 +46,11 @@ private slots:
     void onReset();
 
 private:
-    // Build individual tab pages
-    QWidget *buildDesignTab();
-    QWidget *buildOperationalTab();
-    QWidget *buildMaintenanceTab();
-    QWidget *buildPhysicsTab();
+    // Build the Radar Parameters table page
+    QWidget *buildRadarParametersTab();
 
-    // Helpers to read values back from the table widgets
-    RadarView::DesignAttributes        readDesign()      const;
-    RadarView::OperationalAttributes   readOperational() const;
-    RadarView::MaintenanceAttributes   readMaintenance() const;
-    RadarView::RadarPhysicsParameters  readPhysics()     const;
+    // Helper to read values back from the table widget
+    RadarView::RadarPhysicsParameters  readPhysics() const;
 
     // Generic helper: add a row with name + value to a table
     static void addRow(QTableWidget *tbl, const QString &name,
@@ -78,10 +64,6 @@ private:
     RadarView::RadarAttributes m_attrs;
     RadarView::RadarAttributes m_originalAttrs;   // kept for Reset
 
-    QTabWidget    *m_tabs;
-    QTableWidget  *m_tblDesign;
-    QTableWidget  *m_tblOp;
-    QTableWidget  *m_tblMaint;
     QTableWidget  *m_tblPhysics;
 
     QPushButton   *m_btnOk;

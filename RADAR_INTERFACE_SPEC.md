@@ -187,177 +187,58 @@ The `ATTRIBUTES` object may be **partial** (only the changed sub-trees).
 
 ## 4. Radar Attributes Schema
 
-Attributes are grouped into three **sub-categories** that map directly to the
-three tabs shown in the in-app Attributes editor.
+Attributes contain a single **`physics`** sub-object (Radar Parameters) that is
+displayed in the in-app Radar Parameters editor.
 
-### 4.1 Design Attributes
+### 4.1 Radar Parameters (Physics)
 
-Static / hardware parameters that rarely change in the field.
+RF/signal-processing parameters used by the radar equation and simulation backend.
 
 ```json
 {
-    "design": {
-        "radarType":            "Surveillance",
-        "manufacturer":         "DRDO",
-        "modelDesignation":     "Arudhra-1",
-        "frequencyMHz":         2900.0,
-        "bandwidthMHz":         12.0,
-        "polarization":         "Linear",
-        "maxRangeKm":           150.0,
-        "minRangeKm":           1.0,
-        "azimuthCovDeg":        360.0,
-        "elevationMinDeg":      0.0,
-        "elevationMaxDeg":      60.0,
-        "peakPowerKw":          250.0,
-        "rangeResolutionM":     75.0,
-        "azimuthResolutionDeg": 0.4,
-        "antennaHeightM":       12.0,
-        "weightKg":             3200.0,
-        "mountingType":         "Fixed"
+    "physics": {
+        "Pd":            0.9,
+        "Pfa":           1e-6,
+        "beamwidth_az":  3.0,
+        "beamwidth_el":  4.0,
+        "tx_power":      1000.0,
+        "pulse_width":   100e-6,
+        "bandwidth":     5e6,
+        "freq_min":      10.0e9,
+        "freq_max":      10.5e9,
+        "freq_center":   10.25e9,
+        "desired_snr":   17.0,
+        "noise_figure":  3.0,
+        "system_temp":   290.0,
+        "receiver_gain": 50.0,
+        "prf":           1000.0,
+        "scan_time":     2.0,
+        "rcs":           2.0,
+        "loss":          6.0
     }
 }
 ```
 
-| Field | Type | Unit | Allowed Values / Notes |
-|-------|------|------|------------------------|
-| `radarType` | string | – | `Surveillance` \| `Fire Control` \| `Weather` \| `SAR` \| `Tracking` |
-| `manufacturer` | string | – | Free text |
-| `modelDesignation` | string | – | Free text |
-| `frequencyMHz` | float | MHz | Operating centre frequency |
-| `bandwidthMHz` | float | MHz | Instantaneous bandwidth |
-| `polarization` | string | – | `Linear` \| `Circular` \| `Dual` |
-| `maxRangeKm` | float | km | Maximum instrumented range; drives PPI ring labels |
-| `minRangeKm` | float | km | Minimum detection range (blind zone) |
-| `azimuthCovDeg` | float | ° | 360 = full omnidirectional coverage |
-| `elevationMinDeg` | float | ° | Lower elevation limit |
-| `elevationMaxDeg` | float | ° | Upper elevation limit |
-| `peakPowerKw` | float | kW | Transmitter peak power |
-| `rangeResolutionM` | float | m | Minimum resolvable range difference |
-| `azimuthResolutionDeg` | float | ° | Angular resolution |
-| `antennaHeightM` | float | m | Height above ground |
-| `weightKg` | float | kg | System weight |
-| `mountingType` | string | – | `Fixed` \| `Mobile` \| `Ship-borne` \| `Airborne` |
-
-**Default values** (used when not supplied by backend):
-
-| Field | Default |
-|-------|---------|
-| `radarType` | `"Surveillance"` |
-| `frequencyMHz` | `3000.0` |
-| `polarization` | `"Linear"` |
-| `maxRangeKm` | `150.0` |
-| `azimuthCovDeg` | `360.0` |
-| `peakPowerKw` | `100.0` |
-| `mountingType` | `"Fixed"` |
-| All others | See `radarattributes.h` |
-
----
-
-### 4.2 Operational Attributes
-
-Mission-time / live parameters that change during operation.
-
-```json
-{
-    "operational": {
-        "operationalMode":   "Active",
-        "assignedMission":   "Area Surveillance",
-        "trackCapacity":     200,
-        "currentTracks":     3,
-        "emconActive":       false,
-        "transmitPowerPct":  100.0,
-        "scanRateDegPerSec": 6.0,
-        "sectorStartDeg":    0.0,
-        "sectorEndDeg":      360.0,
-        "iffEnabled":        true,
-        "iffMode":           "Mode-3",
-        "jammingDetected":   false,
-        "jamSignalDbm":      -999.0
-    }
-}
-```
-
-| Field | Type | Unit | Allowed Values / Notes |
-|-------|------|------|------------------------|
-| `operationalMode` | string | – | `Standby` \| `Active` \| `Maintenance` \| `Degraded` \| `Off` |
-| `assignedMission` | string | – | Free text |
-| `trackCapacity` | int | tracks | Max simultaneous tracks |
-| `currentTracks` | int | tracks | Live count; auto-updated by RadarDetection messages |
-| `emconActive` | bool | – | Emission control (silent mode); shown as badge in PPI |
-| `transmitPowerPct` | float | % | 0–100 |
-| `scanRateDegPerSec` | float | °/s | Antenna rotation speed |
-| `sectorStartDeg` | float | ° | Start of active coverage sector (0=North) |
-| `sectorEndDeg` | float | ° | End of active coverage sector |
-| `iffEnabled` | bool | – | IFF interrogator active |
-| `iffMode` | string | – | `Mode-1` \| `Mode-2` \| `Mode-3` \| `Mode-S` |
-| `jammingDetected` | bool | – | Shown as `JAM` badge in PPI when true |
-| `jamSignalDbm` | float | dBm | Jamming signal power; `-999` = none detected |
-
-**PPI visual indicators:**
-- `operationalMode` drives the mode pill colour (green=Active, yellow=Standby, orange=Degraded, red=Off)
-- `emconActive = true` → `EMCON` badge
-- `jammingDetected = true` → `JAM` badge
-- `currentTracks` shown in the attribute info panel
-
-**Default values:**
-
-| Field | Default |
-|-------|---------|
-| `operationalMode` | `"Standby"` |
-| `trackCapacity` | `100` |
-| `emconActive` | `false` |
-| `transmitPowerPct` | `100.0` |
-| `iffEnabled` | `true` |
-| `iffMode` | `"Mode-3"` |
-
----
-
-### 4.3 Maintenance Attributes
-
-Health monitoring and logistics parameters.
-
-```json
-{
-    "maintenance": {
-        "systemHealth":    "Nominal",
-        "healthPct":       98.5,
-        "transmitterOk":   true,
-        "receiverOk":      true,
-        "antennaOk":       true,
-        "coolingSysOk":    true,
-        "powerSupplyOk":   true,
-        "lastServiceDate": "2025-11-01",
-        "nextServiceDate": "2026-05-01",
-        "operatingHours":  1240,
-        "serviceIntervalH":500,
-        "mtbfHours":       2000.0,
-        "mttrHours":       4.0,
-        "maintenanceNotes":"All systems nominal."
-    }
-}
-```
-
-| Field | Type | Unit | Allowed Values / Notes |
-|-------|------|------|------------------------|
-| `systemHealth` | string | – | `Nominal` \| `Degraded` \| `Critical` \| `Failed` |
-| `healthPct` | float | % | 0–100; drives health colour in PPI panel |
-| `transmitterOk` | bool | – | Component status |
-| `receiverOk` | bool | – | Component status |
-| `antennaOk` | bool | – | Component status |
-| `coolingSysOk` | bool | – | Component status |
-| `powerSupplyOk` | bool | – | Component status |
-| `lastServiceDate` | string | – | ISO 8601 date (`YYYY-MM-DD`) |
-| `nextServiceDate` | string | – | ISO 8601 date (`YYYY-MM-DD`) |
-| `operatingHours` | int | h | Total operating hours |
-| `serviceIntervalH` | int | h | Hours between required service |
-| `mtbfHours` | float | h | Mean time between failures |
-| `mttrHours` | float | h | Mean time to repair |
-| `maintenanceNotes` | string | – | Free text |
-
-**Health colour in PPI:**
-- `healthPct >= 80` → green
-- `50 <= healthPct < 80` → yellow
-- `healthPct < 50` → red
+| Field | Type | Unit | Notes |
+|-------|------|------|-------|
+| `Pd` | float | – | Probability of detection (0–1) |
+| `Pfa` | float | – | Probability of false alarm (e.g. `1e-6`) |
+| `beamwidth_az` | float | ° | Azimuth beamwidth |
+| `beamwidth_el` | float | ° | Elevation beamwidth |
+| `tx_power` | float | W | Transmit power |
+| `pulse_width` | float | s | Pulse width (e.g. `100e-6`) |
+| `bandwidth` | float | Hz | Signal bandwidth (e.g. `5e6`) |
+| `freq_min` | float | Hz | Minimum frequency |
+| `freq_max` | float | Hz | Maximum frequency |
+| `freq_center` | float | Hz | Centre frequency – auto-computed as `(freq_min + freq_max) / 2` |
+| `desired_snr` | float | dB | Required SNR at detection threshold |
+| `noise_figure` | float | dB | Receiver noise figure |
+| `system_temp` | float | K | System noise temperature |
+| `receiver_gain` | float | dB | Receiver gain |
+| `prf` | float | Hz | Pulse repetition frequency |
+| `scan_time` | float | s | Time for one full scan |
+| `rcs` | float | m² | Reference target radar cross-section |
+| `loss` | float | dB | Total system loss |
 
 ---
 
@@ -376,16 +257,13 @@ Radar attributes are persisted in the scenario JSON under
     "additionalData": {
         "range": 150000,
         "radarAttributes": {
-            "design":      { ... },
-            "operational": { ... },
-            "maintenance": { ... }
+            "physics": { ... }
         }
     }
 }
 ```
 
-The `range` field (metres) is the legacy range field; `design.maxRangeKm`
-takes precedence when `radarAttributes` is present.
+The `range` field (metres) is the legacy range field used when `radarAttributes` is absent.
 
 ---
 
@@ -396,27 +274,20 @@ information in real time:
 
 | PPI Element | Source Attribute |
 |-------------|-----------------|
-| Range ring labels (`N km`) | `design.maxRangeKm` |
-| Operational mode pill | `operational.operationalMode` |
-| Frequency info panel | `design.frequencyMHz` |
-| Azimuth coverage | `design.azimuthCovDeg` |
-| Elevation range | `design.elevationMinDeg` / `elevationMaxDeg` |
-| Track count | `operational.currentTracks` / `trackCapacity` |
-| Transmit power | `operational.transmitPowerPct` |
-| IFF mode | `operational.iffEnabled` / `iffMode` |
-| Health bar colour | `maintenance.healthPct` |
-| EMCON badge | `operational.emconActive` |
-| JAM badge | `operational.jammingDetected` |
+| Transmit power | `physics.tx_power` |
+| Centre frequency | `physics.freq_center` |
+| PRF | `physics.prf` |
+| Beamwidth (Az / El) | `physics.beamwidth_az` / `physics.beamwidth_el` |
 
 ---
 
 ## 7. Operator Attribute Editing
 
-An operator can edit attributes through the GUI at any time:
+An operator can edit radar parameters through the GUI at any time:
 
 1. **Right-click** a RADAR icon on the map canvas.
-2. Select **"Attributes"** from the context menu.
-3. A tabbed dialog opens with three tabs (Design / Operational / Maintenance).
+2. Select **"Radar Parameters"** from the context menu.
+3. The Radar Parameters dialog opens showing all physics / RF parameters.
 4. All cells are editable immediately (no separate "edit mode" toggle needed).
 5. **Apply** – commits changes without closing the dialog.
 6. **OK** – commits changes and closes the dialog.
@@ -447,10 +318,8 @@ sock.sendto(json.dumps({
     "CLASS": 5, "LAT": 28.5, "LON": 77.2, "ALT": 100.0,
     "HEADING": 0.0, "VELOCITY": 0.0,
     "radarAttributes": {
-        "design":      {"maxRangeKm": 150.0, "frequencyMHz": 2900.0,
-                        "azimuthCovDeg": 360.0, "radarType": "Surveillance"},
-        "operational": {"operationalMode": "Active"},
-        "maintenance": {"healthPct": 100.0, "systemHealth": "Nominal"}
+        "physics": {"tx_power": 1000.0, "freq_min": 10.0e9, "freq_max": 10.5e9,
+                    "Pd": 0.9, "Pfa": 1e-6, "prf": 1000.0, "scan_time": 2.0}
     }
 }).encode(), (MCAST, PORT))
 
@@ -477,9 +346,9 @@ See **`test_radar_backend.py`** for the full reference implementation including:
 
 | File | Purpose |
 |------|---------|
-| `RadarView/radarattributes.h` | `DesignAttributes`, `OperationalAttributes`, `MaintenanceAttributes`, `RadarAttributes` structs + JSON serialization |
+| `RadarView/radarattributes.h` | `RadarPhysicsParameters`, `RadarAttributes` structs + JSON serialization |
 | `RadarView/radarmanager.h/cpp` | `RadarManager` – owns all `Radar` objects + detection lists |
-| `RadarView/radarattributesdialog.h/cpp` | Tabbed attribute editor dialog |
+| `RadarView/radarattributesdialog.h/cpp` | Radar Parameters editor dialog |
 | `RadarView/radarppiwidget.h/cpp` | PPI display with attribute info panel |
 | `RadarView/radardockwidget.h/cpp` | Dockable PPI window per radar |
 | `RadarView/radarlistpanel.h/cpp` | Radar list sidebar panel |
