@@ -812,15 +812,39 @@ QMenu::separator {
 //  Radar View
 // ============================================================
 
+static const QString kRadarDockStyle = R"(
+QDockWidget {
+    color: #f0f0f0;
+    font-weight: bold;
+    font-size: 11px;
+    background-color: #0a0f14;
+    border: 1px solid #2a3a2a;
+}
+QDockWidget::title {
+    background-color: #0d1a0d;
+    padding: 6px 10px;
+    border-bottom: 1px solid #2a3a2a;
+    text-align: left;
+    color: #00ff88;
+}
+QDockWidget::close-button, QDockWidget::float-button {
+    border: none;
+    background: transparent;
+    icon-size: 12px;
+}
+QDockWidget::close-button:hover, QDockWidget::float-button:hover {
+    background: rgba(0,255,136,0.15);
+    border-radius: 3px;
+}
+)";
+
 void CVistarPlanner::setupRadarView()
 {
-    // Create the data manager (loads sample data automatically)
     _m_radarManager = new RadarManager(this);
 
-    // Create the radar list panel
+    // ── Radar list sidebar (small, right-docked) ──────────────────────────
     _m_radarListPanel = new RadarListPanel(_m_radarManager, this);
 
-    // Wrap it in a dock widget so it's dockable / floatable
     _m_radarListDock = new QDockWidget("Radar View", this);
     _m_radarListDock->setObjectName("RadarListDock");
     _m_radarListDock->setFeatures(QDockWidget::DockWidgetMovable  |
@@ -843,17 +867,39 @@ QDockWidget::title {
     text-align: left;
 }
 )");
-
     addDockWidget(Qt::RightDockWidgetArea, _m_radarListDock);
-    _m_radarListDock->hide();  // hidden until the toolbar button is clicked
+    _m_radarListDock->hide();
 
-    // Connect list panel → open PPI dock
     connect(_m_radarListPanel, &RadarListPanel::radarSelected,
             this, &CVistarPlanner::onRadarSelected);
-
-    // Sync toolbar toggle button with dock visibility
     connect(_m_radarListDock, &QDockWidget::visibilityChanged,
             ui->action_RadarView, &QAction::setChecked);
+
+    // ── Radar Display panel (large, floatable, occupies most of screen) ───
+    _m_radarDisplayPanel = new RadarDisplayPanel(this);
+
+    _m_radarDisplayDock = new QDockWidget("Radar Display", this);
+    _m_radarDisplayDock->setObjectName("RadarDisplayDock");
+    _m_radarDisplayDock->setFeatures(QDockWidget::DockWidgetMovable  |
+                                     QDockWidget::DockWidgetFloatable |
+                                     QDockWidget::DockWidgetClosable);
+    _m_radarDisplayDock->setAllowedAreas(Qt::AllDockWidgetAreas);
+    _m_radarDisplayDock->setWidget(_m_radarDisplayPanel);
+    _m_radarDisplayDock->setStyleSheet(kRadarDockStyle);
+    _m_radarDisplayDock->setMinimumSize(500, 500);
+
+    // Start as a large floating window near the centre-left of the screen
+    addDockWidget(Qt::LeftDockWidgetArea, _m_radarDisplayDock);
+    _m_radarDisplayDock->setFloating(true);
+
+    QRect mwRect = geometry();
+    int w = qMax(mwRect.width()  * 2 / 3, 700);
+    int h = qMax(mwRect.height() * 2 / 3, 600);
+    _m_radarDisplayDock->resize(w, h);
+    _m_radarDisplayDock->move(
+        mwRect.left() + (mwRect.width()  - w) / 2,
+        mwRect.top()  + (mwRect.height() - h) / 2);
+    _m_radarDisplayDock->hide();
 }
 
 void CVistarPlanner::onRadarViewTriggered()
@@ -869,51 +915,35 @@ void CVistarPlanner::onRadarViewTriggered()
 
 void CVistarPlanner::onRadarSelected(int radarId)
 {
-    // If already open, just bring to front
-    if (_m_radarDocks.contains(radarId)) {
-        RadarDockWidget *existing = _m_radarDocks[radarId];
-        existing->show();
-        existing->raise();
-        return;
-    }
-
     const RadarView::Radar *radar = _m_radarManager->radarById(radarId);
     if (!radar) return;
 
-    auto *dock = new RadarDockWidget(*radar, this);
+    // Show and raise the display dock (it may be hidden or behind other windows)
+    if (!_m_radarDisplayDock->isVisible()) {
+        // First time showing — size it generously relative to the main window
+        if (_m_radarDisplayDock->isFloating()) {
+            QRect mwRect = geometry();
+            int w = qMax(mwRect.width()  * 2 / 3, 700);
+            int h = qMax(mwRect.height() * 2 / 3, 600);
+            _m_radarDisplayDock->resize(w, h);
+            _m_radarDisplayDock->move(
+                mwRect.left() + (mwRect.width()  - w) / 2,
+                mwRect.top()  + (mwRect.height() - h) / 2);
+        }
+        _m_radarDisplayDock->show();
+    }
+    _m_radarDisplayDock->raise();
 
-    // Position floating dock at top-right of main window, offset per open radar
-    int offset = _m_radarDocks.size() * 30;
-    QRect mwRect = geometry();
-    dock->setFloating(true);
-    dock->move(mwRect.right() - 540 - offset, mwRect.top() + 40 + offset);
-    dock->resize(520, 540);
-
-    addDockWidget(Qt::RightDockWidgetArea, dock);
-    dock->setFloating(true);  // ensure it floats after addDockWidget
-    dock->show();
-
-    _m_radarDocks[radarId] = dock;
-
-    // Clean up map entry when closed
-    connect(dock, &QDockWidget::visibilityChanged, this, [this, radarId](bool visible) {
-        if (!visible) onRadarDockClosed(radarId);
-    });
+    _m_radarDisplayPanel->openRadar(*radar);
 
     ui->statusBar->showMessage(
         QString("Radar PPI opened: [R%1] %2").arg(radar->radarId).arg(radar->radarName), 4000);
 }
 
-void CVistarPlanner::onRadarDockClosed(int radarId)
-{
-    // Remove from map but don't delete yet — Qt parent will handle memory
-    _m_radarDocks.remove(radarId);
-}
-
 void CVistarPlanner::onRadarObjectPlaced(QString radarObjectId, double maxRangeKm)
 {
     if (_m_radarObjectIdToIntId.contains(radarObjectId))
-        return; // already registered
+        return;
 
     int id = _m_nextRadarIntId++;
     _m_radarObjectIdToIntId.insert(radarObjectId, id);
@@ -922,12 +952,8 @@ void CVistarPlanner::onRadarObjectPlaced(QString radarObjectId, double maxRangeK
 
 void CVistarPlanner::onScenarioObjectsCleared()
 {
-    // Close any open PPI docks
-    for (auto *dock : _m_radarDocks) {
-        dock->hide();
-        dock->deleteLater();
-    }
-    _m_radarDocks.clear();
+    _m_radarDisplayPanel->closeAll();
+    _m_radarDisplayDock->hide();
 
     _m_radarObjectIdToIntId.clear();
     _m_nextRadarIntId = 1;
@@ -938,14 +964,9 @@ void CVistarPlanner::onRadarAttributesChanged(QString radarObjectId, RadarView::
 {
     if (_m_radarObjectIdToIntId.contains(radarObjectId)) {
         int intId = _m_radarObjectIdToIntId[radarObjectId];
-
-        // If the PPI dock for this radar is open, refresh it
-        if (_m_radarDocks.contains(intId)) {
-            const RadarView::Radar *r = _m_radarManager->radarById(intId);
-            if (r) {
-                _m_radarDocks[intId]->updateRadar(*r);
-            }
-        }
+        const RadarView::Radar *r = _m_radarManager->radarById(intId);
+        if (r)
+            _m_radarDisplayPanel->updateRadar(*r);
     }
 
     ui->statusBar->showMessage(
