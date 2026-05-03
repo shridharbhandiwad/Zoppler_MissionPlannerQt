@@ -64,6 +64,12 @@ public:
     void setRadarPhysicsParameters(const RadarView::RadarPhysicsParameters &params);
     RadarView::RadarPhysicsParameters radarPhysicsParameters() const;
 
+    // Full radar attributes (design / operational / maintenance)
+    void setRadarAttributes(const RadarView::RadarAttributes &attrs);
+    RadarView::RadarAttributes radarAttributes() const;
+
+    int objectClass() const { return _m_nClass; }
+
     // Jammer parameters
     void setJammerParams(const JammerParams &params);
     JammerParams jammerParams() const;
@@ -105,6 +111,9 @@ private :
 
     // Radar-specific physics/simulation parameters
     RadarView::RadarPhysicsParameters _m_radarPhysics;
+
+    // Full radar attributes (design / operational / maintenance)
+    RadarView::RadarAttributes _m_radarAttributes;
 
     // New object-type parameters
     JammerParams         _m_jammerParams;

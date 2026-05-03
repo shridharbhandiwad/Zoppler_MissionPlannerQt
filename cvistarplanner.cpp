@@ -289,6 +289,9 @@ void CVistarPlanner::setupConnections()
             this, &CVistarPlanner::onRadarObjectPlaced);
     connect(ui->mapCanvas, &CMapCanvas::signalScenarioCleared,
             this, &CVistarPlanner::onScenarioObjectsCleared);
+    // Update PPI dock when operator edits radar design parameters.
+    connect(ui->mapCanvas, &CMapCanvas::signalRadarAttributesChanged,
+            this, &CVistarPlanner::onRadarAttributesChanged);
 }
 
 CVistarPlanner::~CVistarPlanner()
@@ -929,4 +932,24 @@ void CVistarPlanner::onScenarioObjectsCleared()
     _m_radarObjectIdToIntId.clear();
     _m_nextRadarIntId = 1;
     _m_radarManager->clearAll();
+}
+
+void CVistarPlanner::onRadarAttributesChanged(QString radarObjectId, RadarView::RadarAttributes attrs)
+{
+    // Propagate design.maxRangeKm to the RadarManager (and therefore the PPI widget)
+    if (_m_radarObjectIdToIntId.contains(radarObjectId)) {
+        int intId = _m_radarObjectIdToIntId[radarObjectId];
+        _m_radarManager->updateRadarRange(intId, attrs.design.maxRangeKm);
+
+        // If the PPI dock for this radar is open, refresh it
+        if (_m_radarDocks.contains(intId)) {
+            const RadarView::Radar *r = _m_radarManager->radarById(intId);
+            if (r) {
+                _m_radarDocks[intId]->updateRadar(*r);
+            }
+        }
+    }
+
+    ui->statusBar->showMessage(
+        QString("Radar attributes updated for %1 — transmitted to backend").arg(radarObjectId), 4000);
 }

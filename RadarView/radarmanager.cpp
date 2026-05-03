@@ -52,3 +52,14 @@ void RadarManager::clearAll()
         emit radarDataChanged();
     }
 }
+
+void RadarManager::updateRadarRange(int radarId, double maxRangeKm)
+{
+    for (auto &r : m_radars) {
+        if (r.radarId == radarId) {
+            r.maxRange = (maxRangeKm > 0.0) ? maxRangeKm : 150.0;
+            emit radarDataChanged();
+            return;
+        }
+    }
+}
