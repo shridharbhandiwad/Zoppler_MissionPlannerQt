@@ -11,7 +11,7 @@
 #include "RadarView/radarattributes.h"
 #include "RadarView/radarmanager.h"
 #include "RadarView/radarlistpanel.h"
-#include "RadarView/radardockwidget.h"
+#include "RadarView/radardisplaypanel.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -51,12 +51,13 @@ private:
     CPathSettingsDialog *_m_pathSettingsDialog;
 
     // ── Radar View ─────────────────────────────────────────────────────
-    RadarManager     *_m_radarManager;
-    RadarListPanel   *_m_radarListPanel;
-    QDockWidget      *_m_radarListDock;
-    QMap<int, RadarDockWidget*> _m_radarDocks;       // radarId → dock
-    QMap<QString, int> _m_radarObjectIdToIntId;      // objectId → radarId
-    int               _m_nextRadarIntId = 1;
+    RadarManager       *_m_radarManager;
+    RadarListPanel     *_m_radarListPanel;
+    QDockWidget        *_m_radarListDock;
+    RadarDisplayPanel  *_m_radarDisplayPanel;
+    QDockWidget        *_m_radarDisplayDock;
+    QMap<QString, int>  _m_radarObjectIdToIntId;     // objectId → radarId
+    int                 _m_nextRadarIntId = 1;
 
     void setupRadarView();
 
@@ -105,7 +106,6 @@ private slots :
     // Radar View slots
     void onRadarViewTriggered();
     void onRadarSelected(int radarId);
-    void onRadarDockClosed(int radarId);
     // Called when the map canvas places/loads a radar object.
     void onRadarObjectPlaced(QString radarObjectId, double maxRangeKm);
     // Called when the scenario is cleared/reset.
