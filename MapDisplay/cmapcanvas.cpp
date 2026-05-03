@@ -1284,6 +1284,12 @@ void CMapCanvas::showContextMenu(QPoint pos) {
                 menuObject->addMenu(menuAttachRoute);
             }
 
+            // Add "Design Parameters" option for RADAR objects
+            if (vistarObject->objectClass() == VISTAR_CLASS_RADAR) {
+                QAction* actionDesignParams = menuObject->addAction("Design Parameters");
+                actionDesignParams->setObjectName(vistarObject->getObjectId());
+            }
+
             QAction* actionDelete = menuObject->addAction("Delete");
             actionDelete->setObjectName(vistarObject->getObjectId());
 
@@ -1347,6 +1353,27 @@ void CMapCanvas::showContextMenu(QPoint pos) {
                     QTimer::singleShot(100, this, [this]() {
                         autoSaveScenario();
                     });
+                }
+                else if ( selected->text() == "Design Parameters" &&
+                          object->objectClass() == VISTAR_CLASS_RADAR ) {
+                    // Open the radar attributes editor dialog
+                    QString radarId = selected->objectName();
+                    auto *dlg = new RadarAttributesDialog(radarId, object->radarAttributes(), this);
+
+                    connect(dlg, &RadarAttributesDialog::attributesApplied,
+                            this, [this, radarId, object](const RadarView::RadarAttributes &attrs) {
+                        // Store updated attributes on the object
+                        object->setRadarAttributes(attrs);
+                        // Notify the rest of the application (e.g. PPI widget, main window)
+                        emit signalRadarAttributesChanged(radarId, attrs);
+                        // Persist to auto-save
+                        QTimer::singleShot(100, this, [this]() { autoSaveScenario(); });
+                        // Transmit updated attributes to the backend via UDP
+                        object->TransmitSelfInfo();
+                    });
+
+                    dlg->exec();
+                    dlg->deleteLater();
                 }
                 else {
                     // Check if this is a route attachment (selected->text() is a route ID)

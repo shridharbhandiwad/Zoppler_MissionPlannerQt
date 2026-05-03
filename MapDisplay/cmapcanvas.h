@@ -16,6 +16,7 @@
 #include "../cupdateroute.h"
 #include "../cscenariomanager.h"
 #include "../cclutterparamsdialog.h"
+#include "../RadarView/radarattributesdialog.h"
 
 class CMapCanvas : public QgsMapCanvas
 {
@@ -155,6 +156,8 @@ signals:
     void signalRadarObjectAdded(QString radarObjectId, double maxRangeKm);
     // Emitted when all objects are cleared (scenario reset).
     void signalScenarioCleared();
+    // Emitted when the operator edits a radar's attributes via the context-menu dialog.
+    void signalRadarAttributesChanged(QString radarObjectId, RadarView::RadarAttributes attrs);
 public slots:
     void slotUpdateObject(QJsonDocument doc);
     void slotUpdatePosition(QString, double dLat, double dLon, double dAlt);

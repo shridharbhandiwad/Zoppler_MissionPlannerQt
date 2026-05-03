@@ -8,6 +8,7 @@
 #include <QMap>
 #include "cnetworkinterface.h"
 #include "cpathsettingsdialog.h"
+#include "RadarView/radarattributes.h"
 #include "RadarView/radarmanager.h"
 #include "RadarView/radarlistpanel.h"
 #include "RadarView/radardockwidget.h"
@@ -109,5 +110,7 @@ private slots :
     void onRadarObjectPlaced(QString radarObjectId, double maxRangeKm);
     // Called when the scenario is cleared/reset.
     void onScenarioObjectsCleared();
+    // Called when the operator edits a radar's attributes via the context-menu dialog.
+    void onRadarAttributesChanged(QString radarObjectId, RadarView::RadarAttributes attrs);
 };
 #endif // CVISTARPLANNER_H

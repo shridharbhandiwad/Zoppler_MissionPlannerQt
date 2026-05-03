@@ -49,6 +49,9 @@ public:
     // Clear all radars (called on scenario reset).
     void clearAll();
 
+    // Update a radar's max range from the design attributes (called when operator edits attributes).
+    void updateRadarRange(int radarId, double maxRangeKm);
+
 signals:
     void radarDataChanged();
 

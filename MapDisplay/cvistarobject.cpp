@@ -418,8 +418,10 @@ void CVistarObject::TransmitSelfInfo() {
     jsonRoot["SLEW"]      = jsonSlew;
 
     // For radar objects include the physics/simulation parameters block
+    // and the full radar attributes (design / operational / maintenance)
     if (_m_nClass == VISTAR_CLASS_RADAR) {
-        jsonRoot["parameters"] = _m_radarPhysics.toJson();
+        jsonRoot["parameters"]      = _m_radarPhysics.toJson();
+        jsonRoot["radarAttributes"] = _m_radarAttributes.toJson();
     }
 
     // Jammer parameters
@@ -473,6 +475,19 @@ void CVistarObject::setRadarPhysicsParameters(const RadarView::RadarPhysicsParam
 RadarView::RadarPhysicsParameters CVistarObject::radarPhysicsParameters() const
 {
     return _m_radarPhysics;
+}
+
+void CVistarObject::setRadarAttributes(const RadarView::RadarAttributes &attrs)
+{
+    _m_radarAttributes = attrs;
+    _m_radarPhysics    = attrs.physics;
+}
+
+RadarView::RadarAttributes CVistarObject::radarAttributes() const
+{
+    RadarView::RadarAttributes attrs = _m_radarAttributes;
+    attrs.physics = _m_radarPhysics;
+    return attrs;
 }
 
 // ============ Trajectory Control Methods ============

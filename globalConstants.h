@@ -6,7 +6,7 @@
 #define APP_BUILD_DATE "23rd June 2025"
 
 const double MAX_ZOOMOUT_THRESHOLD = 4.0;
-const double TEXT_VISIBLE_THRESHOLD = 300.0;  // Text visible below this
+const double TEXT_VISIBLE_THRESHOLD = 50.0;   // Text visible above this zoom level
 
 #define VISTAR_SRC_MISSION_PLANNER "MISSION_PLANNER"
 #define VISTAR_SRC_MISSION_EXECUTOR  "MISSION_EXECUTOR"
