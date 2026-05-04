@@ -15,7 +15,8 @@ const RadarView::Radar* RadarManager::radarById(int id) const
     return nullptr;
 }
 
-void RadarManager::addRadar(int radarId, const QString &name, double maxRangeKm)
+void RadarManager::addRadar(int radarId, const QString &name,
+                            const RadarView::RadarCoverageParameters &coverage)
 {
     // Avoid duplicates
     for (const auto &r : m_radars) {
@@ -27,7 +28,8 @@ void RadarManager::addRadar(int radarId, const QString &name, double maxRangeKm)
     radar.radarId   = radarId;
     radar.radarName = name;
     radar.active    = true;
-    radar.maxRange  = (maxRangeKm > 0.0) ? maxRangeKm : 150.0;
+    radar.coverage  = coverage;
+    radar.maxRange  = (coverage.maxRangeKm > 0.0) ? coverage.maxRangeKm : 100.0;
 
     m_radars.append(radar);
     emit radarDataChanged();
@@ -57,7 +59,20 @@ void RadarManager::updateRadarRange(int radarId, double maxRangeKm)
 {
     for (auto &r : m_radars) {
         if (r.radarId == radarId) {
-            r.maxRange = (maxRangeKm > 0.0) ? maxRangeKm : 150.0;
+            r.maxRange = (maxRangeKm > 0.0) ? maxRangeKm : 100.0;
+            r.coverage.maxRangeKm = r.maxRange;
+            emit radarDataChanged();
+            return;
+        }
+    }
+}
+
+void RadarManager::updateRadarCoverage(int radarId, const RadarView::RadarCoverageParameters &coverage)
+{
+    for (auto &r : m_radars) {
+        if (r.radarId == radarId) {
+            r.coverage = coverage;
+            r.maxRange = coverage.maxRangeKm;
             emit radarDataChanged();
             return;
         }

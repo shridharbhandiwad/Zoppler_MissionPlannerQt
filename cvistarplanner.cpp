@@ -292,6 +292,9 @@ void CVistarPlanner::setupConnections()
     // Update PPI dock when operator edits radar design parameters.
     connect(ui->mapCanvas, &CMapCanvas::signalRadarAttributesChanged,
             this, &CVistarPlanner::onRadarAttributesChanged);
+    // Update PPI dock when operator edits radar coverage parameters.
+    connect(ui->mapCanvas, &CMapCanvas::signalRadarCoverageChanged,
+            this, &CVistarPlanner::onRadarCoverageChanged);
 }
 
 CVistarPlanner::~CVistarPlanner()
@@ -940,14 +943,14 @@ void CVistarPlanner::onRadarSelected(int radarId)
         QString("Radar PPI opened: [R%1] %2").arg(radar->radarId).arg(radar->radarName), 4000);
 }
 
-void CVistarPlanner::onRadarObjectPlaced(QString radarObjectId, double maxRangeKm)
+void CVistarPlanner::onRadarObjectPlaced(QString radarObjectId, RadarView::RadarCoverageParameters coverage)
 {
     if (_m_radarObjectIdToIntId.contains(radarObjectId))
         return;
 
     int id = _m_nextRadarIntId++;
     _m_radarObjectIdToIntId.insert(radarObjectId, id);
-    _m_radarManager->addRadar(id, radarObjectId, maxRangeKm);
+    _m_radarManager->addRadar(id, radarObjectId, coverage);
 }
 
 void CVistarPlanner::onScenarioObjectsCleared()
@@ -971,4 +974,19 @@ void CVistarPlanner::onRadarAttributesChanged(QString radarObjectId, RadarView::
 
     ui->statusBar->showMessage(
         QString("Radar attributes updated for %1 — transmitted to backend").arg(radarObjectId), 4000);
+}
+
+void CVistarPlanner::onRadarCoverageChanged(QString radarObjectId, RadarView::RadarCoverageParameters coverage)
+{
+    if (_m_radarObjectIdToIntId.contains(radarObjectId)) {
+        int intId = _m_radarObjectIdToIntId[radarObjectId];
+        _m_radarManager->updateRadarCoverage(intId, coverage);
+
+        const RadarView::Radar *r = _m_radarManager->radarById(intId);
+        if (r)
+            _m_radarDisplayPanel->updateRadar(*r);
+    }
+
+    ui->statusBar->showMessage(
+        QString("Coverage parameters updated for %1").arg(radarObjectId), 4000);
 }

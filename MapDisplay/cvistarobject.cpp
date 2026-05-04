@@ -3,6 +3,7 @@
 #include <QtMath>
 #include <QPainter>
 #include <QDateTime>
+#include <cmath>
 #include "globalConstants.h"
 #include "cnetworkinterface.h"
 #include "globalConstants.h"
@@ -114,19 +115,25 @@ QRectF CVistarObject::boundingRect() const
         return _m_canvas->rect();
     }
 
-    // Each map canvas item must define a bounding rect in MAP COORDINATES
-    //double halfSizePx = 1; // 10 pixel radius for example
-    double halfSizeMap = 1.;//0.00001;//halfSizePx * _m_canvas->mapUnitsPerPixel();
+    // For RADAR objects also include the coverage range rings extent so they are
+    // never clipped by QGIS's visibility culling.
+    if (_m_nClass == VISTAR_CLASS_RADAR) {
+        double maxRangeKm = _m_radarAttributes.coverage.maxRangeKm;
+        if (maxRangeKm <= 0.0) maxRangeKm = 100.0;
+        // Convert km → degrees (1° lat ≈ 111.32 km)
+        double halfDeg = maxRangeKm / 111.32 + 0.5;
+        return QRectF(_m_dLon - halfDeg, _m_dLat - halfDeg,
+                      2 * halfDeg, 2 * halfDeg);
+    }
 
-    // Center of your object in map coordinates
+    // Each map canvas item must define a bounding rect in MAP COORDINATES
+    double halfSizeMap = 1.0;
+
     double x = _m_dLon;
     double y = _m_dLat;
 
-    QRectF rect = QRectF(x - halfSizeMap, y - halfSizeMap,
-                         2 * halfSizeMap, 2 * halfSizeMap);
-    //qDebug()<<rect;
-
-    return rect;
+    return QRectF(x - halfSizeMap, y - halfSizeMap,
+                  2 * halfSizeMap, 2 * halfSizeMap);
 }
 
 void CVistarObject::paint(QPainter *pPainter)
@@ -142,6 +149,84 @@ void CVistarObject::paint(QPainter *pPainter)
 
     QPointF ptScreen = mapToPixel.transform(QgsPointXY(_m_dLon, _m_dLat)).toQPointF();
     double pixelPerDegree = 1.0 / _m_canvas->mapUnitsPerPixel();
+
+    // ── Range rings on map canvas for RADAR objects ──────────────────────────
+    if (_m_nClass == VISTAR_CLASS_RADAR) {
+        const RadarView::RadarCoverageParameters &cov = _m_radarAttributes.coverage;
+        const double spacing = (cov.rangeRingSpacingKm > 0.0) ? cov.rangeRingSpacingKm : 10.0;
+        const double maxRange = (cov.maxRangeKm > 0.0) ? cov.maxRangeKm : 100.0;
+
+        // 1 degree latitude ≈ 111.32 km; convert a km distance to a latitude offset in degrees.
+        // Using a polar-to-pixel mapping via a due-north offset gives a correct screen radius.
+        constexpr double KM_PER_DEG_LAT = 111.32;
+
+        pPainter->save();
+
+        // Draw coverage sector arc for max range (azimuth sweep)
+        {
+            double minAz = cov.minAzimuthDeg;
+            double maxAz = cov.maxAzimuthDeg;
+            double sweepDeg = maxAz - minAz;
+            if (sweepDeg <= 0.0) sweepDeg += 360.0;
+
+            // Compute pixel radius for maxRange
+            double deltaLatDeg = maxRange / KM_PER_DEG_LAT;
+            QPointF ptNorth = mapToPixel.transform(QgsPointXY(_m_dLon, _m_dLat + deltaLatDeg)).toQPointF();
+            double radiusPx = std::abs(ptNorth.y() - ptScreen.y());
+
+            if (radiusPx > 2.0) {
+                // Draw sector fill
+                bool fullCircle = (std::abs(sweepDeg - 360.0) < 0.5);
+                QColor sectorFill(0, 180, 100, 18);
+                pPainter->setBrush(QBrush(sectorFill));
+                pPainter->setPen(Qt::NoPen);
+
+                if (fullCircle) {
+                    pPainter->drawEllipse(ptScreen, radiusPx, radiusPx);
+                } else {
+                    QPainterPath sectorPath;
+                    sectorPath.moveTo(ptScreen);
+                    // Qt arc: 0° = 3 o'clock, CCW. Radar: 0° = North (12 o'clock), CW.
+                    // Convert radar azimuth to Qt angle: qtAngle = -(az - 90)
+                    double qtStart = -(minAz - 90.0);
+                    double qtSpan  = -sweepDeg;
+                    sectorPath.arcTo(QRectF(ptScreen.x() - radiusPx, ptScreen.y() - radiusPx,
+                                            2 * radiusPx, 2 * radiusPx),
+                                     qtStart, qtSpan);
+                    sectorPath.closeSubpath();
+                    pPainter->drawPath(sectorPath);
+                }
+            }
+        }
+
+        // Draw range rings up to maxRange
+        QPen ringPen(QColor(0, 220, 100, 100), 1, Qt::DashLine);
+        QPen outerPen(QColor(0, 220, 100, 180), 1, Qt::SolidLine);
+        pPainter->setBrush(Qt::NoBrush);
+        QFont ringFont("Arial", 7);
+        pPainter->setFont(ringFont);
+
+        for (double r = spacing; r <= maxRange + 0.01; r += spacing) {
+            double deltaLatDeg = r / KM_PER_DEG_LAT;
+            QPointF ptNorth = mapToPixel.transform(QgsPointXY(_m_dLon, _m_dLat + deltaLatDeg)).toQPointF();
+            double radiusPx = std::abs(ptNorth.y() - ptScreen.y());
+
+            if (radiusPx < 2.0) continue;
+
+            bool isMaxRing = (r >= maxRange - 0.01);
+            pPainter->setPen(isMaxRing ? outerPen : ringPen);
+            pPainter->drawEllipse(ptScreen, radiusPx, radiusPx);
+
+            // Label
+            if (radiusPx > 10.0) {
+                pPainter->setPen(QColor(0, 220, 100, 200));
+                pPainter->drawText(QPointF(ptScreen.x() + 3, ptScreen.y() - radiusPx - 2),
+                                   QString("%1km").arg(static_cast<int>(r)));
+            }
+        }
+
+        pPainter->restore();
+    }
 
     // Draw trajectory line (path traveled) before drawing the object
     if (_m_bTrajectoryEnabled && _m_listTrajectoryPoints.size() > 0) {

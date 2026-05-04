@@ -17,6 +17,7 @@
 #include "../cscenariomanager.h"
 #include "../cclutterparamsdialog.h"
 #include "../RadarView/radarattributesdialog.h"
+#include "../ccoverageparamsdialog.h"
 
 class CMapCanvas : public QgsMapCanvas
 {
@@ -152,12 +153,14 @@ signals:
     void signalPathGenerationCancelled();
     // Emitted whenever a RADAR object is placed/loaded on the canvas.
     // radarObjectId – the object's string ID (e.g. "RADAR_1")
-    // maxRangeKm    – parsed range from additionalData, or 0 if not present
-    void signalRadarObjectAdded(QString radarObjectId, double maxRangeKm);
+    // coverage      – initial coverage parameters
+    void signalRadarObjectAdded(QString radarObjectId, RadarView::RadarCoverageParameters coverage);
     // Emitted when all objects are cleared (scenario reset).
     void signalScenarioCleared();
     // Emitted when the operator edits a radar's attributes via the context-menu dialog.
     void signalRadarAttributesChanged(QString radarObjectId, RadarView::RadarAttributes attrs);
+    // Emitted when the operator edits a radar's coverage parameters via the context-menu dialog.
+    void signalRadarCoverageChanged(QString radarObjectId, RadarView::RadarCoverageParameters coverage);
 public slots:
     void slotUpdateObject(QJsonDocument doc);
     void slotUpdatePosition(QString, double dLat, double dLon, double dAlt);
