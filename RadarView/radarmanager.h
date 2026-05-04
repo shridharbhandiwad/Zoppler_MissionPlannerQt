@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QVector>
 #include <QString>
+#include "radarattributes.h"
 
 namespace RadarView {
 
@@ -17,11 +18,12 @@ struct Detection
 
 struct Radar
 {
-    int                 radarId;
-    QString             radarName;
-    bool                active;
-    double              maxRange;   // km
-    QVector<Detection>  detections;
+    int                      radarId;
+    QString                  radarName;
+    bool                     active;
+    double                   maxRange;       // km (kept for backward compat; mirrors coverage.maxRangeKm)
+    QVector<Detection>       detections;
+    RadarCoverageParameters  coverage;       // operational coverage / display parameters
 };
 
 } // namespace RadarView
@@ -40,8 +42,9 @@ public:
     // Add a radar entry derived from a scenario object placed on the map.
     // radarId   – unique integer id (e.g. sequential index)
     // name      – display name (typically the object's ID string)
-    // maxRangeKm – detection radius in km (defaults to 150 km if 0)
-    void addRadar(int radarId, const QString &name, double maxRangeKm = 150.0);
+    // coverage  – operational coverage parameters (defaults applied if omitted)
+    void addRadar(int radarId, const QString &name,
+                  const RadarCoverageParameters &coverage = RadarCoverageParameters{});
 
     // Remove a radar by id (e.g. when scenario is reset).
     void removeRadar(int radarId);
@@ -51,6 +54,9 @@ public:
 
     // Update a radar's max range from the design attributes (called when operator edits attributes).
     void updateRadarRange(int radarId, double maxRangeKm);
+
+    // Update a radar's coverage parameters (called when operator edits coverage via dialog).
+    void updateRadarCoverage(int radarId, const RadarCoverageParameters &coverage);
 
 signals:
     void radarDataChanged();

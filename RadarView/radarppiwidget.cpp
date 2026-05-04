@@ -8,6 +8,7 @@
 #include <QMouseEvent>
 #include <QtMath>
 #include <QToolTip>
+#include <cmath>
 
 // ─── colour palette ────────────────────────────────────────────────────
 static const QColor kBg          ("#0a0f14");
@@ -22,7 +23,6 @@ static const QColor kDetHover    ("#ffdd44");
 static const QColor kDetTrail    ("#00aa5560");
 static const QColor kTextColor   ("#88ccaa");
 static const QColor kLabelColor  ("#00ff88");
-static const int    kRingCount   = 5;
 static const int    kDetRadius   = 5;
 static const int    kHoverRadius = 7;
 static const int    kMinPad      = 30;   // px padding around scope
@@ -129,33 +129,65 @@ void RadarPPIWidget::paintEvent(QPaintEvent *)
         }
     }
 
-    // ── 4. Range rings ─────────────────────────────────────────────────
+    // ── 4. Coverage sector arc ─────────────────────────────────────────
     {
-        QPen rp(kRingColor, 1);
-        p.setPen(rp);
+        const auto &cov = m_radar.coverage;
+        double minAz  = cov.minAzimuthDeg;
+        double maxAz  = cov.maxAzimuthDeg;
+        double sweepDeg = maxAz - minAz;
+        if (sweepDeg <= 0.0) sweepDeg += 360.0;
+        bool fullCircle = (std::abs(sweepDeg - 360.0) < 0.5);
+
+        if (!fullCircle) {
+            // Draw sector fill for coverage zone
+            QColor sectorFill(0, 255, 136, 12);
+            p.setBrush(QBrush(sectorFill));
+            p.setPen(Qt::NoPen);
+            QPainterPath sectorPath;
+            sectorPath.moveTo(C);
+            // Qt arc convention: 0° = 3-o-clock, CCW positive
+            // Radar convention: 0° = North (12-o-clock), CW positive
+            double qtStart = -(minAz - 90.0);
+            double qtSpan  = -sweepDeg;
+            sectorPath.arcTo(QRectF(C.x() - R, C.y() - R, 2 * R, 2 * R), qtStart, qtSpan);
+            sectorPath.closeSubpath();
+            p.drawPath(sectorPath);
+
+            // Draw sector boundary lines
+            p.setPen(QPen(QColor("#00ff8840"), 1, Qt::DashLine));
+            p.drawLine(C, polarToScreen(m_radar.maxRange, minAz));
+            p.drawLine(C, polarToScreen(m_radar.maxRange, maxAz));
+        }
+    }
+
+    // ── 5. Range rings ─────────────────────────────────────────────────
+    {
+        const auto &cov = m_radar.coverage;
+        double spacing = (cov.rangeRingSpacingKm > 0.0) ? cov.rangeRingSpacingKm : 10.0;
+        double maxRange = m_radar.maxRange;
+
         p.setBrush(Qt::NoBrush);
         QFont labelFont("Monospace", 7);
         p.setFont(labelFont);
-        p.setPen(kRingLabel);
 
-        for (int i = 1; i <= kRingCount; ++i) {
-            double frac   = static_cast<double>(i) / kRingCount;
+        for (double r = spacing; r <= maxRange + 0.01; r += spacing) {
+            double frac   = r / maxRange;
+            frac = qBound(0.0, frac, 1.0);
             double ringR  = frac * R;
             QRectF ringRect(C.x() - ringR, C.y() - ringR, 2 * ringR, 2 * ringR);
 
-            // Draw ring
-            p.setPen(QPen(kRingColor, 1));
+            bool isOuter = (r >= maxRange - 0.01);
+            p.setPen(QPen(kRingColor, isOuter ? 2 : 1));
             p.drawEllipse(ringRect);
 
-            // Label (range in km)
-            double rangeKm = frac * m_radar.maxRange;
-            QString lbl = QString("%1 km").arg(static_cast<int>(rangeKm));
+            // Label
+            QString lbl = QString("%1 km").arg(static_cast<int>(r));
             p.setPen(kRingLabel);
             p.drawText(QPointF(C.x() + 4, C.y() - ringR + 10), lbl);
         }
     }
 
-    // ── 5. Azimuth labels ──────────────────────────────────────────────
+    // ── 6. Azimuth labels ──────────────────────────────────────────────
     {
         QFont azFont("Monospace", 8);
         p.setFont(azFont);
@@ -176,14 +208,14 @@ void RadarPPIWidget::paintEvent(QPaintEvent *)
         }
     }
 
-    // ── 6. Scope rim ───────────────────────────────────────────────────
+    // ── 7. Scope rim ───────────────────────────────────────────────────
     {
         p.setPen(QPen(kScopeRim, 2));
         p.setBrush(Qt::NoBrush);
         p.drawEllipse(scopeRect());
     }
 
-    // ── 7. Cross-hair at center ────────────────────────────────────────
+    // ── 8. Cross-hair at center ────────────────────────────────────────
     {
         double crossLen = 10.0;
         p.setPen(QPen(kCenterMark, 2));
@@ -196,7 +228,7 @@ void RadarPPIWidget::paintEvent(QPaintEvent *)
         p.drawEllipse(C, 4.0, 4.0);
     }
 
-    // ── 8. Detections ──────────────────────────────────────────────────
+    // ── 9. Detections ──────────────────────────────────────────────────
     for (const auto &ds : m_screenDetections) {
         bool hovered = (ds.trackId == m_hoveredTrackId);
         QColor fillColor  = hovered ? kDetHover  : kDetection;
@@ -225,7 +257,7 @@ void RadarPPIWidget::paintEvent(QPaintEvent *)
                    QString("T%1").arg(ds.trackId));
     }
 
-    // ── 9. Radar title + stats ─────────────────────────────────────────
+    // ── 10. Radar title + stats ─────────────────────────────────────────
     {
         QFont titleFont("Monospace", 9, QFont::Bold);
         p.setFont(titleFont);
@@ -234,8 +266,13 @@ void RadarPPIWidget::paintEvent(QPaintEvent *)
         QString title = QString("[R%1] %2").arg(m_radar.radarId).arg(m_radar.radarName);
         p.drawText(QPointF(8, 18), title);
 
-        QString stats = QString("Range: %1 km   Detections: %2")
-                            .arg(m_radar.maxRange)
+        const auto &cov = m_radar.coverage;
+        QString stats = QString("Range: %1 km   Az: %2°–%3°   El: %4°–%5°   Det: %6")
+                            .arg(cov.maxRangeKm, 0, 'f', 0)
+                            .arg(cov.minAzimuthDeg, 0, 'f', 0)
+                            .arg(cov.maxAzimuthDeg, 0, 'f', 0)
+                            .arg(cov.minElevationDeg, 0, 'f', 0)
+                            .arg(cov.maxElevationDeg, 0, 'f', 0)
                             .arg(m_radar.detections.size());
         QFont statsFont("Monospace", 7);
         p.setFont(statsFont);
@@ -255,7 +292,7 @@ void RadarPPIWidget::paintEvent(QPaintEvent *)
         p.drawText(pill, Qt::AlignCenter, statusTxt);
     }
 
-    // ── 10. Hover tooltip box ──────────────────────────────────────────
+    // ── 11. Hover tooltip box ──────────────────────────────────────────
     if (m_hoveredTrackId >= 0) {
         for (const auto &ds : m_screenDetections) {
             if (ds.trackId != m_hoveredTrackId) continue;

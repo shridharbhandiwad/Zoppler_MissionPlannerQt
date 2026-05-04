@@ -51,6 +51,7 @@ SOURCES += \
     RadarView/radardockwidget.cpp \
     RadarView/radardisplaypanel.cpp \
     cclutterparamsdialog.cpp \
+    ccoverageparamsdialog.cpp \
     cloadscenariodialog.cpp \
     cnetworkinterface.cpp \
     cpathsettingsdialog.cpp \
@@ -76,6 +77,7 @@ HEADERS += \
     RadarView/radardockwidget.h \
     RadarView/radardisplaypanel.h \
     cclutterparamsdialog.h \
+    ccoverageparamsdialog.h \
     cloadscenariodialog.h \
     cnetworkinterface.h \
     cpathsettingsdialog.h \

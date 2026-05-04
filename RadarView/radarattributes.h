@@ -110,24 +110,69 @@ struct RadarPhysicsParameters
     }
 };
 
+// ---------------------------------------------------------------------------
+// RadarCoverageParameters – operational coverage / display parameters.
+//
+// These control the geographic range rings drawn on the map canvas and the
+// azimuth / elevation sector shown in the PPI view.
+// ---------------------------------------------------------------------------
+struct RadarCoverageParameters
+{
+    double maxRangeKm      = 100.0;  // maximum detection range (km)
+    double minAzimuthDeg   = 0.0;    // minimum azimuth of coverage sector (deg)
+    double maxAzimuthDeg   = 360.0;  // maximum azimuth of coverage sector (deg)
+    double minElevationDeg = 0.0;    // minimum elevation angle (deg)
+    double maxElevationDeg = 70.0;   // maximum elevation angle (deg)
+    double rangeRingSpacingKm = 10.0; // spacing between range rings on map (km)
+
+    static RadarCoverageParameters defaults() { return RadarCoverageParameters{}; }
+
+    QJsonObject toJson() const
+    {
+        QJsonObject o;
+        o["maxRangeKm"]          = maxRangeKm;
+        o["minAzimuthDeg"]       = minAzimuthDeg;
+        o["maxAzimuthDeg"]       = maxAzimuthDeg;
+        o["minElevationDeg"]     = minElevationDeg;
+        o["maxElevationDeg"]     = maxElevationDeg;
+        o["rangeRingSpacingKm"]  = rangeRingSpacingKm;
+        return o;
+    }
+
+    static RadarCoverageParameters fromJson(const QJsonObject &o)
+    {
+        RadarCoverageParameters p;
+        if (o.contains("maxRangeKm"))         p.maxRangeKm         = o["maxRangeKm"].toDouble(p.maxRangeKm);
+        if (o.contains("minAzimuthDeg"))       p.minAzimuthDeg      = o["minAzimuthDeg"].toDouble(p.minAzimuthDeg);
+        if (o.contains("maxAzimuthDeg"))       p.maxAzimuthDeg      = o["maxAzimuthDeg"].toDouble(p.maxAzimuthDeg);
+        if (o.contains("minElevationDeg"))     p.minElevationDeg    = o["minElevationDeg"].toDouble(p.minElevationDeg);
+        if (o.contains("maxElevationDeg"))     p.maxElevationDeg    = o["maxElevationDeg"].toDouble(p.maxElevationDeg);
+        if (o.contains("rangeRingSpacingKm"))  p.rangeRingSpacingKm = o["rangeRingSpacingKm"].toDouble(p.rangeRingSpacingKm);
+        return p;
+    }
+};
+
 // Top-level container – holds only the radar physics / simulation parameters.
 struct RadarAttributes
 {
-    RadarPhysicsParameters physics;
+    RadarPhysicsParameters  physics;
+    RadarCoverageParameters coverage;
 
     static RadarAttributes defaults() { return RadarAttributes{}; }
 
     QJsonObject toJson() const
     {
         QJsonObject o;
-        o["physics"] = physics.toJson();
+        o["physics"]  = physics.toJson();
+        o["coverage"] = coverage.toJson();
         return o;
     }
 
     static RadarAttributes fromJson(const QJsonObject &o)
     {
         RadarAttributes a;
-        if (o.contains("physics")) a.physics = RadarPhysicsParameters::fromJson(o["physics"].toObject());
+        if (o.contains("physics"))  a.physics  = RadarPhysicsParameters::fromJson(o["physics"].toObject());
+        if (o.contains("coverage")) a.coverage = RadarCoverageParameters::fromJson(o["coverage"].toObject());
         return a;
     }
 };

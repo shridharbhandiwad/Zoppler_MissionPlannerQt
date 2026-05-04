@@ -893,7 +893,8 @@ void CMapCanvas::mouseReleaseEvent(QMouseEvent *event)
                 qDebug()<<"VISTAR object added, ID= "<<sObjectId;
 
                 if (_m_nCurrentObjectClassForLoading == VISTAR_CLASS_RADAR) {
-                    emit signalRadarObjectAdded(sObjectId, 0.0);
+                    // New radar placed on map: use default coverage parameters
+                    emit signalRadarObjectAdded(sObjectId, RadarView::RadarCoverageParameters{});
                 }
 
                 // For Clutter: show a parameter dialog so the
@@ -1284,10 +1285,13 @@ void CMapCanvas::showContextMenu(QPoint pos) {
                 menuObject->addMenu(menuAttachRoute);
             }
 
-            // Add "Design Parameters" option for RADAR objects
+            // Add radar-specific options
             if (vistarObject->objectClass() == VISTAR_CLASS_RADAR) {
                 QAction* actionDesignParams = menuObject->addAction("Design Parameters");
                 actionDesignParams->setObjectName(vistarObject->getObjectId());
+
+                QAction* actionCoverage = menuObject->addAction("Update Coverage Parameters");
+                actionCoverage->setObjectName(vistarObject->getObjectId());
             }
 
             QAction* actionDelete = menuObject->addAction("Delete");
@@ -1362,14 +1366,30 @@ void CMapCanvas::showContextMenu(QPoint pos) {
 
                     connect(dlg, &RadarAttributesDialog::attributesApplied,
                             this, [this, radarId, object](const RadarView::RadarAttributes &attrs) {
-                        // Store updated attributes on the object
                         object->setRadarAttributes(attrs);
-                        // Notify the rest of the application (e.g. PPI widget, main window)
                         emit signalRadarAttributesChanged(radarId, attrs);
-                        // Persist to auto-save
                         QTimer::singleShot(100, this, [this]() { autoSaveScenario(); });
-                        // Transmit updated attributes to the backend via UDP
                         object->TransmitSelfInfo();
+                    });
+
+                    dlg->exec();
+                    dlg->deleteLater();
+                }
+                else if ( selected->text() == "Update Coverage Parameters" &&
+                          object->objectClass() == VISTAR_CLASS_RADAR ) {
+                    QString radarId = selected->objectName();
+                    RadarView::RadarAttributes curAttrs = object->radarAttributes();
+                    auto *dlg = new CCoverageParamsDialog(radarId, curAttrs.coverage, this);
+
+                    connect(dlg, &CCoverageParamsDialog::coverageApplied,
+                            this, [this, radarId, object](const RadarView::RadarCoverageParameters &cov) {
+                        RadarView::RadarAttributes attrs = object->radarAttributes();
+                        attrs.coverage = cov;
+                        object->setRadarAttributes(attrs);
+                        emit signalRadarCoverageChanged(radarId, cov);
+                        // Redraw map to update range rings
+                        refresh();
+                        QTimer::singleShot(100, this, [this]() { autoSaveScenario(); });
                     });
 
                     dlg->exec();
@@ -1530,6 +1550,14 @@ Scenario CMapCanvas::createScenarioFromCurrentState() {
         obj.additionalData["parent"] = vistarObject->getParent();
         obj.additionalData["childId"] = vistarObject->getChildId();
         obj.additionalData["attachedRoute"] = vistarObject->getAttachedRoute();
+
+        // Persist radar-specific data
+        if (vistarObject->objectClass() == VISTAR_CLASS_RADAR) {
+            const RadarView::RadarAttributes &attrs = vistarObject->radarAttributes();
+            obj.additionalData["radarAttributes"] = attrs.toJson();
+            // Also store maxRange (metres) for backward compatibility
+            obj.additionalData["range"] = attrs.coverage.maxRangeKm * 1000.0;
+        }
         
         scenario.objects.append(obj);
     }
@@ -1632,10 +1660,17 @@ void CMapCanvas::loadScenarioToCanvas(const Scenario &scenario) {
         _m_listVistarObjectIds.append(obj.id);
 
         if (nClass == VISTAR_CLASS_RADAR) {
-            double rangeKm = 0.0;
-            if (obj.additionalData.contains("range"))
-                rangeKm = obj.additionalData["range"].toDouble() / 1000.0; // metres → km
-            emit signalRadarObjectAdded(obj.id, rangeKm);
+            // Restore full radar attributes if available (includes coverage params)
+            RadarView::RadarAttributes attrs = RadarView::RadarAttributes::defaults();
+            if (obj.additionalData.contains("radarAttributes")) {
+                attrs = RadarView::RadarAttributes::fromJson(
+                    obj.additionalData["radarAttributes"].toObject());
+            } else if (obj.additionalData.contains("range")) {
+                // Legacy: only range was stored
+                attrs.coverage.maxRangeKm = obj.additionalData["range"].toDouble() / 1000.0;
+            }
+            vistarObject->setRadarAttributes(attrs);
+            emit signalRadarObjectAdded(obj.id, attrs.coverage);
         }
         
         qDebug() << "Loaded object:" << obj.id << "at" << obj.latitude << "," << obj.longitude;

@@ -107,10 +107,12 @@ private slots :
     void onRadarViewTriggered();
     void onRadarSelected(int radarId);
     // Called when the map canvas places/loads a radar object.
-    void onRadarObjectPlaced(QString radarObjectId, double maxRangeKm);
+    void onRadarObjectPlaced(QString radarObjectId, RadarView::RadarCoverageParameters coverage);
     // Called when the scenario is cleared/reset.
     void onScenarioObjectsCleared();
     // Called when the operator edits a radar's attributes via the context-menu dialog.
     void onRadarAttributesChanged(QString radarObjectId, RadarView::RadarAttributes attrs);
+    // Called when the operator edits a radar's coverage parameters via the context-menu dialog.
+    void onRadarCoverageChanged(QString radarObjectId, RadarView::RadarCoverageParameters coverage);
 };
 #endif // CVISTARPLANNER_H
