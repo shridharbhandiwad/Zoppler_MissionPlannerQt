@@ -1,6 +1,7 @@
 #include "radarppiwidget.h"
 
 #include <QPainter>
+#include <QPainterPath>
 #include <QPen>
 #include <QBrush>
 #include <QFont>

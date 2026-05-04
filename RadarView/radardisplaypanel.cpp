@@ -275,7 +275,7 @@ void RadarDisplayPanel::openRadar(const RadarView::Radar &radar)
 
     // Small detach icon button embedded in the tab bar
     auto *detachBtn = new QToolButton();
-    detachBtn->setText("\u2922");  // ⤢
+    detachBtn->setText(QString::fromUtf8("\xe2\xa4\xa2"));  // ⤢ U+2922
     detachBtn->setToolTip("Detach to separate window (or double-click tab)");
     detachBtn->setFixedSize(18, 18);
     detachBtn->setStyleSheet(R"(
