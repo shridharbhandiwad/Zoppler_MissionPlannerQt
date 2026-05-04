@@ -44,7 +44,7 @@ public:
     // name      – display name (typically the object's ID string)
     // coverage  – operational coverage parameters (defaults applied if omitted)
     void addRadar(int radarId, const QString &name,
-                  const RadarCoverageParameters &coverage = RadarCoverageParameters{});
+                  const RadarView::RadarCoverageParameters &coverage = RadarView::RadarCoverageParameters{});
 
     // Remove a radar by id (e.g. when scenario is reset).
     void removeRadar(int radarId);
@@ -56,7 +56,7 @@ public:
     void updateRadarRange(int radarId, double maxRangeKm);
 
     // Update a radar's coverage parameters (called when operator edits coverage via dialog).
-    void updateRadarCoverage(int radarId, const RadarCoverageParameters &coverage);
+    void updateRadarCoverage(int radarId, const RadarView::RadarCoverageParameters &coverage);
 
 signals:
     void radarDataChanged();
