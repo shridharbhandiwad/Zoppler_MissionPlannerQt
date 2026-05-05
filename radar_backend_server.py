@@ -23,11 +23,11 @@ this protocol::
             "beamwidth_az":  3.0,
             "beamwidth_el":  4.0,
             "tx_power":      1000.0,
-            "pulse_width":   1e-4,
+            "pulse_width":   100e-6,
             "bandwidth":     5e6,
             "freq_min":      10.0e9,
             "freq_max":      10.5e9,
-            "freq_center":   10.25e9,
+            "freq_center":   10.25e9,            # (freq_min + freq_max) / 2.0
             "desired_snr":   17.0,
             "noise_figure":  3.0,
             "system_temp":   290.0,

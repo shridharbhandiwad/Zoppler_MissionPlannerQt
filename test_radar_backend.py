@@ -34,6 +34,27 @@ MULTICAST_PORT = 8888
 TTL            = 1
 
 # ── Sample radar definitions ──────────────────────────────────────────────────
+_PHYSICS_DEFAULTS = {
+    "Pd":            0.9,
+    "Pfa":           1e-6,
+    "beamwidth_az":  3.0,
+    "beamwidth_el":  4.0,
+    "tx_power":      1000.0,
+    "pulse_width":   100e-6,
+    "bandwidth":     5e6,
+    "freq_min":      10.0e9,
+    "freq_max":      10.5e9,
+    "freq_center":   (10.0e9 + 10.5e9) / 2.0,  # (freq_min + freq_max) / 2.0
+    "desired_snr":   17.0,
+    "noise_figure":  3.0,
+    "system_temp":   290.0,
+    "receiver_gain": 50.0,
+    "prf":           1000.0,
+    "scan_time":     2.0,
+    "rcs":           2.0,
+    "loss":          6.0,
+}
+
 RADARS = [
     {
         "id": "RADAR_TEST_1",
@@ -90,7 +111,8 @@ RADARS = [
                 "mtbfHours":       2000.0,
                 "mttrHours":       4.0,
                 "maintenanceNotes":"Test backend initial message."
-            }
+            },
+            "physics": _PHYSICS_DEFAULTS
         }
     },
     {
@@ -148,7 +170,8 @@ RADARS = [
                 "mtbfHours":       1800.0,
                 "mttrHours":       3.0,
                 "maintenanceNotes":""
-            }
+            },
+            "physics": _PHYSICS_DEFAULTS
         }
     }
 ]
@@ -187,16 +210,17 @@ def build_place_radar(radar: dict) -> dict:
     
     Schema:
     {
-        "STREAM":     "create",
-        "SRC":        "TEST_BACKEND",
-        "ID":         "<radar-object-id>",
-        "CLASS":      5,            // eVISTAR_CLASS::VISTAR_CLASS_RADAR
-        "LAT":        <float>,      // degrees
-        "LON":        <float>,      // degrees
-        "ALT":        <float>,      // metres
-        "HEADING":    0.0,
-        "VELOCITY":   0.0,
-        "radarAttributes": { ... }  // full RadarAttributes JSON block
+        "STREAM":          "create",
+        "SRC":             "TEST_BACKEND",
+        "ID":              "<radar-object-id>",
+        "CLASS":           5,            // eVISTAR_CLASS::VISTAR_CLASS_RADAR
+        "LAT":             <float>,      // degrees
+        "LON":             <float>,      // degrees
+        "ALT":             <float>,      // metres
+        "HEADING":         0.0,
+        "VELOCITY":        0.0,
+        "parameters":      { ... },      // RadarPhysicsParameters block
+        "radarAttributes": { ... }       // full RadarAttributes JSON block
     }
     """
     return {
@@ -209,6 +233,7 @@ def build_place_radar(radar: dict) -> dict:
         "ALT":             radar["alt"],
         "HEADING":         0.0,
         "VELOCITY":        0.0,
+        "parameters":      radar["attributes"].get("physics", _PHYSICS_DEFAULTS),
         "radarAttributes": radar["attributes"]
     }
 
