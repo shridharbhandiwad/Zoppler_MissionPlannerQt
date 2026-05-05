@@ -5,19 +5,24 @@
 #include <QKeyEvent>
 #include <qgsrectangle.h>
 #include <QDir>
+#include <QUrl>
 #include <QDateTime>
 #include <QFileInfoList>
+#include <QDomDocument>
+#include <QFile>
+#include <QRegularExpression>
+#include <algorithm>
 #include <qgscoordinatetransformcontext.h>
 #include <qgsfillsymbol.h>
 #include <qgssinglesymbolrenderer.h>
 #include <qgsfillsymbol.h>
 #include <qgsrenderer.h>
 #include <qgsproject.h>
-#include <qgssymbollayerutils.h>  // sometimes contains symbol layer helpers
-#include <qgsfillsymbollayer.h> // *If* it exists in your build
+#include <qgssymbollayerutils.h>
+#include <qgsfillsymbollayer.h>
 #include <qgslinesymbollayer.h>
-#include  <QFileInfo>
-#include  <QProcess>
+#include <QFileInfo>
+#include <QProcess>
 #include "globalConstants.h"
 #include "cvistarobject.h"
 #include <qgsmaplayer.h>
@@ -30,12 +35,13 @@
 #include <QGraphicsEllipseItem>
 #include <QGraphicsTextItem>
 #include <QGraphicsRectItem>
+#include <QDebug>
 
 CMapCanvas::CMapCanvas(QWidget *parent) : QgsMapCanvas(parent)
 {
     _m_nCurrentObjectClassForLoading = VISTAR_CLASS_NONE;
     _m_scenarioManager = new CScenarioManager(this);
-    
+
     // Initialize path generation
     _m_pathGenerator = new CPathGenerator();
     _m_currentPathType = PATH_TYPE_NONE;
@@ -44,48 +50,34 @@ CMapCanvas::CMapCanvas(QWidget *parent) : QgsMapCanvas(parent)
     _m_pathStartMarker = nullptr;
     _m_pathInstructionText = nullptr;
     _m_pathInstructionBgRect = nullptr;
-    
+
     // Initialize path generation parameters with defaults
     _m_pathParams = CPathGenerator::PathParameters();
-    
-    // General parameters
-    _m_pathParams.numWaypoints = 50;         // Number of intermediate waypoints (more for smoother paths)
-    _m_pathParams.defaultAltitude = 1000.0;  // Default altitude in meters
-    _m_pathParams.curveFactor = 0.6;         // Controls curve intensity (0.0-1.0)
-    _m_pathParams.spreadRadiusKm = 15.0;     // Maximum trajectory spread radius in kilometers
-    
-    // Spiral-specific parameters
-    _m_pathParams.spiralTurns = 4.0;         // Number of spiral rotations
-    _m_pathParams.spiralExpansionRate = 0.8; // How fast the spiral expands
-    _m_pathParams.spiralTightness = 0.5;     // How tight the spiral is
-    _m_pathParams.spiralClockwise = true;    // Direction of spiral rotation
-    
-    // Zigzag parameters
-    _m_pathParams.zigzagAmplitude = 0.45;    // Amplitude of zigzag (fraction of distance)
-    _m_pathParams.zigzagFrequency = 8;       // Number of zigzag oscillations
-    
-    // Turn parameters
-    _m_pathParams.maxTurnRadius = 0.1;       // Maximum turn radius in degrees
-    
-    // Randomness parameters
-    _m_pathParams.randomVariance = 0.45;     // Random path variance factor
-    _m_pathParams.randomnessLevel = 0.5;     // Global randomness multiplier (0.0-1.0)
-    _m_pathParams.noiseScale = 0.3;          // Scale of noise added to paths
-    _m_pathParams.altitudeVariation = 150.0; // Max altitude variation in meters
-    _m_pathParams.wobbleIntensity = 0.4;     // Intensity of path wobble
-    
-    // Advanced randomness
-    _m_pathParams.pathAsymmetry = 0.3;       // How asymmetric paths can be
-    _m_pathParams.clusterTendency = 0.5;     // Tendency to cluster waypoints
-    
+
+    _m_pathParams.numWaypoints       = 50;
+    _m_pathParams.defaultAltitude    = 1000.0;
+    _m_pathParams.curveFactor        = 0.6;
+    _m_pathParams.spreadRadiusKm     = 15.0;
+    _m_pathParams.spiralTurns        = 4.0;
+    _m_pathParams.spiralExpansionRate= 0.8;
+    _m_pathParams.spiralTightness    = 0.5;
+    _m_pathParams.spiralClockwise    = true;
+    _m_pathParams.zigzagAmplitude    = 0.45;
+    _m_pathParams.zigzagFrequency    = 8;
+    _m_pathParams.maxTurnRadius      = 0.1;
+    _m_pathParams.randomVariance     = 0.45;
+    _m_pathParams.randomnessLevel    = 0.5;
+    _m_pathParams.noiseScale         = 0.3;
+    _m_pathParams.altitudeVariation  = 150.0;
+    _m_pathParams.wobbleIntensity    = 0.4;
+    _m_pathParams.pathAsymmetry      = 0.3;
+    _m_pathParams.clusterTendency    = 0.5;
+
     QgsRectangle fixedWorldExtent(-180.0, -90.0, 180.0, 90.0);
-     mPreviousCursor = Qt::ArrowCursor;
-    // Add padding (e.g., 10% of width/height)
-    double padX = fixedWorldExtent.width() * 0.1;
+    mPreviousCursor = Qt::ArrowCursor;
+
+    double padX = fixedWorldExtent.width()  * 0.1;
     double padY = fixedWorldExtent.height() * 0.1;
-
-
-
 
     mWorldExtentPadded = QgsRectangle(
         fixedWorldExtent.xMinimum() - padX,
@@ -100,76 +92,61 @@ CMapCanvas::CMapCanvas(QWidget *parent) : QgsMapCanvas(parent)
     settings.setValue("/qgis/enable_render_caching", true);
     settings.setValue("qgis/default_tiles_loading_strategy", "async");
 
-
-    // Add this for smoother updates
-    setMapUpdateInterval(30);  // Update every 50ms instead of every frame
-
-    // Use OpenGL viewport
-    //QOpenGLWidget* glViewport = new QOpenGLWidget();
-    //setViewport(glViewport);
-
-    // Set cache size for better performance
-    //setCacheMode(QGraphicsView::CacheBackground);
-
+    setMapUpdateInterval(30);
     setCachingEnabled(true);
     setParallelRenderingEnabled(true);
     setSegmentationTolerance(500);
 
-     setRenderFlag(true);
-     freeze(false);
+    setRenderFlag(true);
+    freeze(false);
 
-     _m_crs = QgsCoordinateReferenceSystem("EPSG:4326");
-     setDestinationCrs(_m_crs);
+    _m_crs = QgsCoordinateReferenceSystem("EPSG:4326");
+    setDestinationCrs(_m_crs);
 
-     connect(&_m_objUpdatePosition,SIGNAL(signalUpdatePosition(QString,double,double,double)),
-             this,SLOT(slotUpdatePosition(QString,double,double,double)));
+    connect(&_m_objUpdatePosition, SIGNAL(signalUpdatePosition(QString,double,double,double)),
+            this, SLOT(slotUpdatePosition(QString,double,double,double)));
 
+    connect(&_m_objUpdateRoute, SIGNAL(signalUpdatePoints(QString,QList<QgsPointXYZ>,QStringList)),
+            this, SLOT(slotUpdatePoints(QString,QList<QgsPointXYZ>,QStringList)));
 
-     connect(&_m_objUpdateRoute,SIGNAL(signalUpdatePoints(QString,QList<QgsPointXYZ>,QStringList)),
-             this,SLOT(slotUpdatePoints(QString,QList<QgsPointXYZ>,QStringList)));
-
-     connect(&timerUpdate,SIGNAL(timeout()),this,SLOT(update()));
-     timerUpdate.start(10);
-     //QgsCoordinateReferenceSystem crs("EPSG:3857"); // WGS 84 (lat/lon)
-     //setDestinationCrs(crs);
-
+    connect(&timerUpdate, SIGNAL(timeout()), this, SLOT(update()));
+    timerUpdate.start(10);
 }
 
-void CMapCanvas::Initialize() {
-
+// ============================================================
+void CMapCanvas::Initialize()
+{
     _loadRasterMaps();
     _loadVectorMaps();
-    //_loadLayers();
     enforceLayerOrder();
-    
-    // Set India as the default Home view on startup
     mapHome();
-    
     refresh();
-    
-    // Auto-load the last saved scenario
+
     QTimer::singleShot(500, this, [this]() {
         autoLoadScenario();
     });
 }
 
-void CMapCanvas::importRasterMap(QString inputPath) {
+// ============================================================
+//  Raster import  (OS-agnostic: no cmd.exe / .exe)
+// ============================================================
+void CMapCanvas::importRasterMap(QString inputPath)
+{
     convertAndCacheRaster(inputPath);
 }
 
 void CMapCanvas::convertAndCacheRaster(const QString inputPath)
 {
     QFileInfo info(inputPath);
-    QString cacheDir = QDir::currentPath() + "/../maps/RasterRepository";
+    // Use applicationDirPath so the path is correct regardless of working directory
+    QString cacheDir = QCoreApplication::applicationDirPath() + "/maps/RasterRepository";
     QDir().mkpath(cacheDir);
 
-    m_outputPath = cacheDir + "/"+info.baseName()+".TIFF";
-    m_inputPath = inputPath;
-
+    m_outputPath = cacheDir + "/" + info.baseName() + ".TIFF";
+    m_inputPath  = inputPath;
     QDir().mkpath(QFileInfo(m_outputPath).absolutePath());
 
-    if (m_progressDialog)
-        delete m_progressDialog;
+    if (m_progressDialog) delete m_progressDialog;
 
     m_progressDialog = new QProgressDialog("Preparing raster...", "Cancel", 0, 100, this);
     m_progressDialog->setWindowModality(Qt::ApplicationModal);
@@ -180,120 +157,112 @@ void CMapCanvas::convertAndCacheRaster(const QString inputPath)
     m_progressDialog->show();
 
     QTimer::singleShot(100, this, &CMapCanvas::startGdal2Tiles);
-
 }
 
 int CMapCanvas::computeMaxZoom(double rasterRes)
 {
-    for (int z = 0; z <= 25; z++)
-    {
+    for (int z = 0; z <= 25; z++) {
         double res = 156543.03392804097 / (1 << z);
-        if (res <= rasterRes)
-            return z;
+        if (res <= rasterRes) return z;
     }
     return 25;
 }
 
 void CMapCanvas::startGdal2Tiles()
 {
-    if (m_translateProcess)
-        delete m_translateProcess;
-
+    if (m_translateProcess) delete m_translateProcess;
     m_translateProcess = new QProcess(this);
-    connect(m_translateProcess, &QProcess::readyReadStandardOutput, this, &CMapCanvas::handleGdalStdout);
-    connect(m_translateProcess, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
-           this, &CMapCanvas::loadCachedAfterProcessing);
+
+    connect(m_translateProcess, &QProcess::readyReadStandardOutput,
+            this, &CMapCanvas::handleGdalStdout);
+    connect(m_translateProcess,
+            QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+            this, &CMapCanvas::loadCachedAfterProcessing);
 
     QgsRasterLayer raster(m_inputPath, "raster");
-    double pixelSizeX = raster.rasterUnitsPerPixelX();
-    double pixelSizeY = raster.rasterUnitsPerPixelY();
-    double rasterResolution = std::max(pixelSizeX, pixelSizeY); // meters/pixel
-
-    QgsRectangle extent = raster.extent();
-    double worldSize = 40075016.6856; // meters width of Web Mercator
-    double ratio = worldSize / extent.width();
-
-    // tiles double each zoom → log2 ratio of world to raster width
-    int nMinZoomLevel =  std::floor(std::log2(ratio));
+    double rasterResolution = std::max(raster.rasterUnitsPerPixelX(),
+                                       raster.rasterUnitsPerPixelY());
+    double ratio      = 40075016.6856 / raster.extent().width();
+    int nMinZoomLevel = static_cast<int>(std::floor(std::log2(ratio)));
     int nMaxZoomLevel = computeMaxZoom(rasterResolution);
 
+    qDebug() << "Running gdal2tiles zoom" << nMinZoomLevel << "-" << nMaxZoomLevel;
 
-    QString cmd = QString("python.exe Scripts/gdal2tiles.py --tiling-scheme=geodetic -z %1-%2 %3 %4").arg(nMinZoomLevel).arg(nMaxZoomLevel)
-                      .arg(m_inputPath, m_outputPath);
-    qDebug() << "Running gdal2tiles:" << cmd;
+    m_translateProcess->setProcessChannelMode(QProcess::MergedChannels);
 
-    //m_translateProcess->setProcessChannelMode(QProcess::MergedChannels);
-    //m_translateProcess->start("cmd.exe", QStringList() << "/c" << cmd);
+#ifdef Q_OS_WIN
+    // Windows OSGeo4W: python is on PATH when launched from OSGeo4W shell
+    m_translateProcess->start("python", QStringList()
+                              << "-m" << "gdal2tiles"
+                              << QString("-z%1-%2").arg(nMinZoomLevel).arg(nMaxZoomLevel)
+                              << m_inputPath << m_outputPath);
+#else
+    // Linux / macOS
+    m_translateProcess->start("python3", QStringList()
+                              << "-m" << "gdal2tiles"
+                              << QString("-z%1-%2").arg(nMinZoomLevel).arg(nMaxZoomLevel)
+                              << m_inputPath << m_outputPath);
+#endif
 }
 
 void CMapCanvas::startGdalTranslate()
 {
-    if (m_translateProcess)
-        delete m_translateProcess;
-
+    if (m_translateProcess) delete m_translateProcess;
     m_translateProcess = new QProcess(this);
-    connect(m_translateProcess, &QProcess::readyReadStandardOutput, this, &CMapCanvas::handleGdalStdout);
-    connect(m_translateProcess, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+
+    connect(m_translateProcess, &QProcess::readyReadStandardOutput,
+            this, &CMapCanvas::handleGdalStdout);
+    connect(m_translateProcess,
+            QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
             this, &CMapCanvas::startGdalAddo);
 
-    QString cmd = QString("gdal_translate.exe -of GTiff -co TILED=YES -co COMPRESS=DEFLATE %1 %2")
-                  .arg(m_inputPath, m_outputPath);
-    qDebug() << "Running gdal_translate:" << cmd;
+    QStringList args;
+    args << "-of" << "GTiff" << "-co" << "TILED=YES"
+         << "-co" << "COMPRESS=DEFLATE" << m_inputPath << m_outputPath;
 
     m_translateProcess->setProcessChannelMode(QProcess::MergedChannels);
-    m_translateProcess->start("cmd.exe", QStringList() << "/c" << cmd);
+#ifdef Q_OS_WIN
+    m_translateProcess->start("gdal_translate.exe", args);
+#else
+    m_translateProcess->start("gdal_translate", args);
+#endif
 }
 
 void CMapCanvas::startGdalAddo()
 {
-    if (m_addoProcess)
-        delete m_addoProcess;
-
+    if (m_addoProcess) delete m_addoProcess;
     m_addoProcess = new QProcess(this);
-    connect(m_addoProcess, &QProcess::readyReadStandardOutput, this, &CMapCanvas::handleGdalStdout);
-    connect(m_addoProcess, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+
+    connect(m_addoProcess, &QProcess::readyReadStandardOutput,
+            this, &CMapCanvas::handleGdalStdout);
+    connect(m_addoProcess,
+            QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
             this, &CMapCanvas::loadCachedAfterProcessing);
 
-    QString cmd = QString("gdaladdo.exe -r average %1 2 4 8 16 32 64 128 256").arg(m_outputPath);
-    qDebug() << "Running gdaladdo:" << cmd;
+    QStringList args;
+    args << "-r" << "average" << m_outputPath
+         << "2" << "4" << "8" << "16" << "32" << "64" << "128" << "256";
 
     m_addoProcess->setProcessChannelMode(QProcess::MergedChannels);
-    m_addoProcess->start("cmd.exe", QStringList() << "/c" << cmd);
+#ifdef Q_OS_WIN
+    m_addoProcess->start("gdaladdo.exe", args);
+#else
+    m_addoProcess->start("gdaladdo", args);
+#endif
 }
 
 void CMapCanvas::handleGdalStdout()
 {
-    QProcess* proc = qobject_cast<QProcess*>(sender());
+    QProcess *proc = qobject_cast<QProcess *>(sender());
     if (!proc) return;
 
     QByteArray output = proc->readAllStandardOutput();
     QString text = QString::fromUtf8(output);
-    //qDebug()<<text;
-    //m_progressDialog->setLabelText(text);
 
-    QRegularExpression re(R"((\d+))");  // Matches one or more digits
-
+    QRegularExpression re(R"((\d+))");
     QRegularExpressionMatch match = re.match(text);
-    if (match.hasMatch()) {
-        QString numberStr = match.captured(1); // First capturing group
-        int number = numberStr.toInt();
-        m_progressDialog->setValue(number);
-    }
-
-
-//    // GDAL prints progress like: "0...10...20...30..."
-//    static QRegularExpression re(R"((\d{1,3})\.\.\.)");
-//    QRegularExpressionMatchIterator i = re.globalMatch(text);
-//    int lastValue = -1;
-
-//    while (i.hasNext()) {
-//        QRegularExpressionMatch match = i.next();
-//        lastValue = match.captured(1).toInt();
-//    }
-
-//    if (lastValue >= 0 && lastValue <= 100 && m_progressDialog) {
-//        m_progressDialog->setValue(lastValue);
-//    }
+    if (match.hasMatch() && m_progressDialog)
+        m_progressDialog->setValue(match.captured(1).toInt());
 }
 
 void CMapCanvas::loadCachedAfterProcessing()
@@ -302,120 +271,190 @@ void CMapCanvas::loadCachedAfterProcessing()
         m_progressDialog->setValue(100);
         m_progressDialog->close();
     }
-
-    //loadRasterFile(m_outputPath);
 }
 
+// ============================================================
+//  Tile loading — GDAL TMS XML (works on all platforms,
+//  no WMS provider required)
+// ============================================================
 void CMapCanvas::loadRasterTiledMap(QString tileDir)
 {
-    //Ensure folder exists
     QDir dir(tileDir);
     if (!dir.exists()) {
         qDebug() << "Tile directory does not exist:" << tileDir;
         return;
     }
 
-    QString urlTileMapRepository = tileDir.replace("\\", "/") + "/mapml.mapml";
-
-    QFile file(urlTileMapRepository);
-    QDomDocument doc;
-    if (!doc.setContent(&file)) {
-        qDebug() << "Invalid mapml XML!";
-        return;
+    // --- Auto-detect zoom range from numeric sub-folder names ---
+    int nMinZoom = 99, nMaxZoom = 0;
+    bool foundZoom = false;
+    QFileInfoList zoomDirs = dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot);
+    for (const QFileInfo &zDir : zoomDirs) {
+        bool ok = false;
+        int z = zDir.fileName().toInt(&ok);
+        if (ok) {
+            nMinZoom = std::min(nMinZoom, z);
+            nMaxZoom = std::max(nMaxZoom, z);
+            foundZoom = true;
+        }
     }
-    QDomElement root = doc.documentElement();
-    QDomNode body = root.firstChildElement("body");
-    QDomNode extent = body.firstChildElement("extent");
+    if (!foundZoom) { nMinZoom = 0; nMaxZoom = 13; }
+    qDebug() << "Zoom range for" << dir.dirName() << ":" << nMinZoom << "-" << nMaxZoom;
 
-    int nMinZoom = 0;
-    int nMaxZoom = 0;
-    // --- Extract zoom info ---
-    QDomNodeList inputs = extent.toElement().elementsByTagName("input");
-    for (int i = 0; i < inputs.size(); i++) {
-        QDomElement input = inputs.at(i).toElement();
-        if (input.attribute("type") == "zoom") {
-            nMinZoom = input.attribute("min").toInt();
-            nMaxZoom = input.attribute("max").toInt();
+    // --- Detect tiling scheme from x-tile count at minimum zoom ---
+    // Web Mercator (EPSG:3857): x-count == 2^z  at zoom z
+    // Geodetic     (EPSG:4326): x-count == 2^(z+1) at zoom z
+    bool isWebMercator = true;
+    {
+        QDir z0(tileDir + "/" + QString::number(nMinZoom));
+        if (z0.exists()) {
+            int xCount = z0.entryList(QDir::Dirs | QDir::NoDotAndDotDot).count();
+            int expWM  = 1 << nMinZoom;
+            int expGeo = 1 << (nMinZoom + 1);
+            if (std::abs(xCount - expGeo) < std::abs(xCount - expWM))
+                isWebMercator = false;
+            qDebug() << "x-tiles at zoom" << nMinZoom << ":" << xCount
+                     << "→" << (isWebMercator ? "WebMercator EPSG:3857" : "Geodetic EPSG:4326");
         }
     }
 
-
-
-    QString url = "file:///" + tileDir.replace("\\", "/") + "/{z}/{x}/{y}.png";
-    QString uri = QString("type=xyz&url=%1&zmin=%2&zmax=%3").arg(url).arg(nMinZoom).arg(nMaxZoom);
-    //qDebug() << "Attempting to load tile URI:" << uri;
-    //qDebug()<<uri<<dir.dirName();
-
-    // Use provider "xyz" (preferred for XYZ tiles)
-    QgsRasterLayer* tileLayer = new QgsRasterLayer(uri,dir.dirName(),"wms");
-    if (!tileLayer->isValid())
-    {
-        qDebug() << "Failed to load tile layer!  Layer is invalid.";
-        delete tileLayer;
-        return;
+    // --- Auto-detect band count from first available tile ---
+    int nBands = 4;
+    for (const QFileInfo &zDir : zoomDirs) {
+        bool ok = false; zDir.fileName().toInt(&ok); if (!ok) continue;
+        QDir xDir(zDir.absoluteFilePath());
+        QFileInfoList xDirs = xDir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot);
+        if (xDirs.isEmpty()) continue;
+        QDir yDir(xDirs.first().absoluteFilePath());
+        QFileInfoList tiles = yDir.entryInfoList({"*.png","*.jpg","*.jpeg"}, QDir::Files);
+        if (tiles.isEmpty()) continue;
+        QgsRasterLayer probe(tiles.first().absoluteFilePath(), "probe", "gdal");
+        if (probe.isValid()) { nBands = probe.bandCount(); }
+        qDebug() << "Detected" << nBands << "bands from tile";
+        break;
     }
 
-    QgsProject::instance()->addMapLayer(tileLayer);
+    // --- Build GDAL TMS XML ---
+    // Always use forward slashes in the URL — critical on Windows
+    QString cleanDir = QDir::cleanPath(tileDir);
+    cleanDir.replace("\\", "/");
 
+    QString srs, uxMin, uyMax, uxMax, uyMin, tileCountX, tileCountY, yOrigin;
+    if (isWebMercator) {
+        srs = "EPSG:3857";
+        uxMin = "-20037508.34"; uyMax = "20037508.34";
+        uxMax =  "20037508.34"; uyMin = "-20037508.34";
+        tileCountX = "1"; tileCountY = "1";
+        yOrigin = "top";     // XYZ / Google / OSM convention
+    } else {
+        srs = "EPSG:4326";
+        uxMin = "-180.0"; uyMax = "90.0";
+        uxMax =  "180.0"; uyMin = "-90.0";
+        tileCountX = "2"; tileCountY = "1";
+        yOrigin = "top";     // gdal2tiles geodetic uses top
+    }
+
+    QString xml = QString(
+        "<GDAL_WMS>\n"
+        "  <Service name=\"TMS\">\n"
+        "    <ServerUrl>file://%1/${z}/${x}/${y}.png</ServerUrl>\n"
+        "    <SRS>%2</SRS>\n"
+        "    <ImageFormat>image/png</ImageFormat>\n"
+        "  </Service>\n"
+        "  <DataWindow>\n"
+        "    <UpperLeftX>%3</UpperLeftX>\n"
+        "    <UpperLeftY>%4</UpperLeftY>\n"
+        "    <LowerRightX>%5</LowerRightX>\n"
+        "    <LowerRightY>%6</LowerRightY>\n"
+        "    <TileLevel>%7</TileLevel>\n"
+        "    <TileCountX>%8</TileCountX>\n"
+        "    <TileCountY>%9</TileCountY>\n"
+        "    <YOrigin>%10</YOrigin>\n"
+        "  </DataWindow>\n"
+        "  <Projection>%2</Projection>\n"
+        "  <BlockSizeX>256</BlockSizeX>\n"
+        "  <BlockSizeY>256</BlockSizeY>\n"
+        "  <BandsCount>%11</BandsCount>\n"
+        "  <ZeroBlockHttpCodes>204,404</ZeroBlockHttpCodes>\n"
+        "  <ZeroBlockOnServerException>true</ZeroBlockOnServerException>\n"
+        "</GDAL_WMS>\n"
+    )
+    .arg(cleanDir)    // %1
+    .arg(srs)         // %2  (used twice via Projection tag)
+    .arg(uxMin)       // %3
+    .arg(uyMax)       // %4
+    .arg(uxMax)       // %5
+    .arg(uyMin)       // %6
+    .arg(nMaxZoom)    // %7
+    .arg(tileCountX)  // %8
+    .arg(tileCountY)  // %9
+    .arg(yOrigin)     // %10
+    .arg(nBands);     // %11
+
+    QString vrtPath = QDir::tempPath() + "/" + dir.dirName() + "_tms.xml";
+    QFile vrtFile(vrtPath);
+    if (!vrtFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        qDebug() << "Cannot write TMS XML:" << vrtPath; return;
+    }
+    vrtFile.write(xml.toUtf8());
+    vrtFile.close();
+    qDebug() << "TMS XML written to:" << vrtPath;
+
+    // --- Load via GDAL provider (always present on all platforms) ---
+    QgsRasterLayer *tileLayer = new QgsRasterLayer(vrtPath, dir.dirName(), "gdal");
+    if (!tileLayer->isValid()) {
+        qDebug() << "Failed to load tile layer!" << dir.dirName();
+        qDebug() << "QGIS error:" << tileLayer->error().message();
+        delete tileLayer; return;
+    }
+
+    tileLayer->setCrs(QgsCoordinateReferenceSystem(srs));
+    qDebug() << "Layer CRS:" << tileLayer->crs().authid()
+             << "| extent:" << tileLayer->extent().toString();
+
+    QgsProject::instance()->addMapLayer(tileLayer);
     QList<QgsMapLayer *> currentLayers = layers();
     currentLayers.append(tileLayer);
     setLayers(currentLayers);
     refresh();
+
+    qDebug() << "Tile layer loaded:" << dir.dirName()
+             << "bands:" << nBands << "zoom:" << nMinZoom << "-" << nMaxZoom;
 }
 
-void CMapCanvas::loadRasterFile( QString rasterPath) {
-
-    // QFileInfo fileInfo(rasterPath);
-    // if (!fileInfo.exists()) {
-    //     qDebug() << "Raster file not found:" << rasterPath;
-    //     return;
-    // }
-
-
-    // // Create raster layer
-    // QgsRasterLayer* rasterLayer = new QgsRasterLayer(rasterPath, fileInfo.completeBaseName(),"gdal");
-
-    // if (!rasterLayer->isValid()) {
-    //     qDebug() << "Invalid raster layer: " << rasterPath;
-    //     delete rasterLayer;
-    //     return;
-    // }
-
-
-    // // Add to QGIS project and canvas
-
-    // QgsProject::instance()->addMapLayer(rasterLayer);
-    // QList<QgsMapLayer*> alllayers = layers();
-    // alllayers.insert(0, rasterLayer);  // Background (lowest)
-    // setLayers(alllayers);
-    // //setDestinationCrs(wgs84); // Important for canvas reprojectionsetDestinationCrs(wgs84); // Important for canvas reprojection
-    // //setExtent(rasterLayer->extent());
-    // //refresh();
-
-    // //qDebug() << "Loaded raster with world file:" << rasterPath<<rasterLayer->extent();
+void CMapCanvas::loadRasterFile(QString rasterPath)
+{
+    Q_UNUSED(rasterPath)
+    // Reserved — use loadRasterTiledMap for XYZ tile sets
 }
 
-void CMapCanvas::_loadRasterMaps() {
-
-    QString directoryPath = "../maps/RasterRepository/";
+// ============================================================
+//  Map loading  — paths use applicationDirPath (OS-agnostic)
+// ============================================================
+void CMapCanvas::_loadRasterMaps()
+{
+    QString directoryPath = QCoreApplication::applicationDirPath() + "/../maps/RasterRepository/";
+    qDebug() << "Path--------------------------------------->" << directoryPath;
     QDir dir(directoryPath);
 
-    QFileInfoList rasterFiles = dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot);
-
-    if (rasterFiles.isEmpty()) {
+    if (!dir.exists()) {
         qDebug() << "No raster folder found in directory:" << directoryPath;
         return;
     }
 
-    for (const QFileInfo &fileInfo : rasterFiles) {
-        QString filePath = fileInfo.absoluteFilePath();
-        loadRasterTiledMap(filePath);
+    QFileInfoList rasterFiles = dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot);
+    if (rasterFiles.isEmpty()) {
+        qDebug() << "No raster sub-folders found in directory:" << directoryPath;
+        return;
     }
+
+    for (const QFileInfo &fileInfo : rasterFiles)
+        loadRasterTiledMap(fileInfo.absoluteFilePath());
 }
 
-void CMapCanvas::_loadVectorMaps() {
-
-    QString directoryPath = "../maps/ShpRepository/";
+void CMapCanvas::_loadVectorMaps()
+{
+    QString directoryPath = QCoreApplication::applicationDirPath() + "/../maps/ShpRepository/";
     QDir dir(directoryPath);
 
     if (!dir.exists()) {
@@ -423,9 +462,7 @@ void CMapCanvas::_loadVectorMaps() {
         return;
     }
 
-    QStringList filters;
-    filters << "*.shp";
-
+    QStringList filters; filters << "*.shp";
     QFileInfoList shpFiles = dir.entryInfoList(filters, QDir::Files);
 
     if (shpFiles.isEmpty()) {
@@ -433,36 +470,24 @@ void CMapCanvas::_loadVectorMaps() {
         return;
     }
 
-    for (const QFileInfo &fileInfo : shpFiles) {
-        QString filePath = fileInfo.absoluteFilePath();
-        //qDebug() << "Loading shapefile:" << filePath;
-        loadShapeFile(filePath);
-    }
+    for (const QFileInfo &fileInfo : shpFiles)
+        loadShapeFile(fileInfo.absoluteFilePath());
 }
 
-void CMapCanvas::_loadLayers() {
-
-}
+void CMapCanvas::_loadLayers() { }
 
 void CMapCanvas::enforceLayerOrder()
 {
-    QList<QgsMapLayer*> orderedLayers;
+    QList<QgsMapLayer *> orderedLayers;
 
-    // Step 2. Then all vector layers
     for (QgsMapLayer *layer : QgsProject::instance()->mapLayers().values())
-    {
         if (layer->type() == Qgis::LayerType::Vector)
             orderedLayers.append(layer);
-    }
 
-    // Step 1. Get all rasters first
     for (QgsMapLayer *layer : QgsProject::instance()->mapLayers().values())
-    {
         if (layer->type() == Qgis::LayerType::Raster)
             orderedLayers.append(layer);
-    }
 
-    // Step 3. Apply to both project & canvas
     QgsProject::instance()->layerTreeRoot()->setHasCustomLayerOrder(true);
     QgsProject::instance()->layerTreeRoot()->setCustomLayerOrder(orderedLayers);
     setLayers(orderedLayers);
@@ -472,96 +497,47 @@ void CMapCanvas::enforceLayerOrder()
 void CMapCanvas::loadShapeFile(const QString &shpPath)
 {
     QgsVectorLayer *layer = new QgsVectorLayer(shpPath, QFileInfo(shpPath).baseName(), "ogr");
-
     if (!layer->isValid()) {
         qDebug() << "Layer failed to load: " << shpPath;
-        delete layer;  // Avoid memory leak
-        return;
+        delete layer; return;
     }
     layer->setBlendMode(QPainter::CompositionMode_SourceOver);
-    QString baseName = QFileInfo(shpPath).baseName().toLower();
 
-// //         QgsGradientFillSymbolLayer *gradientLayer = new QgsGradientFillSymbolLayer();
-// // //        gradientLayer->setColor(QColor("#008888"));     // Start color (cyan)
-// // //        gradientLayer->setColor2(QColor("#005555"));    // End color (dark blue)
-// //         gradientLayer->setColor(QColor("#000000"));     // Start color (cyan)
-// //         gradientLayer->setColor2(QColor("#505050"));    // End color (dark blue)
-// //         gradientLayer->setGradientSpread(Qgis::GradientSpread::Pad); // Optional: for better visuals
-// //         // Set gradient type (Linear or Radial)
-// //         gradientLayer->setGradientType(Qgis::GradientType::Radial);
-// //         // Set coordinate mode
-// //         gradientLayer->setCoordinateMode(Qgis::SymbolCoordinateReference::Viewport);
+    QgsFillSymbol *symbol = new QgsFillSymbol();
+    symbol->deleteSymbolLayer(0);
 
-// //         // Optionally adjust reference points (between 0 and 1)
-// //         gradientLayer->setReferencePoint1(QPointF(0.0, 0.0));
-// //         gradientLayer->setReferencePoint2(QPointF(1.0, 1.0));
+    QgsSimpleLineSymbolLayer *outlineLayer = new QgsSimpleLineSymbolLayer();
+    outlineLayer->setColor(QColor("#222222"));
+    outlineLayer->setWidth(0.3);
+    symbol->appendSymbolLayer(outlineLayer);
 
-         QgsFillSymbol *symbol = new QgsFillSymbol();
-         symbol->deleteSymbolLayer(0);  // Remove the default simple fill
-//         symbol->appendSymbolLayer(gradientLayer);
-
-
-        // Now add a stroke layer for outline
-        QgsSimpleLineSymbolLayer *outlineLayer = new QgsSimpleLineSymbolLayer();
-        outlineLayer->setColor(QColor("#222222"));  // Stroke color (blue)
-        outlineLayer->setWidth(0.3);                 // Stroke width in map units (adjust as needed)
-
-        symbol->appendSymbolLayer(outlineLayer);
-
-        QgsSingleSymbolRenderer *renderer = dynamic_cast<QgsSingleSymbolRenderer *>(layer->renderer());
-        if (renderer)
-        {
-            renderer->setSymbol(symbol);
-        }
-        else
-        {
-            // If it's not already a single symbol renderer, create a new one
-            renderer = new QgsSingleSymbolRenderer(symbol);
-            layer->setRenderer(renderer);
-        }
-
-        // Assign it to your vector layer
-        //layer->renderer()->setSymbol(symbol);
-
-        // Refresh the layer rendering
-
-        layer->triggerRepaint();
-
-
+    QgsSingleSymbolRenderer *renderer = dynamic_cast<QgsSingleSymbolRenderer *>(layer->renderer());
+    if (renderer)
+        renderer->setSymbol(symbol);
+    else {
+        renderer = new QgsSingleSymbolRenderer(symbol);
+        layer->setRenderer(renderer);
+    }
+    layer->triggerRepaint();
 
     QgsProject::instance()->addMapLayer(layer);
-
-    // Keep existing layers and add the new one
     QList<QgsMapLayer *> currentLayers = layers();
     currentLayers.append(layer);
     setLayers(currentLayers);
-
-
-
-    // Optional: Zoom to the extent of the first layer loaded
-//    if (currentLayers.size() == 1) {
-//        setExtent(layer->extent());
-//        refresh();
-//    }
 }
 
-void CMapCanvas::mapHome() {
-    // India's approximate geographic extent (in degrees)
-    // Latitude: ~8°N to ~37°N
-    // Longitude: ~68°E to ~97°E
-    // Adding some padding for better visualization
-    double indiaMinLon = 65.0;   // West boundary with padding
-    double indiaMaxLon = 100.0;  // East boundary with padding
-    double indiaMinLat = 5.0;    // South boundary with padding
-    double indiaMaxLat = 40.0;   // North boundary with padding
-    
+// ============================================================
+//  Navigation
+// ============================================================
+void CMapCanvas::mapHome()
+{
+    double indiaMinLon = 65.0, indiaMaxLon = 100.0;
+    double indiaMinLat = 5.0,  indiaMaxLat = 40.0;
     QgsRectangle indiaExtent(indiaMinLon, indiaMinLat, indiaMaxLon, indiaMaxLat);
-    
     setRenderFlag(false);
     setExtent(indiaExtent);
     setRenderFlag(true);
     refresh();
-    
     qDebug() << "Map set to India Home view";
 }
 
@@ -569,46 +545,27 @@ void CMapCanvas::zoomBy(double factor)
 {
     QgsRectangle currentExtent = extent();
     QgsPointXY center = currentExtent.center();
-
-    double newWidth = currentExtent.width() * factor;
+    double newWidth  = currentExtent.width()  * factor;
     double newHeight = currentExtent.height() * factor;
 
     QgsRectangle newExtent(
-        center.x() - newWidth / 2,
-        center.y() - newHeight / 2,
-        center.x() + newWidth / 2,
-        center.y() + newHeight / 2
-    );
+        center.x() - newWidth  / 2, center.y() - newHeight / 2,
+        center.x() + newWidth  / 2, center.y() + newHeight / 2);
 
-    if (factor > 1)  // zooming out
-    {
-        if (newExtent.width() > mWorldExtentPadded.width() ||
-            newExtent.height() > mWorldExtentPadded.height())
-        {
-            newExtent = mWorldExtentPadded;
-        }
-    }
-
-    //Limit zoom out but allow wrapping horizontally
     if (factor > 1) {
-        // Limit vertical extent
+        if (newExtent.width()  > mWorldExtentPadded.width() ||
+            newExtent.height() > mWorldExtentPadded.height())
+            newExtent = mWorldExtentPadded;
+
         if (newExtent.height() > 180.0) {
             double ratio = 180.0 / newExtent.height();
-            newHeight = 180.0;
-            newWidth = newWidth * ratio;
-
+            newHeight = 180.0; newWidth = newWidth * ratio;
             newExtent = QgsRectangle(
-                center.x() - newWidth / 2,
-                -90.0,
-                center.x() + newWidth / 2,
-                90.0
-                );
+                center.x() - newWidth / 2, -90.0,
+                center.x() + newWidth / 2,  90.0);
         }
     }
-    setRenderFlag(false);
-    setExtent(newExtent);
-    setRenderFlag(true);
-    //update();
+    setRenderFlag(false); setExtent(newExtent); setRenderFlag(true);
 }
 
 void CMapCanvas::panCanvas(double dx, double dy)
@@ -619,10 +576,6 @@ void CMapCanvas::panCanvas(double dx, double dy)
     currentExtent.setYMinimum(currentExtent.yMinimum() + dy);
     currentExtent.setYMaximum(currentExtent.yMaximum() + dy);
 
-    // Allow longitude to exceed ±180° for wrapping
-    // QGIS will automatically wrap the display
-
-    // Optional: Keep latitude within bounds
     if (currentExtent.yMinimum() < -90.0) {
         double shift = -90.0 - currentExtent.yMinimum();
         currentExtent.setYMinimum(-90.0);
@@ -633,68 +586,40 @@ void CMapCanvas::panCanvas(double dx, double dy)
         currentExtent.setYMaximum(90.0);
         currentExtent.setYMinimum(currentExtent.yMinimum() - shift);
     }
-    setRenderFlag(false);
-    setExtent(currentExtent);
-    setRenderFlag(true);
-    //refresh();
-
+    setRenderFlag(false); setExtent(currentExtent); setRenderFlag(true);
 }
 
+// ============================================================
+//  Mouse / keyboard events  (unchanged from original)
+// ============================================================
 void CMapCanvas::wheelEvent(QWheelEvent *event)
 {
-//    const double zoomFactor = 1.1;
-//    if (event->angleDelta().y() > 0)
-//        zoomByFactor(1 / zoomFactor); // Zoom in
-//    else
-//        zoomByFactor(zoomFactor);     // Zoom out
-
     const double zoomFactor = 1.1;
     double factor = (event->angleDelta().y() > 0) ? (1.0 / zoomFactor) : zoomFactor;
 
-    // Get the position of the mouse in map coordinates
     QPoint mousePos = event->pos();
-    //qDebug()<<mousePos;
     QgsPointXY mapPointBeforeZoom = getCoordinateTransform()->toMapCoordinates(mousePos.x(), mousePos.y());
 
+    double dScale = scale() / 1000.0;
+    if (factor < 1 && dScale < 1.1) return;
 
-    double dScale = scale()/1000.0;
-    if ( factor < 1 && dScale < 1.1 ) {
-        return;
-    }
     setRenderFlag(false);
     zoomByFactor(factor);
-    //setCenter(mapPointBeforeZoom);
 
     QgsPointXY after = getCoordinateTransform()->toMapCoordinates(event->pos().x(), event->pos().y());
-
-    // 5️⃣ Shift map so "before" stays at mouse
     QgsPointXY center1 = center() + (mapPointBeforeZoom - after);
     setCenter(center1);
 
     setRenderFlag(true);
-
-
-    // // Get the new map coordinates of the same screen point
-    // QgsPointXY mapPointAfterZoom = getCoordinateTransform()->toMapCoordinates(mousePos.x(), mousePos.y());
-
-    // // Compute how much the map moved due to zoom
-    // double dx = mapPointBeforeZoom.x() - mapPointAfterZoom.x();
-    // double dy = mapPointBeforeZoom.y() - mapPointAfterZoom.y();
-
-
-    // // Pan the canvas to offset the difference — this keeps the cursor point stable
-    // panCanvas(dx, dy);
-    //setRenderFlag(true);
-    //update();
     refresh();
-
 }
 
 void CMapCanvas::mousePressEvent(QMouseEvent *event)
 {
-    if (event->button() == Qt::LeftButton && 
+    if (event->button() == Qt::LeftButton &&
         _m_nCurrentObjectClassForLoading == VISTAR_CLASS_NONE &&
-        !_m_bPathGenerationMode) {
+        !_m_bPathGenerationMode)
+    {
         mLastMousePos = event->pos();
         mPanning = true;
         setCursor(Qt::ClosedHandCursor);
@@ -704,31 +629,19 @@ void CMapCanvas::mousePressEvent(QMouseEvent *event)
 void CMapCanvas::mouseMoveEvent(QMouseEvent *event)
 {
     if (mPanning) {
-//        QPoint delta = event->pos() - mLastMousePos;
-//        panCanvas(-delta.x(), delta.y());
-//        mLastMousePos = event->pos();
-
         QPoint delta = event->pos() - mLastMousePos;
-
         double dx = -delta.x() * mapSettings().mapUnitsPerPixel();
-        double dy = delta.y() * mapSettings().mapUnitsPerPixel();  // Negative because Y axis is inverted in screen coords
-        //setRenderFlag(false);
-        panCanvas(dx, dy);  // Now using proper map units
+        double dy =  delta.y() * mapSettings().mapUnitsPerPixel();
+        panCanvas(dx, dy);
         mLastMousePos = event->pos();
-        //setRenderFlag(true);
-        //refresh();
-        //update();
     }
 
-    // Convert mouse screen position to map coordinates
     QgsPointXY mapPoint = getCoordinateTransform()->toMapCoordinates(event->pos().x(), event->pos().y());
-
-    // Convert to geographic (lat/lon) using the destination CRS (assumed WGS84)
     QgsCoordinateTransform transform(mapSettings().destinationCrs(), _m_crs, QgsProject::instance());
     QgsPointXY geoPoint = transform.transform(mapPoint);
-
-    //double alt = 0.0;  // Optional: add altitude logic here if needed
-    emit signalMouseRead(QString("Lon : %1°    Lat : %2° ").arg(geoPoint.x(),11,'f',6).arg(geoPoint.y(),10,'f',6));
+    emit signalMouseRead(QString("Lon : %1°    Lat : %2° ")
+                             .arg(geoPoint.x(), 11, 'f', 6)
+                             .arg(geoPoint.y(), 10, 'f', 6));
 }
 
 void CMapCanvas::mouseReleaseEvent(QMouseEvent *event)
@@ -736,200 +649,147 @@ void CMapCanvas::mouseReleaseEvent(QMouseEvent *event)
     if (event->button() == Qt::LeftButton && mPanning) {
         mPanning = false;
         setCursor(mPreviousCursor);
-        
-        // Check if this was just a click (not a drag) - for object selection
+
         QPoint delta = event->pos() - mLastMousePos;
         bool wasJustAClick = (std::abs(delta.x()) < 5 && std::abs(delta.y()) < 5);
-        
+
         if (wasJustAClick && _m_nCurrentObjectClassForLoading == VISTAR_CLASS_NONE) {
-            // Object selection on single left click (when no mode is active)
             bool anySelected = false;
-            
-            // Check for object selection
-            for (CVistarObject* item : _m_listVistarObjects)
-            {
+
+            for (CVistarObject *item : _m_listVistarObjects) {
                 QgsPointXY screenPoint = mapSettings().mapToPixel().transform(item->getPoint());
                 int nRadius = 20;
                 QRectF rect(screenPoint.x() - nRadius/2, screenPoint.y() - nRadius/2, nRadius, nRadius);
-                
                 if (rect.contains(event->pos())) {
-                    item->setHighlighted(true);
-                    anySelected = true;
-                }
-                else {
+                    item->setHighlighted(true); anySelected = true;
+                } else {
                     item->setHighlighted(false);
                 }
             }
-            
-            // Check for route selection
-            for (CVistarRoute* item : _m_listVistarRoutes)
-            {
+
+            for (CVistarRoute *item : _m_listVistarRoutes) {
                 item->setHighlighted(false);
-                int nCount = item->getPointCount();
-                for (int i = 0; i < nCount; i++) {
-                    QgsPointXY pt = item->getPointAt(i);
-                    QgsPointXY screenPoint = mapSettings().mapToPixel().transform(pt);
+                for (int i = 0; i < item->getPointCount(); i++) {
+                    QgsPointXY screenPoint = mapSettings().mapToPixel().transform(item->getPointAt(i));
                     int nRadius = 20;
-                    QRectF rect(screenPoint.x() - nRadius/2, screenPoint.y() - nRadius/2, nRadius, nRadius);
-                    
+                    QRectF rect(screenPoint.x()-nRadius/2, screenPoint.y()-nRadius/2, nRadius, nRadius);
                     if (rect.contains(event->pos())) {
-                        item->setHighlighted(true);
-                        anySelected = true;
-                        break;
+                        item->setHighlighted(true); anySelected = true; break;
                     }
                 }
             }
-            
-            if (anySelected) {
-                refresh();
-            }
+
+            if (anySelected) refresh();
         }
-    }
-    else if (event->button() == Qt::LeftButton) {
+
+    } else if (event->button() == Qt::LeftButton) {
 
         mPanning = false;
-        // Convert mouse screen position to map coordinates
         QgsPointXY mapPoint = getCoordinateTransform()->toMapCoordinates(event->pos().x(), event->pos().y());
-
-        // Convert to geographic (lat/lon) using the destination CRS (assumed WGS84)
         QgsCoordinateTransform transform(mapSettings().destinationCrs(), _m_crs, QgsProject::instance());
         QgsPointXY geoPoint = transform.transform(mapPoint);
 
-        // Handle path generation mode
+        // --- Path generation ---
         if (_m_bPathGenerationMode) {
             if (!_m_bPathStartPointSet) {
-                // First click - set start point
                 _m_pathStartPoint = geoPoint;
                 _m_bPathStartPointSet = true;
-                
-                // Add visual marker for start point
+
                 QgsPointXY screenStartPt = mapSettings().mapToPixel().transform(geoPoint);
                 _m_pathStartMarker = scene()->addEllipse(
                     screenStartPt.x() - 8, screenStartPt.y() - 8, 16, 16,
-                    QPen(Qt::green, 3),
-                    QBrush(QColor(0, 255, 0, 100))
-                );
+                    QPen(Qt::green, 3), QBrush(QColor(0, 255, 0, 100)));
                 _m_pathStartMarker->setZValue(1000);
-                
-                // Update instruction
-                QString pathName = CPathGenerator::getPathTypeName(_m_currentPathType);
-                showPathGenerationInstruction("Select END point for " + pathName + " path");
-                
+
+                showPathGenerationInstruction("Select END point for " +
+                    CPathGenerator::getPathTypeName(_m_currentPathType) + " path");
                 qDebug() << "Path start point set:" << geoPoint.x() << "," << geoPoint.y();
-            }
-            else {
-                // Second click - set end point and generate path
+            } else {
                 QgsPointXY endPoint = geoPoint;
-                
                 qDebug() << "Path end point set:" << endPoint.x() << "," << endPoint.y();
-                qDebug() << "Generating" << CPathGenerator::getPathTypeName(_m_currentPathType) << "path...";
-                qDebug() << "Using configuration: waypoints=" << _m_pathParams.numWaypoints 
+                qDebug() << "Using configuration: waypoints=" << _m_pathParams.numWaypoints
                          << ", altitude=" << _m_pathParams.defaultAltitude
                          << ", curveFactor=" << _m_pathParams.curveFactor;
-                
-                // Generate the path using configurable parameters
+
                 QList<QgsPointXYZ> pathPoints = _m_pathGenerator->generatePath(
-                    _m_pathStartPoint, endPoint, _m_currentPathType, _m_pathParams
-                );
-                
-                // Create the route from generated points
+                    _m_pathStartPoint, endPoint, _m_currentPathType, _m_pathParams);
                 createGeneratedRoute(pathPoints);
-                
-                // Clear path generation mode
+
                 _m_currentPathType = PATH_TYPE_NONE;
                 _m_bPathGenerationMode = false;
                 _m_bPathStartPointSet = false;
-                
-                // Reset cursor
                 mPreviousCursor = Qt::ArrowCursor;
                 setCursor(Qt::ArrowCursor);
-                
-                // Clear markers
                 clearPathGenerationMarkers();
-                
                 emit signalClearObjectSelection();
             }
             return;
         }
 
-        if ( _m_nCurrentObjectClassForLoading == VISTAR_CLASS_ROUTE ) {
-            if ( _m_sCurrentRoute.isEmpty() ) {
+        // --- Route placement ---
+        if (_m_nCurrentObjectClassForLoading == VISTAR_CLASS_ROUTE) {
+            if (_m_sCurrentRoute.isEmpty()) {
                 QString sObjectId = GenerateObjectIdFromClass(_m_nCurrentObjectClassForLoading);
-
-                if ( !sObjectId.isEmpty() ) {
-                    CVistarRoute *vistarRoute = new CVistarRoute(this,sObjectId,geoPoint.x(),geoPoint.y());
-                    _m_listVistarRoutes.insert(sObjectId,vistarRoute);
+                if (!sObjectId.isEmpty()) {
+                    CVistarRoute *vistarRoute = new CVistarRoute(this, sObjectId, geoPoint.x(), geoPoint.y());
+                    _m_listVistarRoutes.insert(sObjectId, vistarRoute);
                     _m_sCurrentRoute = sObjectId;
                 }
-            }
-            else {
+            } else {
                 CVistarRoute *vistarRoute = getVistarRouteById(_m_sCurrentRoute);
                 if (vistarRoute) {
-                    if ( vistarRoute->getPointCount() < 10 ) {
+                    if (vistarRoute->getPointCount() < 10)
                         vistarRoute->addPoint(geoPoint);
-                    }
                     if (vistarRoute->getPointCount() >= 10) {
                         _m_nCurrentObjectClassForLoading = VISTAR_CLASS_NONE;
                         mPreviousCursor = Qt::ArrowCursor;
                         _m_sCurrentRoute = "";
                         setCursor(mPreviousCursor);
                         signalClearObjectSelection();
-                        
-                        // Auto-save after completing route
-                        QTimer::singleShot(100, this, [this]() {
-                            autoSaveScenario();
-                        });
+                        QTimer::singleShot(100, this, [this]() { autoSaveScenario(); });
                     }
                 }
             }
-        }
-        else if ( _m_nCurrentObjectClassForLoading != VISTAR_CLASS_NONE ) {
+
+        // --- Object placement ---
+        } else if (_m_nCurrentObjectClassForLoading != VISTAR_CLASS_NONE) {
             QString sObjectId = GenerateObjectIdFromClass(_m_nCurrentObjectClassForLoading);
-            qDebug()<<"in VISTAR object "<<sObjectId;
-            if ( !sObjectId.isEmpty() ) {
-                CVistarObject *vistarObject = new CVistarObject(this,sObjectId,_m_nCurrentObjectClassForLoading,geoPoint.x(),geoPoint.y());
-                _m_listVistarObjects.insert(sObjectId,vistarObject);
+            qDebug() << "in VISTAR object" << sObjectId;
+            if (!sObjectId.isEmpty()) {
+                CVistarObject *vistarObject = new CVistarObject(
+                    this, sObjectId, _m_nCurrentObjectClassForLoading, geoPoint.x(), geoPoint.y());
+                _m_listVistarObjects.insert(sObjectId, vistarObject);
                 _m_listVistarObjectIds.append(sObjectId);
-                qDebug()<<"VISTAR object added, ID= "<<sObjectId;
+                qDebug() << "VISTAR object added, ID=" << sObjectId;
 
-                if (_m_nCurrentObjectClassForLoading == VISTAR_CLASS_RADAR) {
-                    // New radar placed on map: use default coverage parameters
+                if (_m_nCurrentObjectClassForLoading == VISTAR_CLASS_RADAR)
                     emit signalRadarObjectAdded(sObjectId, RadarView::RadarCoverageParameters{});
-                }
 
-                // For Clutter: show a parameter dialog so the
-                // user can configure the properties before the object is finalised.
-                if (_m_nCurrentObjectClassForLoading == VISTAR_CLASS_CLUTTER)
-                {
+                if (_m_nCurrentObjectClassForLoading == VISTAR_CLASS_CLUTTER) {
                     CClutterParamsDialog dlg(this);
-                    if (dlg.exec() == QDialog::Accepted) {
+                    if (dlg.exec() == QDialog::Accepted)
                         vistarObject->setClutterParams(dlg.getClutterParams());
-                    }
                 }
 
                 if (_m_nCurrentObjectClassForLoading == VISTAR_CLASS_LAUNCHER ||
                     _m_nCurrentObjectClassForLoading == VISTAR_CLASS_FIGHTER  ||
-                    _m_nCurrentObjectClassForLoading == VISTAR_CLASS_UAV) {
-
+                    _m_nCurrentObjectClassForLoading == VISTAR_CLASS_UAV)
+                {
                     eVISTAR_CLASS mslClass = VISTAR_CLASS_MISSILE;
                     int nChildMslCount = 4;
-                    if (_m_nCurrentObjectClassForLoading == VISTAR_CLASS_FIGHTER) {
-                        nChildMslCount = 0;
-                    }
-                    else if (_m_nCurrentObjectClassForLoading == VISTAR_CLASS_LAUNCHER) {
-                        nChildMslCount = 12;
-                    }
-                    for ( int i = 1; i<= nChildMslCount; i++) {
-                        QString sChildObjectId = GenerateObjectIdFromClass(mslClass);
+                    if (_m_nCurrentObjectClassForLoading == VISTAR_CLASS_FIGHTER)     nChildMslCount = 0;
+                    else if (_m_nCurrentObjectClassForLoading == VISTAR_CLASS_LAUNCHER) nChildMslCount = 12;
 
-                        if ( !sChildObjectId.isEmpty() ) {
-                            CVistarObject *vistarChildObject = new CVistarObject(this,sChildObjectId,mslClass,geoPoint.x(),geoPoint.y());
-                            vistarChildObject->setParent(sObjectId,i);
-                            _m_listVistarObjects.insert(sChildObjectId,vistarChildObject);
+                    for (int i = 1; i <= nChildMslCount; i++) {
+                        QString sChildObjectId = GenerateObjectIdFromClass(mslClass);
+                        if (!sChildObjectId.isEmpty()) {
+                            CVistarObject *child = new CVistarObject(
+                                this, sChildObjectId, mslClass, geoPoint.x(), geoPoint.y());
+                            child->setParent(sObjectId, i);
+                            _m_listVistarObjects.insert(sChildObjectId, child);
                             _m_listVistarObjectIds.append(sChildObjectId);
                         }
                     }
-
                 }
                 refresh();
             }
@@ -939,431 +799,264 @@ void CMapCanvas::mouseReleaseEvent(QMouseEvent *event)
             _m_sCurrentRoute = "";
             setCursor(mPreviousCursor);
             signalClearObjectSelection();
-            
-            // Auto-save after adding new object
-            QTimer::singleShot(100, this, [this]() {
-                autoSaveScenario();
-            });
+            QTimer::singleShot(100, this, [this]() { autoSaveScenario(); });
         }
-        else {
-            // Empty - selection handled above in the panning check
-        }
-    }
-    else if (event->button() == Qt::RightButton) {
+
+    } else if (event->button() == Qt::RightButton) {
         showContextMenu(event->pos());
     }
 }
 
-QString CMapCanvas::GenerateObjectIdFromClass( int nClass ) {
-
-    QString sObjectId = "";
-    QString sClass = "";
-    switch ( nClass ) {
-    case VISTAR_CLASS_DRONE : sClass = "DRONE";
-        break;
-    case VISTAR_CLASS_DRONE_SWARM : sClass = "SWARM";
-        break;
-    case VISTAR_CLASS_FIGHTER : sClass = "FIGHTER";
-        break;
-    case VISTAR_CLASS_UAV : sClass = "UAV";
-        break;
-    case VISTAR_CLASS_RADAR : sClass = "RADAR";
-        break;
-    case VISTAR_CLASS_LAUNCHER : sClass = "LAUNCHER";
-        break;
-    case VISTAR_CLASS_MISSILE : sClass = "MISSILE";
-        break;
-    case VISTAR_CLASS_ROUTE : sClass = "ROUTE";
-        break;
-    case VISTAR_CLASS_JAMMER : sClass = "JAMMER";
-        break;
-    case VISTAR_CLASS_CLUTTER : sClass = "CLUTTER";
-        break;
-    case VISTAR_CLASS_RF_DETECTOR : sClass = "RF_DETECTOR";
-        break;
+QString CMapCanvas::GenerateObjectIdFromClass(int nClass)
+{
+    QString sObjectId = "", sClass = "";
+    switch (nClass) {
+    case VISTAR_CLASS_DRONE:       sClass = "DRONE";        break;
+    case VISTAR_CLASS_DRONE_SWARM: sClass = "SWARM";        break;
+    case VISTAR_CLASS_FIGHTER:     sClass = "FIGHTER";      break;
+    case VISTAR_CLASS_UAV:         sClass = "UAV";          break;
+    case VISTAR_CLASS_RADAR:       sClass = "RADAR";        break;
+    case VISTAR_CLASS_LAUNCHER:    sClass = "LAUNCHER";     break;
+    case VISTAR_CLASS_MISSILE:     sClass = "MISSILE";      break;
+    case VISTAR_CLASS_ROUTE:       sClass = "ROUTE";        break;
+    case VISTAR_CLASS_JAMMER:      sClass = "JAMMER";       break;
+    case VISTAR_CLASS_CLUTTER:     sClass = "CLUTTER";      break;
+    case VISTAR_CLASS_RF_DETECTOR: sClass = "RF_DETECTOR";  break;
     }
 
-    if ( !sClass.isEmpty() ) {
-        int i = 1;
-        while (true && i < 100) {
-            QString sTempId = sClass+"_"+QString::number(i);
-            if (nClass == VISTAR_CLASS_ROUTE ) {
-                if ( !isVistarRouteByIdExists(sTempId) ) {
-                    sObjectId = sTempId;
-                    break;
-                }
-            }
-            else {
-                if ( !isVistarObjectByIdExists(sTempId) ) {
-                    sObjectId = sTempId;
-                    break;
-                }
-            }
-            i++;
+    if (!sClass.isEmpty()) {
+        for (int i = 1; i < 100; i++) {
+            QString sTempId = sClass + "_" + QString::number(i);
+            bool exists = (nClass == VISTAR_CLASS_ROUTE)
+                              ? isVistarRouteByIdExists(sTempId)
+                              : isVistarObjectByIdExists(sTempId);
+            if (!exists) { sObjectId = sTempId; break; }
         }
     }
     return sObjectId;
 }
 
-CVistarObject* CMapCanvas::getVistarObjectById(QString sObjectId) {
-
-    if ( _m_listVistarObjects.contains(sObjectId) ) {
-        qDebug()<<"Not null";
-        return _m_listVistarObjects.value(sObjectId);
-    }
-    else{
-        qDebug()<<"Null";
-        return nullptr;
-    }
+CVistarObject *CMapCanvas::getVistarObjectById(QString sObjectId)
+{
+    if (_m_listVistarObjects.contains(sObjectId)) { qDebug() << "Not null"; return _m_listVistarObjects.value(sObjectId); }
+    qDebug() << "Null"; return nullptr;
 }
 
-CVistarRoute* CMapCanvas::getVistarRouteById(QString sObjectId) {
-
-    if ( _m_listVistarRoutes.contains(sObjectId) ) {
-        return _m_listVistarRoutes.value(sObjectId);
-    }
-    else{
-        return nullptr;
-    }
+CVistarRoute *CMapCanvas::getVistarRouteById(QString sObjectId)
+{
+    return _m_listVistarRoutes.value(sObjectId, nullptr);
 }
 
-bool CMapCanvas::isVistarObjectByIdExists(QString sObjectId) {
+bool CMapCanvas::isVistarObjectByIdExists(QString sObjectId) { return _m_listVistarObjects.contains(sObjectId); }
+bool CMapCanvas::isVistarRouteByIdExists(QString sObjectId)  { return _m_listVistarRoutes.contains(sObjectId); }
 
-    return _m_listVistarObjects.contains(sObjectId);
-}
-
-bool CMapCanvas::isVistarRouteByIdExists(QString sObjectId) {
-
-    return _m_listVistarRoutes  .contains(sObjectId);
-}
-
-void CMapCanvas::mouseDoubleClickEvent( QMouseEvent *e ) {
-
+void CMapCanvas::mouseDoubleClickEvent(QMouseEvent *e)
+{
     if (e->button() == Qt::LeftButton) {
-        if ( _m_nCurrentObjectClassForLoading == VISTAR_CLASS_ROUTE ) {
+        if (_m_nCurrentObjectClassForLoading == VISTAR_CLASS_ROUTE) {
             _m_nCurrentObjectClassForLoading = VISTAR_CLASS_NONE;
             mPreviousCursor = Qt::ArrowCursor;
             _m_sCurrentRoute = "";
             setCursor(mPreviousCursor);
             signalClearObjectSelection();
-            
-            // Auto-save after finishing route
-            QTimer::singleShot(100, this, [this]() {
-                autoSaveScenario();
-            });
-        }
-        else if (_m_nCurrentObjectClassForLoading == VISTAR_CLASS_NONE) {
-            for (CVistarObject* item : _m_listVistarObjects)
-            {
-                QgsPointXY screenPoint = mapSettings().mapToPixel().transform(item->getPoint());
+            QTimer::singleShot(100, this, [this]() { autoSaveScenario(); });
+        } else if (_m_nCurrentObjectClassForLoading == VISTAR_CLASS_NONE) {
+            for (CVistarObject *item : _m_listVistarObjects) {
+                QgsPointXY sp = mapSettings().mapToPixel().transform(item->getPoint());
                 int nRadius = 20;
-                QRectF rect(screenPoint.x()-nRadius/2,screenPoint.y()-nRadius/2,nRadius,nRadius);
-                //qDebug()<<event->pos().x()<<event->pos().y()<<screenPoint.x()<<screenPoint.y();
-                if ( rect.contains(e->pos()) ) {
-                    item->setHighlighted(true);
-                }
-                else {
-                    item->setHighlighted(false);
-                }
+                QRectF rect(sp.x()-nRadius/2, sp.y()-nRadius/2, nRadius, nRadius);
+                item->setHighlighted(rect.contains(e->pos()));
             }
-            for (CVistarRoute* item : _m_listVistarRoutes)
-            {
+            for (CVistarRoute *item : _m_listVistarRoutes) {
                 item->setHighlighted(false);
-                int nCount = item->getPointCount();
-                for ( int i = 0; i < nCount; i++ ) {
-                    QgsPointXY pt = item->getPointAt(i);
-
-                    QgsPointXY screenPoint = mapSettings().mapToPixel().transform(pt);
+                for (int i = 0; i < item->getPointCount(); i++) {
+                    QgsPointXY sp = mapSettings().mapToPixel().transform(item->getPointAt(i));
                     int nRadius = 20;
-                    QRectF rect(screenPoint.x()-nRadius/2,screenPoint.y()-nRadius/2,nRadius,nRadius);
-                    //qDebug()<<event->pos().x()<<event->pos().y()<<screenPoint.x()<<screenPoint.y();
-                    if ( rect.contains(e->pos()) ) {
-                        item->setHighlighted(true);
-                        break;
-                    }
+                    QRectF rect(sp.x()-nRadius/2, sp.y()-nRadius/2, nRadius, nRadius);
+                    if (rect.contains(e->pos())) { item->setHighlighted(true); break; }
                 }
             }
             refresh();
         }
     }
-
     QgsMapCanvas::mouseDoubleClickEvent(e);
 }
 
 void CMapCanvas::keyPressEvent(QKeyEvent *event)
 {
-    // Handle Escape to cancel path generation
     if (event->key() == Qt::Key_Escape) {
-        if (_m_bPathGenerationMode) {
-            cancelPathGeneration();
-            return;
-        }
+        if (_m_bPathGenerationMode) { cancelPathGeneration(); return; }
         if (_m_nCurrentObjectClassForLoading != VISTAR_CLASS_NONE) {
             _m_nCurrentObjectClassForLoading = VISTAR_CLASS_NONE;
             mPreviousCursor = Qt::ArrowCursor;
             _m_sCurrentRoute = "";
             setCursor(mPreviousCursor);
-            emit signalClearObjectSelection();
-            return;
+            emit signalClearObjectSelection(); return;
         }
     }
-    
-    QgsRectangle extent = this->extent();
-    double moveX = extent.width() * 0.1; // 10% move
 
+    QgsRectangle ext = this->extent();
+    double moveX = ext.width() * 0.1;
     switch (event->key()) {
-    case Qt::Key_Home:
-        mapHome();  // Return to India Home view
-        break;
-    case Qt::Key_Left:
-        panCanvas(-moveX, 0);
-        break;
-    case Qt::Key_Right:
-        panCanvas(moveX, 0);
-        break;
-    case Qt::Key_Up:
-        panCanvas(0, moveX);
-        break;
-    case Qt::Key_Down:
-        panCanvas(0, -moveX);
-        break;
+    case Qt::Key_Home:       mapHome();          break;
+    case Qt::Key_Left:       panCanvas(-moveX,0); break;
+    case Qt::Key_Right:      panCanvas( moveX,0); break;
+    case Qt::Key_Up:         panCanvas(0, moveX); break;
+    case Qt::Key_Down:       panCanvas(0,-moveX); break;
     case Qt::Key_Plus:
-    case Qt::Key_Equal:  // Shift + '=' is usually '+'
-        zoomBy(1 / 1.1);  // Zoom in
-        break;
+    case Qt::Key_Equal:      zoomBy(1.0/1.1);    break;
     case Qt::Key_Underscore:
-    case Qt::Key_Minus:
-        zoomBy(1.1);      // Zoom out
-        break;
-    default:
-        QgsMapCanvas::keyPressEvent(event); // Default handling
-        break;
+    case Qt::Key_Minus:      zoomBy(1.1);         break;
+    default: QgsMapCanvas::keyPressEvent(event);  break;
     }
 }
 
-
-void CMapCanvas::SetObjectToLoadOnClick( int nClass ) {
+void CMapCanvas::SetObjectToLoadOnClick(int nClass)
+{
     _m_nCurrentObjectClassForLoading = nClass;
-
-    QString strPath = "";
-    int nSize = 50;
-    switch ( nClass ) {
-    case VISTAR_CLASS_DRONE : strPath = ":/icons/cursor/drone.png"; nSize = 40;
-        break;
-    case VISTAR_CLASS_DRONE_SWARM : strPath = ":/icons/cursor/drone_swarm.png";
-        break;
-    case VISTAR_CLASS_FIGHTER : strPath = ":/icons/cursor/fighter.png";
-        break;
-    case VISTAR_CLASS_UAV : strPath = ":/icons/cursor/uav.png";
-        break;
-    case VISTAR_CLASS_RADAR : strPath = ":/icons/cursor/radar.png"; nSize = 40;
-        break;
-    case VISTAR_CLASS_LAUNCHER : strPath = ":/icons/cursor/launcher.png";
-        break;
-    case VISTAR_CLASS_MISSILE : strPath = ":/icons/cursor/missile.png";
-        break;
-    case VISTAR_CLASS_ROUTE : strPath = ":/icons/cursor/route.png"; nSize = 40;
-        break;
-    case VISTAR_CLASS_JAMMER : strPath = ":/icons/cursor/jammer.png"; nSize = 44;
-        break;
-    case VISTAR_CLASS_CLUTTER : strPath = ":/icons/cursor/clutter.png"; nSize = 44;
-        break;
-    case VISTAR_CLASS_RF_DETECTOR : strPath = ":/icons/cursor/rf_detector.png"; nSize = 44;
-        break;
+    QString strPath = ""; int nSize = 50;
+    switch (nClass) {
+    case VISTAR_CLASS_DRONE:       strPath = ":/icons/cursor/drone.png";        nSize = 40; break;
+    case VISTAR_CLASS_DRONE_SWARM: strPath = ":/icons/cursor/drone_swarm.png";              break;
+    case VISTAR_CLASS_FIGHTER:     strPath = ":/icons/cursor/fighter.png";                  break;
+    case VISTAR_CLASS_UAV:         strPath = ":/icons/cursor/uav.png";                      break;
+    case VISTAR_CLASS_RADAR:       strPath = ":/icons/cursor/radar.png";        nSize = 40; break;
+    case VISTAR_CLASS_LAUNCHER:    strPath = ":/icons/cursor/launcher.png";                 break;
+    case VISTAR_CLASS_MISSILE:     strPath = ":/icons/cursor/missile.png";                  break;
+    case VISTAR_CLASS_ROUTE:       strPath = ":/icons/cursor/route.png";        nSize = 40; break;
+    case VISTAR_CLASS_JAMMER:      strPath = ":/icons/cursor/jammer.png";       nSize = 44; break;
+    case VISTAR_CLASS_CLUTTER:     strPath = ":/icons/cursor/clutter.png";      nSize = 44; break;
+    case VISTAR_CLASS_RF_DETECTOR: strPath = ":/icons/cursor/rf_detector.png";  nSize = 44; break;
     }
 
     if (strPath.isEmpty()) {
-        mPreviousCursor = Qt::ArrowCursor;
-        setCursor(Qt::ArrowCursor);
-    }
-    else {
+        mPreviousCursor = Qt::ArrowCursor; setCursor(Qt::ArrowCursor);
+    } else {
         QPixmap cursorPixmap(strPath);
         QPixmap scaledPix = cursorPixmap.scaled(nSize, nSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-        int nHostY = -1;
-        if ( nClass == VISTAR_CLASS_ROUTE) {
-            nHostY = -10;
-        }
-        QCursor customCursor(scaledPix, -1,nHostY);
+        int nHostY = (nClass == VISTAR_CLASS_ROUTE) ? -10 : -1;
+        QCursor customCursor(scaledPix, -1, nHostY);
         mPreviousCursor = customCursor;
         setCursor(customCursor);
     }
 }
 
-void CMapCanvas::InitializeAllObjects() {
-
-    for ( CVistarRoute *vistarRoute : _m_listVistarRoutes ) {
+void CMapCanvas::InitializeAllObjects()
+{
+    for (CVistarRoute *vistarRoute : _m_listVistarRoutes)
         vistarRoute->TransmitSelfInfo();
-    }
 
-    // QThread* thread = new QThread;
-
-    // QObject::connect(thread, &QThread::started, [=]() {
-    //     for ( QString vistarObjectId : _m_listVistarObjectIds ) {
-    //         qDebug()<<vistarObjectId;
-    //         CVistarObject *vistarObject = _m_listVistarObjects.value(vistarObjectId);
-    //         if (vistarObject) {
-    //             vistarObject->TransmitSelfInfo();
-    //         }
-    //         Sleep(100);
-    //     }
-
-    //     thread->quit();   // End thread after work
-    // });
-
-    // thread->start();
-
-    for ( QString vistarObjectId : _m_listVistarObjectIds ) {
-        qDebug()<<vistarObjectId;
+    for (const QString &vistarObjectId : _m_listVistarObjectIds) {
+        qDebug() << vistarObjectId;
         CVistarObject *vistarObject = _m_listVistarObjects.value(vistarObjectId);
-        if (vistarObject) {
-            vistarObject->TransmitSelfInfo();
-        }
-        //Sleep(100);
+        if (vistarObject) vistarObject->TransmitSelfInfo();
     }
 }
 
-void CMapCanvas::slotUpdateObject(QJsonDocument doc) {
-
-
+void CMapCanvas::slotUpdateObject(QJsonDocument doc)
+{
     QJsonObject jsonObject = doc.object();
-    QString sSrc =  jsonObject["SRC"].toString();
-    if (sSrc == VISTAR_SRC_MISSION_PLANNER) {
-        return;
-    }
-    QString sStream =  jsonObject["STREAM"].toString();
-    QString sId = jsonObject["ID"].toString();
-    QString obj = jsonObject["LOCATION"].toString();
-    qDebug()<<"Data recvd here"<<sId<<doc.toJson()<<obj;
-    qDebug()<<"sId="<<sId;
-    CVistarObject *vistarObject = getVistarObjectById(sId);
-    qDebug()<<vistarObject<<sId;
-    if (vistarObject) {
-        qDebug()<<"Data recvd1="<<sStream;
-        if ( sStream.contains("create") || sStream.contains("update")) {
-            qDebug()<<"Data recvd2";
-            vistarObject->UpdateObject(jsonObject);
-        }
-        else if (sStream.contains("action")) {
-            QString sAction =  jsonObject["ACTION"].toString();
-            if (sAction.contains("destroy")) {
-                _m_listVistarObjects.remove(sId);
-                for (int i = 0; i < _m_listVistarObjectIds.size(); i++ ) {
-                    if (_m_listVistarObjectIds.at(i) == sId ) {
-                        _m_listVistarObjectIds.removeAt(i);
-                        break;
-                    }
-                }
-                delete vistarObject;
-            }
-        }
+    if (jsonObject["SRC"].toString() == VISTAR_SRC_MISSION_PLANNER) return;
 
+    QString sStream = jsonObject["STREAM"].toString();
+    QString sId     = jsonObject["ID"].toString();
+    qDebug() << "Data recvd here" << sId << doc.toJson();
+
+    CVistarObject *vistarObject = getVistarObjectById(sId);
+    if (!vistarObject) return;
+
+    if (sStream.contains("create") || sStream.contains("update"))
+        vistarObject->UpdateObject(jsonObject);
+    else if (sStream.contains("action") &&
+             jsonObject["ACTION"].toString().contains("destroy")) {
+        _m_listVistarObjects.remove(sId);
+        _m_listVistarObjectIds.removeAll(sId);
+        delete vistarObject;
     }
 }
 
-void CMapCanvas::showContextMenu(QPoint pos) {
-
+void CMapCanvas::showContextMenu(QPoint pos)
+{
     QList<QMenu *> listMenus;
     QMenu menu;
-    for ( CVistarObject *vistarObject : _m_listVistarObjects ) {
-        if ( vistarObject->isHighlighted()) {
-            QMenu *menuObject = new QMenu();
-            listMenus<<menuObject;
-            menuObject->setTitle(vistarObject->getObjectId());
 
-            QMenu *menuAttachRoute = new QMenu();
-            listMenus<<menuAttachRoute;
-            menuAttachRoute->setTitle("Attach Route");
+    for (CVistarObject *vistarObject : _m_listVistarObjects) {
+        if (!vistarObject->isHighlighted()) continue;
 
-            QAction* actionUpdate = menuObject->addAction("Update");
-            actionUpdate->setObjectName(vistarObject->getObjectId());
+        QMenu *menuObject = new QMenu(); listMenus << menuObject;
+        menuObject->setTitle(vistarObject->getObjectId());
 
-            for ( CVistarRoute *vistarRoute : _m_listVistarRoutes ) {
-                QAction* action = menuAttachRoute->addAction(vistarRoute->getObjectId());
-                action->setObjectName(vistarObject->getObjectId());
-            }
-            if ( menuAttachRoute->actions().count() > 0) {
-                menuObject->addMenu(menuAttachRoute);
-            }
+        QMenu *menuAttachRoute = new QMenu(); listMenus << menuAttachRoute;
+        menuAttachRoute->setTitle("Attach Route");
 
-            // Add radar-specific options
-            if (vistarObject->objectClass() == VISTAR_CLASS_RADAR) {
-                QAction* actionDesignParams = menuObject->addAction("Design Parameters");
-                actionDesignParams->setObjectName(vistarObject->getObjectId());
+        QAction *actionUpdate = menuObject->addAction("Update");
+        actionUpdate->setObjectName(vistarObject->getObjectId());
 
-                QAction* actionCoverage = menuObject->addAction("Update Coverage Parameters");
-                actionCoverage->setObjectName(vistarObject->getObjectId());
-            }
-
-            QAction* actionDelete = menuObject->addAction("Delete");
-            actionDelete->setObjectName(vistarObject->getObjectId());
-
-            if (menuObject->actions().count() > 0) {
-                menu.addMenu(menuObject);
-            }
+        for (CVistarRoute *vistarRoute : _m_listVistarRoutes) {
+            QAction *action = menuAttachRoute->addAction(vistarRoute->getObjectId());
+            action->setObjectName(vistarObject->getObjectId());
         }
+        if (menuAttachRoute->actions().count() > 0)
+            menuObject->addMenu(menuAttachRoute);
+
+        if (vistarObject->objectClass() == VISTAR_CLASS_RADAR) {
+            QAction *actionDesignParams = menuObject->addAction("Design Parameters");
+            actionDesignParams->setObjectName(vistarObject->getObjectId());
+            QAction *actionCoverage = menuObject->addAction("Update Coverage Parameters");
+            actionCoverage->setObjectName(vistarObject->getObjectId());
+        }
+
+        QAction *actionDelete = menuObject->addAction("Delete");
+        actionDelete->setObjectName(vistarObject->getObjectId());
+
+        if (menuObject->actions().count() > 0) menu.addMenu(menuObject);
     }
 
-    for ( CVistarRoute *vistarRoute : _m_listVistarRoutes ) {
-        if ( vistarRoute->isHighlighted()) {
-            QMenu *menuObject = new QMenu();
-            listMenus<<menuObject;
-            menuObject->setTitle(vistarRoute->getObjectId());
+    for (CVistarRoute *vistarRoute : _m_listVistarRoutes) {
+        if (!vistarRoute->isHighlighted()) continue;
 
-            QAction* actionUpdate = menuObject->addAction("Update");
-            actionUpdate->setObjectName(vistarRoute->getObjectId());
+        QMenu *menuObject = new QMenu(); listMenus << menuObject;
+        menuObject->setTitle(vistarRoute->getObjectId());
 
-            QAction* actionDelete = menuObject->addAction("Delete");
-            actionDelete->setObjectName(vistarRoute->getObjectId());
+        QAction *actionUpdate = menuObject->addAction("Update");
+        actionUpdate->setObjectName(vistarRoute->getObjectId());
+        QAction *actionDelete = menuObject->addAction("Delete");
+        actionDelete->setObjectName(vistarRoute->getObjectId());
 
-            if (menuObject->actions().count() > 0) {
-                menu.addMenu(menuObject);
-            }
-        }
+        if (menuObject->actions().count() > 0) menu.addMenu(menuObject);
     }
 
-    if (menu.actions().count() > 0 ) {
-        QAction* selected = menu.exec(mapToGlobal(pos));
-        if ( selected ) {
-            qDebug()<<selected->text()<<selected->objectName();
-            CVistarObject* object = getVistarObjectById(selected->objectName());
+    if (menu.actions().count() > 0) {
+        QAction *selected = menu.exec(mapToGlobal(pos));
+        if (selected) {
+            qDebug() << selected->text() << selected->objectName();
+            CVistarObject *object = getVistarObjectById(selected->objectName());
             if (object) {
-                if ( selected->text() == "Update") {
+                if (selected->text() == "Update") {
                     _m_objUpdatePosition.setObjectId(selected->objectName());
                     QgsPointXYZ pt = object->getPointXYZ();
-                    _m_objUpdatePosition.setPosition(pt.y(),pt.x(),pt.z());
+                    _m_objUpdatePosition.setPosition(pt.y(), pt.x(), pt.z());
                     _m_objUpdatePosition.show();
-                }
-                else if ( selected->text() == "Delete") {
+
+                } else if (selected->text() == "Delete") {
                     _m_listVistarObjects.remove(selected->objectName());
-                    for (int i = 0; i < _m_listVistarObjectIds.size(); i++ ) {
-                        CVistarObject* objectTemp = getVistarObjectById(_m_listVistarObjectIds.at(i));
-                        if (objectTemp) {
-                            if ( objectTemp->getParent() == selected->objectName() ) {
-                                if (objectTemp->getChildId() > 0 ) {
-                                    _m_listVistarObjectIds.removeAt(i);
-                                    delete objectTemp;
-                                    continue;
-                                }
-                            }
+                    for (int i = 0; i < _m_listVistarObjectIds.size(); i++) {
+                        CVistarObject *objectTemp = getVistarObjectById(_m_listVistarObjectIds.at(i));
+                        if (objectTemp && objectTemp->getParent() == selected->objectName() &&
+                            objectTemp->getChildId() > 0) {
+                            _m_listVistarObjectIds.removeAt(i); delete objectTemp; continue;
                         }
-                        if (_m_listVistarObjectIds.at(i) == selected->objectName() ) {
-                            _m_listVistarObjectIds.removeAt(i);
-                            break;
+                        if (_m_listVistarObjectIds.at(i) == selected->objectName()) {
+                            _m_listVistarObjectIds.removeAt(i); break;
                         }
                     }
                     delete object;
-                    
-                    // Auto-save after deleting object
-                    QTimer::singleShot(100, this, [this]() {
-                        autoSaveScenario();
-                    });
-                }
-                else if ( selected->text() == "Design Parameters" &&
-                          object->objectClass() == VISTAR_CLASS_RADAR ) {
-                    // Open the radar attributes editor dialog
+                    QTimer::singleShot(100, this, [this]() { autoSaveScenario(); });
+
+                } else if (selected->text() == "Design Parameters" &&
+                           object->objectClass() == VISTAR_CLASS_RADAR) {
                     QString radarId = selected->objectName();
                     auto *dlg = new RadarAttributesDialog(radarId, object->radarAttributes(), this);
-
                     connect(dlg, &RadarAttributesDialog::attributesApplied,
                             this, [this, radarId, object](const RadarView::RadarAttributes &attrs) {
                         object->setRadarAttributes(attrs);
@@ -1371,690 +1064,418 @@ void CMapCanvas::showContextMenu(QPoint pos) {
                         QTimer::singleShot(100, this, [this]() { autoSaveScenario(); });
                         object->TransmitSelfInfo();
                     });
+                    dlg->exec(); dlg->deleteLater();
 
-                    dlg->exec();
-                    dlg->deleteLater();
-                }
-                else if ( selected->text() == "Update Coverage Parameters" &&
-                          object->objectClass() == VISTAR_CLASS_RADAR ) {
+                } else if (selected->text() == "Update Coverage Parameters" &&
+                           object->objectClass() == VISTAR_CLASS_RADAR) {
                     QString radarId = selected->objectName();
                     RadarView::RadarAttributes curAttrs = object->radarAttributes();
                     auto *dlg = new CCoverageParamsDialog(radarId, curAttrs.coverage, this);
-
                     connect(dlg, &CCoverageParamsDialog::coverageApplied,
                             this, [this, radarId, object](const RadarView::RadarCoverageParameters &cov) {
                         RadarView::RadarAttributes attrs = object->radarAttributes();
                         attrs.coverage = cov;
                         object->setRadarAttributes(attrs);
                         emit signalRadarCoverageChanged(radarId, cov);
-                        // Redraw map to update range rings
                         refresh();
                         QTimer::singleShot(100, this, [this]() { autoSaveScenario(); });
                     });
+                    dlg->exec(); dlg->deleteLater();
 
-                    dlg->exec();
-                    dlg->deleteLater();
-                }
-                else {
-                    // Check if this is a route attachment (selected->text() is a route ID)
-                    CVistarRoute* route = getVistarRouteById(selected->text());
+                } else {
+                    CVistarRoute *route = getVistarRouteById(selected->text());
                     if (route) {
                         object->attachRoute(selected->text());
                         object->setHighlighted(false);
-                        
-                        // Auto-save after attaching route
-                        QTimer::singleShot(100, this, [this]() {
-                            autoSaveScenario();
-                        });
+                        QTimer::singleShot(100, this, [this]() { autoSaveScenario(); });
                     }
                 }
-            }
-            else {
-                CVistarRoute* route = getVistarRouteById(selected->objectName());
+            } else {
+                CVistarRoute *route = getVistarRouteById(selected->objectName());
                 if (route) {
-                    if ( selected->text() == "Update") {
+                    if (selected->text() == "Update") {
                         _m_objUpdateRoute.setObjectId(selected->objectName());
-                        QList<QgsPointXYZ> listPoints = route->getPoints();
-                        _m_objUpdateRoute.setPoints(listPoints);
+                        _m_objUpdateRoute.setPoints(route->getPoints());
                         _m_objUpdateRoute.setMANEUVERs(route->getMANEUVERs());
                         _m_objUpdateRoute.show();
-                    }
-                    else if ( selected->text() == "Delete") {
+                    } else if (selected->text() == "Delete") {
                         _m_listVistarRoutes.remove(selected->objectName());
                         delete route;
-                        
-                        // Auto-save after deleting route
-                        QTimer::singleShot(100, this, [this]() {
-                            autoSaveScenario();
-                        });
+                        QTimer::singleShot(100, this, [this]() { autoSaveScenario(); });
                     }
                 }
             }
         }
     }
 
-    for ( QMenu *menu1 : listMenus) {
-        delete menu1;
-    }
+    for (QMenu *menu1 : listMenus) delete menu1;
 }
 
-void CMapCanvas::slotUpdatePosition(QString sObjectId,double dLat,double dLon,double dAlt) {
+void CMapCanvas::slotUpdatePosition(QString sObjectId, double dLat, double dLon, double dAlt)
+{
     CVistarObject *vistarObject = getVistarObjectById(sObjectId);
     if (vistarObject) {
-        vistarObject->UpdateLocation(dLat,dLon,dAlt);
-        
-        // Auto-save after updating position
-        QTimer::singleShot(100, this, [this]() {
-            autoSaveScenario();
-        });
+        vistarObject->UpdateLocation(dLat, dLon, dAlt);
+        QTimer::singleShot(100, this, [this]() { autoSaveScenario(); });
     }
 }
 
-void CMapCanvas::slotUpdatePoints(QString sObjectId,QList<QgsPointXYZ> listPoints,QStringList maneuverTypes) {
+void CMapCanvas::slotUpdatePoints(QString sObjectId, QList<QgsPointXYZ> listPoints, QStringList maneuverTypes)
+{
     CVistarRoute *vistarRoute = getVistarRouteById(sObjectId);
     if (vistarRoute) {
         vistarRoute->UpdatePoints(listPoints, maneuverTypes);
-        
-        // Auto-save after updating route points
-        QTimer::singleShot(100, this, [this]() {
-            autoSaveScenario();
-        });
+        QTimer::singleShot(100, this, [this]() { autoSaveScenario(); });
     }
 }
 
-// ============ Scenario Management Methods ============
-
-QString CMapCanvas::getClassNameFromEnum(int nClass) {
+// ============================================================
+//  Scenario management
+// ============================================================
+QString CMapCanvas::getClassNameFromEnum(int nClass)
+{
     switch (nClass) {
-        case VISTAR_CLASS_DRONE: return "DRONE";
-        case VISTAR_CLASS_DRONE_SWARM: return "DRONE_SWARM";
-        case VISTAR_CLASS_FIGHTER: return "FIGHTER";
-        case VISTAR_CLASS_UAV: return "UAV";
-        case VISTAR_CLASS_RADAR: return "RADAR";
-        case VISTAR_CLASS_LAUNCHER: return "LAUNCHER";
-        case VISTAR_CLASS_MISSILE: return "MISSILE";
-        case VISTAR_CLASS_ROUTE: return "ROUTE";
-        case VISTAR_CLASS_JAMMER: return "JAMMER";
-        case VISTAR_CLASS_CLUTTER: return "CLUTTER";
-        case VISTAR_CLASS_RF_DETECTOR: return "RF_DETECTOR";
-        default: return "UNKNOWN";
+    case VISTAR_CLASS_DRONE:       return "DRONE";
+    case VISTAR_CLASS_DRONE_SWARM: return "DRONE_SWARM";
+    case VISTAR_CLASS_FIGHTER:     return "FIGHTER";
+    case VISTAR_CLASS_UAV:         return "UAV";
+    case VISTAR_CLASS_RADAR:       return "RADAR";
+    case VISTAR_CLASS_LAUNCHER:    return "LAUNCHER";
+    case VISTAR_CLASS_MISSILE:     return "MISSILE";
+    case VISTAR_CLASS_ROUTE:       return "ROUTE";
+    case VISTAR_CLASS_JAMMER:      return "JAMMER";
+    case VISTAR_CLASS_CLUTTER:     return "CLUTTER";
+    case VISTAR_CLASS_RF_DETECTOR: return "RF_DETECTOR";
+    default:                       return "UNKNOWN";
     }
 }
 
-int CMapCanvas::getEnumFromClassName(const QString &className) {
-    if (className == "DRONE") return VISTAR_CLASS_DRONE;
-    if (className == "DRONE_SWARM") return VISTAR_CLASS_DRONE_SWARM;
-    if (className == "FIGHTER") return VISTAR_CLASS_FIGHTER;
-    if (className == "UAV") return VISTAR_CLASS_UAV;
-    if (className == "RADAR") return VISTAR_CLASS_RADAR;
-    if (className == "LAUNCHER") return VISTAR_CLASS_LAUNCHER;
-    if (className == "MISSILE") return VISTAR_CLASS_MISSILE;
-    if (className == "ROUTE") return VISTAR_CLASS_ROUTE;
-    if (className == "JAMMER") return VISTAR_CLASS_JAMMER;
-    if (className == "CLUTTER") return VISTAR_CLASS_CLUTTER;
-    if (className == "RF_DETECTOR") return VISTAR_CLASS_RF_DETECTOR;
+int CMapCanvas::getEnumFromClassName(const QString &className)
+{
+    if (className == "DRONE")        return VISTAR_CLASS_DRONE;
+    if (className == "DRONE_SWARM")  return VISTAR_CLASS_DRONE_SWARM;
+    if (className == "FIGHTER")      return VISTAR_CLASS_FIGHTER;
+    if (className == "UAV")          return VISTAR_CLASS_UAV;
+    if (className == "RADAR")        return VISTAR_CLASS_RADAR;
+    if (className == "LAUNCHER")     return VISTAR_CLASS_LAUNCHER;
+    if (className == "MISSILE")      return VISTAR_CLASS_MISSILE;
+    if (className == "ROUTE")        return VISTAR_CLASS_ROUTE;
+    if (className == "JAMMER")       return VISTAR_CLASS_JAMMER;
+    if (className == "CLUTTER")      return VISTAR_CLASS_CLUTTER;
+    if (className == "RF_DETECTOR")  return VISTAR_CLASS_RF_DETECTOR;
     return VISTAR_CLASS_NONE;
 }
 
-Scenario CMapCanvas::createScenarioFromCurrentState() {
+Scenario CMapCanvas::createScenarioFromCurrentState()
+{
     Scenario scenario;
-    scenario.name = "Auto-saved Scenario";
+    scenario.name        = "Auto-saved Scenario";
     scenario.description = "Automatically saved vistar routes and objects";
     scenario.createdDate = QDateTime::currentDateTime().toString(Qt::ISODate);
-    
-    // Save all routes
+
     for (CVistarRoute *vistarRoute : _m_listVistarRoutes) {
         if (!vistarRoute) continue;
-        
         ScenarioRoute route;
-        route.id = vistarRoute->getObjectId();
-        route.name = vistarRoute->getObjectId();
-        
+        route.id = route.name = vistarRoute->getObjectId();
         QList<QgsPointXYZ> points = vistarRoute->getPoints();
         QStringList MANEUVERs = vistarRoute->getMANEUVERs();
         for (int i = 0; i < points.size(); i++) {
             const QgsPointXYZ &pt = points.at(i);
-            route.waypoints.append(QPointF(pt.y(), pt.x())); // lat, lon
+            route.waypoints.append(QPointF(pt.y(), pt.x()));
             route.altitudes.append(pt.z());
-            if (i < MANEUVERs.size()) {
-                route.maneuverTypes.append(MANEUVERs.at(i));
-            } else {
-                route.maneuverTypes.append("DIRECT");
-            }
+            route.maneuverTypes.append(i < MANEUVERs.size() ? MANEUVERs.at(i) : "DIRECT");
         }
-        
         scenario.routes.append(route);
     }
-    
-    // Save all objects (only parent objects, not child missiles)
+
     for (const QString &objectId : _m_listVistarObjectIds) {
         CVistarObject *vistarObject = _m_listVistarObjects.value(objectId);
-        if (!vistarObject) continue;
-        
-        // Skip child objects (missiles attached to launchers/UAVs)
-        if (vistarObject->getChildId() != 0) continue;
-        
+        if (!vistarObject || vistarObject->getChildId() != 0) continue;
+
         ScenarioObject obj;
         obj.id = vistarObject->getObjectId();
-        
         QgsPointXYZ pt = vistarObject->getPointXYZ();
-        obj.latitude = pt.y();
-        obj.longitude = pt.x();
-        obj.altitude = pt.z();
-        
-        // Get object type from ID prefix
-        QString idPrefix = objectId.split("_").first();
-        obj.type = idPrefix;
-        
-        // Store additional data
-        obj.additionalData["parent"] = vistarObject->getParent();
-        obj.additionalData["childId"] = vistarObject->getChildId();
+        obj.latitude = pt.y(); obj.longitude = pt.x(); obj.altitude = pt.z();
+        obj.type = objectId.split("_").first();
+
+        obj.additionalData["parent"]        = vistarObject->getParent();
+        obj.additionalData["childId"]       = vistarObject->getChildId();
         obj.additionalData["attachedRoute"] = vistarObject->getAttachedRoute();
 
-        // Persist radar-specific data
         if (vistarObject->objectClass() == VISTAR_CLASS_RADAR) {
             const RadarView::RadarAttributes &attrs = vistarObject->radarAttributes();
             obj.additionalData["radarAttributes"] = attrs.toJson();
-            // Also store maxRange (metres) for backward compatibility
             obj.additionalData["range"] = attrs.coverage.maxRangeKm * 1000.0;
         }
-        
         scenario.objects.append(obj);
     }
-    
-    scenario.metadata["version"] = "1.0";
+
+    scenario.metadata["version"]   = "1.0";
     scenario.metadata["autoSaved"] = true;
-    
     return scenario;
 }
 
-void CMapCanvas::resetScenario() {
+void CMapCanvas::resetScenario()
+{
     qDebug() << "Resetting scenario - clearing all objects and routes";
-    
-    // Clear existing routes
-    for (CVistarRoute *route : _m_listVistarRoutes) {
-        delete route;
-    }
+    for (CVistarRoute *route : _m_listVistarRoutes) delete route;
     _m_listVistarRoutes.clear();
-    
-    // Clear existing objects
-    for (CVistarObject *obj : _m_listVistarObjects) {
-        delete obj;
-    }
+    for (CVistarObject *obj : _m_listVistarObjects) delete obj;
     _m_listVistarObjects.clear();
     _m_listVistarObjectIds.clear();
-    
-    // Refresh the canvas to show the cleared state
     refresh();
-
     emit signalScenarioCleared();
     qDebug() << "Scenario reset complete";
 }
 
-void CMapCanvas::loadScenarioToCanvas(const Scenario &scenario) {
-    // Notify that existing scenario is being replaced before clearing.
+void CMapCanvas::loadScenarioToCanvas(const Scenario &scenario)
+{
     emit signalScenarioCleared();
-
     qDebug() << "Loading scenario:" << scenario.name;
-    
-    // Clear existing routes
-    for (CVistarRoute *route : _m_listVistarRoutes) {
-        delete route;
-    }
+
+    for (CVistarRoute *route : _m_listVistarRoutes) delete route;
     _m_listVistarRoutes.clear();
-    
-    // Clear existing objects
-    for (CVistarObject *obj : _m_listVistarObjects) {
-        delete obj;
-    }
+    for (CVistarObject *obj : _m_listVistarObjects) delete obj;
     _m_listVistarObjects.clear();
     _m_listVistarObjectIds.clear();
-    
-    // Load routes first
+
     for (const ScenarioRoute &route : scenario.routes) {
         if (route.waypoints.isEmpty()) continue;
-        
-        // Create the route with first waypoint
         QPointF firstPt = route.waypoints.first();
         CVistarRoute *vistarRoute = new CVistarRoute(this, route.id, firstPt.y(), firstPt.x());
-        
-        // Add remaining waypoints
         for (int i = 1; i < route.waypoints.size(); i++) {
             QPointF pt = route.waypoints[i];
-            double alt = (i < route.altitudes.size()) ? route.altitudes[i] : 1000.0;
             vistarRoute->addPoint(QgsPointXY(pt.y(), pt.x()));
         }
-        
-        // Set maneuver types
-        if (!route.maneuverTypes.isEmpty()) {
-            vistarRoute->setMANEUVERs(route.maneuverTypes);
-        }
-        
+        if (!route.maneuverTypes.isEmpty()) vistarRoute->setMANEUVERs(route.maneuverTypes);
         _m_listVistarRoutes.insert(route.id, vistarRoute);
         qDebug() << "Loaded route:" << route.id << "with" << route.waypoints.size() << "waypoints";
     }
-    
-    // Load objects
-    QHash<QString, int> childCounts; // Track how many children each parent should have
-    
+
     for (const ScenarioObject &obj : scenario.objects) {
         int nClass = getEnumFromClassName(obj.type);
         if (nClass == VISTAR_CLASS_NONE) continue;
-        
+
         CVistarObject *vistarObject = new CVistarObject(
-            this, obj.id, nClass, obj.longitude, obj.latitude
-        );
-        
-        // Update altitude
+            this, obj.id, nClass, obj.longitude, obj.latitude);
         vistarObject->UpdateLocation(obj.latitude, obj.longitude, obj.altitude);
-        
-        // Restore attached route if any
+
         if (obj.additionalData.contains("attachedRoute")) {
             QString attachedRoute = obj.additionalData["attachedRoute"].toString();
-            if (!attachedRoute.isEmpty()) {
-                vistarObject->attachRoute(attachedRoute);
-            }
+            if (!attachedRoute.isEmpty()) vistarObject->attachRoute(attachedRoute);
         }
-        
+
         _m_listVistarObjects.insert(obj.id, vistarObject);
         _m_listVistarObjectIds.append(obj.id);
 
         if (nClass == VISTAR_CLASS_RADAR) {
-            // Restore full radar attributes if available (includes coverage params)
             RadarView::RadarAttributes attrs = RadarView::RadarAttributes::defaults();
-            if (obj.additionalData.contains("radarAttributes")) {
-                attrs = RadarView::RadarAttributes::fromJson(
-                    obj.additionalData["radarAttributes"].toObject());
-            } else if (obj.additionalData.contains("range")) {
-                // Legacy: only range was stored
+            if (obj.additionalData.contains("radarAttributes"))
+                attrs = RadarView::RadarAttributes::fromJson(obj.additionalData["radarAttributes"].toObject());
+            else if (obj.additionalData.contains("range"))
                 attrs.coverage.maxRangeKm = obj.additionalData["range"].toDouble() / 1000.0;
-            }
             vistarObject->setRadarAttributes(attrs);
             emit signalRadarObjectAdded(obj.id, attrs.coverage);
         }
-        
+
         qDebug() << "Loaded object:" << obj.id << "at" << obj.latitude << "," << obj.longitude;
-        
-        // Create child missiles if this is a launcher, fighter, or UAV
-        if (nClass == VISTAR_CLASS_LAUNCHER || 
-            nClass == VISTAR_CLASS_FIGHTER || 
-            nClass == VISTAR_CLASS_UAV) {
-            
-            int nChildMslCount = 0;
-            if (nClass == VISTAR_CLASS_LAUNCHER) {
-                nChildMslCount = 12;
-            } else if (nClass == VISTAR_CLASS_UAV) {
-                nChildMslCount = 4;
-            }
-            
+
+        if (nClass == VISTAR_CLASS_LAUNCHER || nClass == VISTAR_CLASS_FIGHTER || nClass == VISTAR_CLASS_UAV) {
+            int nChildMslCount = (nClass == VISTAR_CLASS_LAUNCHER) ? 12 : (nClass == VISTAR_CLASS_UAV) ? 4 : 0;
             for (int i = 1; i <= nChildMslCount; i++) {
                 QString sChildObjectId = GenerateObjectIdFromClass(VISTAR_CLASS_MISSILE);
                 if (!sChildObjectId.isEmpty()) {
-                    CVistarObject *vistarChildObject = new CVistarObject(
-                        this, sChildObjectId, VISTAR_CLASS_MISSILE, 
-                        obj.longitude, obj.latitude
-                    );
-                    vistarChildObject->setParent(obj.id, i);
-                    _m_listVistarObjects.insert(sChildObjectId, vistarChildObject);
+                    CVistarObject *child = new CVistarObject(
+                        this, sChildObjectId, VISTAR_CLASS_MISSILE, obj.longitude, obj.latitude);
+                    child->setParent(obj.id, i);
+                    _m_listVistarObjects.insert(sChildObjectId, child);
                     _m_listVistarObjectIds.append(sChildObjectId);
                 }
             }
         }
     }
-    
+
     refresh();
-    qDebug() << "Scenario loaded successfully with" << scenario.objects.size() << "objects and" << scenario.routes.size() << "routes";
+    qDebug() << "Scenario loaded successfully with" << scenario.objects.size()
+             << "objects and" << scenario.routes.size() << "routes";
 }
 
-bool CMapCanvas::saveCurrentScenario(const QString &filePath) {
+bool CMapCanvas::saveCurrentScenario(const QString &filePath)
+{
     Scenario scenario = createScenarioFromCurrentState();
-    
-    QString savePath = filePath;
-    if (savePath.isEmpty()) {
-        savePath = _m_scenarioManager->getDefaultScenariosDirectory() + "/current_scenario.json";
-    }
-    
+    QString savePath = filePath.isEmpty()
+                           ? _m_scenarioManager->getDefaultScenariosDirectory() + "/current_scenario.json"
+                           : filePath;
     bool success = _m_scenarioManager->saveScenario(scenario, savePath);
-    if (success) {
-        qDebug() << "Scenario saved successfully to:" << savePath;
-    } else {
-        qWarning() << "Failed to save scenario to:" << savePath;
-    }
-    
+    if (success) qDebug() << "Scenario saved successfully to:" << savePath;
+    else         qWarning() << "Failed to save scenario to:" << savePath;
     return success;
 }
 
-bool CMapCanvas::loadScenario(const QString &filePath) {
-    QString loadPath = filePath;
-    if (loadPath.isEmpty()) {
-        loadPath = _m_scenarioManager->getDefaultScenariosDirectory() + "/current_scenario.json";
+bool CMapCanvas::loadScenario(const QString &filePath)
+{
+    QString loadPath = filePath.isEmpty()
+                           ? _m_scenarioManager->getDefaultScenariosDirectory() + "/current_scenario.json"
+                           : filePath;
+    if (!QFileInfo(loadPath).exists()) {
+        qDebug() << "Scenario file does not exist:" << loadPath; return false;
     }
-    
-    QFileInfo fileInfo(loadPath);
-    if (!fileInfo.exists()) {
-        qDebug() << "Scenario file does not exist:" << loadPath;
-        return false;
-    }
-    
     Scenario scenario;
     bool success = _m_scenarioManager->loadScenario(loadPath, scenario);
-    if (success) {
-        loadScenarioToCanvas(scenario);
-        qDebug() << "Scenario loaded successfully from:" << loadPath;
-    } else {
-        qWarning() << "Failed to load scenario from:" << loadPath;
-    }
-    
+    if (success) { loadScenarioToCanvas(scenario); qDebug() << "Scenario loaded from:" << loadPath; }
+    else         qWarning() << "Failed to load scenario from:" << loadPath;
     return success;
 }
 
-bool CMapCanvas::autoSaveScenario() {
-    // Only auto-save if there are routes or objects to save
+bool CMapCanvas::autoSaveScenario()
+{
     if (_m_listVistarRoutes.isEmpty() && _m_listVistarObjects.isEmpty()) {
-        qDebug() << "No routes or objects to auto-save";
-        return false;
+        qDebug() << "No routes or objects to auto-save"; return false;
     }
-    
     return saveCurrentScenario();
 }
 
-bool CMapCanvas::autoLoadScenario() {
+bool CMapCanvas::autoLoadScenario()
+{
     QString autoSavePath = _m_scenarioManager->getDefaultScenariosDirectory() + "/current_scenario.json";
-    
-    QFileInfo fileInfo(autoSavePath);
-    if (!fileInfo.exists()) {
-        qDebug() << "No auto-save scenario file found";
-        return false;
-    }
-    
+    if (!QFileInfo(autoSavePath).exists()) { qDebug() << "No auto-save scenario file found"; return false; }
     qDebug() << "Auto-loading scenario from:" << autoSavePath;
     return loadScenario(autoSavePath);
 }
 
-// ============ Path Generation Methods ============
-
+// ============================================================
+//  Path generation
+// ============================================================
 void CMapCanvas::startPathGeneration(eVISTAR_PATH_TYPE pathType)
 {
-    if (pathType == PATH_TYPE_NONE) {
-        return;
-    }
-    
-    // Cancel any existing mode
+    if (pathType == PATH_TYPE_NONE) return;
+
     if (_m_nCurrentObjectClassForLoading != VISTAR_CLASS_NONE) {
         _m_nCurrentObjectClassForLoading = VISTAR_CLASS_NONE;
         emit signalClearObjectSelection();
     }
-    
-    _m_currentPathType = pathType;
+
+    _m_currentPathType    = pathType;
     _m_bPathGenerationMode = true;
-    _m_bPathStartPointSet = false;
-    
-    // Set custom cursor for path generation
+    _m_bPathStartPointSet  = false;
+
     QPixmap cursorPixmap(":/icons/cursor/route.png");
     QPixmap scaledPix = cursorPixmap.scaled(40, 40, Qt::KeepAspectRatio, Qt::SmoothTransformation);
     QCursor customCursor(scaledPix, -1, -10);
     mPreviousCursor = customCursor;
     setCursor(customCursor);
-    
-    // Show instruction message
+
     QString pathName = CPathGenerator::getPathTypeName(pathType);
     showPathGenerationInstruction("Select START point for " + pathName + " path");
-    
     emit signalPathGenerationStarted(pathType);
-    
     qDebug() << "Path generation started for:" << pathName;
 }
 
 void CMapCanvas::cancelPathGeneration()
 {
-    if (!_m_bPathGenerationMode) {
-        return;
-    }
-    
-    _m_currentPathType = PATH_TYPE_NONE;
+    if (!_m_bPathGenerationMode) return;
+    _m_currentPathType    = PATH_TYPE_NONE;
     _m_bPathGenerationMode = false;
-    _m_bPathStartPointSet = false;
-    
-    // Reset cursor
+    _m_bPathStartPointSet  = false;
     mPreviousCursor = Qt::ArrowCursor;
     setCursor(Qt::ArrowCursor);
-    
-    // Clear markers
     clearPathGenerationMarkers();
-    
     emit signalPathGenerationCancelled();
-    
     qDebug() << "Path generation cancelled";
 }
 
-bool CMapCanvas::isPathGenerationActive() const
-{
-    return _m_bPathGenerationMode;
-}
-
-eVISTAR_PATH_TYPE CMapCanvas::getCurrentPathType() const
-{
-    return _m_currentPathType;
-}
-
-CPathGenerator* CMapCanvas::getPathGenerator()
-{
-    return _m_pathGenerator;
-}
+bool              CMapCanvas::isPathGenerationActive() const { return _m_bPathGenerationMode; }
+eVISTAR_PATH_TYPE CMapCanvas::getCurrentPathType()     const { return _m_currentPathType; }
+CPathGenerator   *CMapCanvas::getPathGenerator()             { return _m_pathGenerator; }
 
 void CMapCanvas::showPathGenerationInstruction(const QString &text)
 {
-    // Remove existing background rectangle first
     if (_m_pathInstructionBgRect) {
         scene()->removeItem(_m_pathInstructionBgRect);
-        delete _m_pathInstructionBgRect;
-        _m_pathInstructionBgRect = nullptr;
+        delete _m_pathInstructionBgRect; _m_pathInstructionBgRect = nullptr;
     }
-    
-    // Remove existing instruction text
     if (_m_pathInstructionText) {
         scene()->removeItem(_m_pathInstructionText);
-        delete _m_pathInstructionText;
-        _m_pathInstructionText = nullptr;
+        delete _m_pathInstructionText; _m_pathInstructionText = nullptr;
     }
-    
-    // Create new instruction text
+
     _m_pathInstructionText = scene()->addText(text);
     _m_pathInstructionText->setDefaultTextColor(Qt::white);
     _m_pathInstructionText->setFont(QFont("Arial", 14, QFont::Bold));
     _m_pathInstructionText->setZValue(1000);
-    
-    // Position at top center of canvas
+
     QRectF sceneRect = scene()->sceneRect();
     double textWidth = _m_pathInstructionText->boundingRect().width();
     _m_pathInstructionText->setPos((sceneRect.width() - textWidth) / 2, 80);
-    
-    // Add background rectangle for better visibility
+
     _m_pathInstructionBgRect = scene()->addRect(
         _m_pathInstructionText->boundingRect().adjusted(-10, -5, 10, 5),
-        QPen(Qt::transparent),
-        QBrush(QColor(0, 100, 200, 180))
-    );
+        QPen(Qt::transparent), QBrush(QColor(0, 100, 200, 180)));
     _m_pathInstructionBgRect->setPos(_m_pathInstructionText->pos() + QPointF(-10, -5));
     _m_pathInstructionBgRect->setZValue(999);
-    
     refresh();
 }
 
 void CMapCanvas::clearPathGenerationMarkers()
 {
-    // Remove start marker
     if (_m_pathStartMarker) {
-        scene()->removeItem(_m_pathStartMarker);
-        delete _m_pathStartMarker;
-        _m_pathStartMarker = nullptr;
+        scene()->removeItem(_m_pathStartMarker); delete _m_pathStartMarker; _m_pathStartMarker = nullptr;
     }
-    
-    // Remove instruction text background
     if (_m_pathInstructionBgRect) {
-        scene()->removeItem(_m_pathInstructionBgRect);
-        delete _m_pathInstructionBgRect;
-        _m_pathInstructionBgRect = nullptr;
+        scene()->removeItem(_m_pathInstructionBgRect); delete _m_pathInstructionBgRect; _m_pathInstructionBgRect = nullptr;
     }
-    
-    // Remove instruction text
     if (_m_pathInstructionText) {
-        scene()->removeItem(_m_pathInstructionText);
-        delete _m_pathInstructionText;
-        _m_pathInstructionText = nullptr;
+        scene()->removeItem(_m_pathInstructionText); delete _m_pathInstructionText; _m_pathInstructionText = nullptr;
     }
-    
     refresh();
 }
 
 void CMapCanvas::createGeneratedRoute(const QList<QgsPointXYZ> &points)
 {
-    if (points.isEmpty()) {
-        qDebug() << "No points to create route";
-        return;
-    }
-    
-    // Generate a new route ID
+    if (points.isEmpty()) { qDebug() << "No points to create route"; return; }
+
     QString sObjectId = GenerateObjectIdFromClass(VISTAR_CLASS_ROUTE);
-    
-    if (sObjectId.isEmpty()) {
-        qDebug() << "Failed to generate route ID";
-        return;
-    }
-    
-    // Create the route with first point
+    if (sObjectId.isEmpty()) { qDebug() << "Failed to generate route ID"; return; }
+
     QgsPointXYZ firstPt = points.first();
     CVistarRoute *vistarRoute = new CVistarRoute(this, sObjectId, firstPt.x(), firstPt.y());
-    
-    // Add remaining points
-    for (int i = 1; i < points.size(); i++) {
+    for (int i = 1; i < points.size(); i++)
         vistarRoute->addPoint(QgsPointXY(points[i].x(), points[i].y()));
-    }
-    
+
     _m_listVistarRoutes.insert(sObjectId, vistarRoute);
-    
-    // Auto-save the scenario
-    QTimer::singleShot(100, this, [this]() {
-        autoSaveScenario();
-    });
-    
+    QTimer::singleShot(100, this, [this]() { autoSaveScenario(); });
     emit signalPathGenerationCompleted(sObjectId);
-    
     qDebug() << "Generated route:" << sObjectId << "with" << points.size() << "waypoints";
-    
     refresh();
 }
 
-// ============ Path Generation Configuration Methods ============
-
+// ============================================================
+//  Path parameter accessors
+// ============================================================
 void CMapCanvas::setPathParameters(const CPathGenerator::PathParameters &params)
 {
     _m_pathParams = params;
-    qDebug() << "Path parameters updated - waypoints:" << _m_pathParams.numWaypoints 
+    qDebug() << "Path parameters updated - waypoints:" << _m_pathParams.numWaypoints
              << ", altitude:" << _m_pathParams.defaultAltitude;
 }
 
-CPathGenerator::PathParameters CMapCanvas::getPathParameters() const
-{
-    return _m_pathParams;
-}
+CPathGenerator::PathParameters CMapCanvas::getPathParameters() const { return _m_pathParams; }
 
-void CMapCanvas::setNumWaypoints(int numWaypoints)
-{
-    _m_pathParams.numWaypoints = qBound(2, numWaypoints, 100);  // Clamp between 2 and 100
-    qDebug() << "Number of waypoints set to:" << _m_pathParams.numWaypoints;
-}
-
-int CMapCanvas::getNumWaypoints() const
-{
-    return _m_pathParams.numWaypoints;
-}
-
-void CMapCanvas::setDefaultAltitude(double altitude)
-{
-    _m_pathParams.defaultAltitude = qMax(0.0, altitude);  // Ensure non-negative
-    qDebug() << "Default altitude set to:" << _m_pathParams.defaultAltitude;
-}
-
-double CMapCanvas::getDefaultAltitude() const
-{
-    return _m_pathParams.defaultAltitude;
-}
-
-void CMapCanvas::setCurveFactor(double curveFactor)
-{
-    _m_pathParams.curveFactor = qBound(0.0, curveFactor, 1.0);  // Clamp between 0 and 1
-    qDebug() << "Curve factor set to:" << _m_pathParams.curveFactor;
-}
-
-double CMapCanvas::getCurveFactor() const
-{
-    return _m_pathParams.curveFactor;
-}
-
-void CMapCanvas::setSpiralTurns(double spiralTurns)
-{
-    _m_pathParams.spiralTurns = qBound(0.5, spiralTurns, 10.0);  // Clamp between 0.5 and 10
-    qDebug() << "Spiral turns set to:" << _m_pathParams.spiralTurns;
-}
-
-double CMapCanvas::getSpiralTurns() const
-{
-    return _m_pathParams.spiralTurns;
-}
-
-void CMapCanvas::setZigzagAmplitude(double amplitude)
-{
-    _m_pathParams.zigzagAmplitude = qBound(0.05, amplitude, 0.5);  // Clamp between 0.05 and 0.5
-    qDebug() << "Zigzag amplitude set to:" << _m_pathParams.zigzagAmplitude;
-}
-
-double CMapCanvas::getZigzagAmplitude() const
-{
-    return _m_pathParams.zigzagAmplitude;
-}
-
-void CMapCanvas::setZigzagFrequency(int frequency)
-{
-    _m_pathParams.zigzagFrequency = qBound(2, frequency, 20);  // Clamp between 2 and 20
-    qDebug() << "Zigzag frequency set to:" << _m_pathParams.zigzagFrequency;
-}
-
-int CMapCanvas::getZigzagFrequency() const
-{
-    return _m_pathParams.zigzagFrequency;
-}
-
-void CMapCanvas::setMaxTurnRadius(double radius)
-{
-    _m_pathParams.maxTurnRadius = qBound(0.01, radius, 0.2);  // Clamp between 0.01 and 0.2
-    qDebug() << "Max turn radius set to:" << _m_pathParams.maxTurnRadius;
-}
-
-double CMapCanvas::getMaxTurnRadius() const
-{
-    return _m_pathParams.maxTurnRadius;
-}
-
-void CMapCanvas::setRandomVariance(double variance)
-{
-    _m_pathParams.randomVariance = qBound(0.05, variance, 0.5);  // Clamp between 0.05 and 0.5
-    qDebug() << "Random variance set to:" << _m_pathParams.randomVariance;
-}
-
-double CMapCanvas::getRandomVariance() const
-{
-    return _m_pathParams.randomVariance;
-}
-
-void CMapCanvas::setSpreadRadiusKm(double radiusKm)
-{
-    _m_pathParams.spreadRadiusKm = qBound(0.5, radiusKm, 100.0);  // Clamp between 0.5 and 100 km
-    qDebug() << "Spread radius set to:" << _m_pathParams.spreadRadiusKm << "km";
-}
-
-double CMapCanvas::getSpreadRadiusKm() const
-{
-    return _m_pathParams.spreadRadiusKm;
-}
-
+void   CMapCanvas::setNumWaypoints(int n)       { _m_pathParams.numWaypoints    = qBound(2,    n,   100); qDebug()<<"Waypoints:"<<_m_pathParams.numWaypoints; }
+int    CMapCanvas::getNumWaypoints()      const { return _m_pathParams.numWaypoints; }
+void   CMapCanvas::setDefaultAltitude(double v) { _m_pathParams.defaultAltitude = qMax(0.0,   v);         qDebug()<<"Altitude:"<<v; }
+double CMapCanvas::getDefaultAltitude()   const { return _m_pathParams.defaultAltitude; }
+void   CMapCanvas::setCurveFactor(double v)     { _m_pathParams.curveFactor     = qBound(0.0, v,   1.0);  qDebug()<<"CurveFactor:"<<v; }
+double CMapCanvas::getCurveFactor()       const { return _m_pathParams.curveFactor; }
+void   CMapCanvas::setSpiralTurns(double v)     { _m_pathParams.spiralTurns     = qBound(0.5, v,  10.0);  qDebug()<<"SpiralTurns:"<<v; }
+double CMapCanvas::getSpiralTurns()       const { return _m_pathParams.spiralTurns; }
+void   CMapCanvas::setZigzagAmplitude(double v) { _m_pathParams.zigzagAmplitude = qBound(0.05,v,   0.5);  qDebug()<<"ZigzagAmplitude:"<<v; }
+double CMapCanvas::getZigzagAmplitude()   const { return _m_pathParams.zigzagAmplitude; }
+void   CMapCanvas::setZigzagFrequency(int v)    { _m_pathParams.zigzagFrequency = qBound(2,   v,    20);  qDebug()<<"ZigzagFrequency:"<<v; }
+int    CMapCanvas::getZigzagFrequency()   const { return _m_pathParams.zigzagFrequency; }
+void   CMapCanvas::setMaxTurnRadius(double v)   { _m_pathParams.maxTurnRadius   = qBound(0.01,v,   0.2);  qDebug()<<"MaxTurnRadius:"<<v; }
+double CMapCanvas::getMaxTurnRadius()     const { return _m_pathParams.maxTurnRadius; }
+void   CMapCanvas::setRandomVariance(double v)  { _m_pathParams.randomVariance  = qBound(0.05,v,   0.5);  qDebug()<<"RandomVariance:"<<v; }
+double CMapCanvas::getRandomVariance()    const { return _m_pathParams.randomVariance; }
+void   CMapCanvas::setSpreadRadiusKm(double v)  { _m_pathParams.spreadRadiusKm  = qBound(0.5, v, 100.0);  qDebug()<<"SpreadRadius:"<<v<<"km"; }
+double CMapCanvas::getSpreadRadiusKm()    const { return _m_pathParams.spreadRadiusKm; }

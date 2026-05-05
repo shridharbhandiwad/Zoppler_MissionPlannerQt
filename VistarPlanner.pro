@@ -1,42 +1,84 @@
 QT       += core gui xml network
-
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
-
 CONFIG += c++17
 
-
 OBJECTS_DIR = ../obj/OBJ
-MOC_DIR = ../obj/MOC
-UI_DIR = ../obj/UI
-RCC_DIR = ../obj/RCC
-
-TARGET = ../../bin/VistarPlanner
-TEMPLATE = app
-
-# You can make your code fail to compile if it uses deprecated APIs.
-# In order to do so, uncomment the following line.
-#DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
-
-
-# Change these to your actual paths
-QGIS_PREFIX = C:\Users\Shridhar\AppData\Local\Programs\OSGeo4W
-QGIS_INCLUDE = $$QGIS_PREFIX/apps/qgis-ltr-dev/include
-#QGIS_LIB = $$QGIS_PREFIX/
+MOC_DIR     = ../obj/MOC
+UI_DIR      = ../obj/UI
+RCC_DIR     = ../obj/RCC
+TARGET      = ../../bin/VistarPlanner
+TEMPLATE    = app
 
 DEFINES += _USE_MATH_DEFINES
 
-INCLUDEPATH += $$QGIS_INCLUDE
-DEPENDPATH += $$QGIS_INCLUDE
-LIBS += -L$$QGIS_PREFIX/apps/qgis-ltr-dev/lib \
-    -lqgis_core \
-     -lqgis_gui
-     -lqgis_analysis
+# ============================================================
+#  OS-agnostic QGIS paths
+#  Windows : QGIS via OSGeo4W  (override with qmake OSGEO4W_ROOT=...)
+#  Linux   : sudo apt install libqgis-dev qgis-providers
+#  macOS   : brew install qgis
+# ============================================================
+win32 {
+    isEmpty(OSGEO4W_ROOT) {
+        # Default OSGeo4W system-wide install
+        OSGEO4W_ROOT = C:/OSGeo4W
+        # Per-user AppData install (Shridhar's layout) — used if it exists
+        exists(C:/Users/$$(USERNAME)/AppData/Local/Programs/OSGeo4W/apps/qgis-ltr-dev/include) {
+            OSGEO4W_ROOT = C:/Users/$$(USERNAME)/AppData/Local/Programs/OSGeo4W
+        }
+    }
+    QGIS_INCLUDE = $$OSGEO4W_ROOT/apps/qgis-ltr-dev/include
+    QGIS_LIB     = $$OSGEO4W_ROOT/apps/qgis-ltr-dev/lib
+    QGIS_DEP_LIB = $$OSGEO4W_ROOT/lib
 
- LIBS += -L$$QGIS_PREFIX/lib \
-     -lgeos_c \
-     -lproj \
-     -lspatialite
+    INCLUDEPATH += $$QGIS_INCLUDE
+    DEPENDPATH  += $$QGIS_INCLUDE
 
+    LIBS += -L$$QGIS_LIB \
+            -lqgis_core \
+            -lqgis_gui \
+            -lqgis_analysis
+
+    LIBS += -L$$QGIS_DEP_LIB \
+            -lgeos_c \
+            -lproj \
+            -lspatialite
+}
+
+unix:!macx {
+    QGIS_INCLUDE = /usr/include/qgis
+    QGIS_LIB     = /usr/lib
+
+    INCLUDEPATH += $$QGIS_INCLUDE
+    DEPENDPATH  += $$QGIS_INCLUDE
+
+    LIBS += -L$$QGIS_LIB \
+            -lqgis_core \
+            -lqgis_gui \
+            -lqgis_analysis \
+            -lgeos_c \
+            -lproj \
+            -lspatialite
+}
+
+macx {
+    QGIS_INCLUDE = /usr/local/include/qgis
+    QGIS_LIB     = /usr/local/lib
+
+    INCLUDEPATH += $$QGIS_INCLUDE
+    DEPENDPATH  += $$QGIS_INCLUDE
+
+    LIBS += -L$$QGIS_LIB \
+            -lqgis_core \
+            -lqgis_gui \
+            -lqgis_analysis \
+            -lgeos_c \
+            -lproj \
+            -lspatialite
+}
+
+# ============================================================
+#  Sources  (kept exactly as in original)
+# ============================================================
 SOURCES += \
     MapDisplay/cmapcanvas.cpp \
     MapDisplay/cmaptoolselectobjects.cpp \
@@ -96,7 +138,6 @@ FORMS += \
     cupdateroute.ui \
     cvistarplanner.ui
 
-# Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
